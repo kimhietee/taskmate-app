@@ -1,6 +1,7 @@
 import { PAYMENT_BOUNDARY_NOTICE, SAFETY_NOTICE } from '@/constants/notices';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowDown, ArrowRight, BadgeCheck, ClipboardCheck, Handshake, Leaf, Search, ShieldCheck } from 'lucide-react';
+import { useState } from 'react';
 import { register, login } from '@/routes';
 import browse from '@/routes/browse';
 import tasks from '@/routes/tasks';
@@ -29,6 +30,9 @@ const steps = [
 export default function Welcome() {
     const { auth } = usePage<any>().props;
     const user = auth?.user;
+    const [activeNav, setActiveNav] = useState<'how' | 'dashboard' | null>(() =>
+        typeof window !== 'undefined' && window.location.hash === '#how-it-works' ? 'how' : null,
+    );
     const primaryHref = user?.is_admin ? '/admin' : user?.can_apply_tasks ? browse.index().url : user?.can_post_tasks ? tasks.create().url : user ? '/dashboard' : register().url;
     const primaryLabel = user?.is_admin || user ? (user?.can_apply_tasks ? 'Browse tasks' : user?.can_post_tasks ? 'Post a task' : 'Go to dashboard') : 'Create an account';
 
@@ -36,32 +40,41 @@ export default function Welcome() {
         <>
             <Head title="Campus tasks with clearer details" />
             <div className="bg-[#f7f8f2] text-[#183324] dark:bg-[#101b15] dark:text-[#edf4ec]">
-                <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
-                    <Link href="/" className="flex items-center gap-2.5 rounded-lg font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700">
-                        <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-800 text-amber-300 dark:bg-emerald-700">
-                            <Leaf aria-hidden="true" className="size-5" />
-                        </span>
-                        <span className="text-lg">TaskMate</span>
-                    </Link>
-                    <nav aria-label="Main navigation" className="flex items-center gap-2 sm:gap-5">
-                        <a href="#how-it-works" className="hidden text-sm font-medium text-[#526458] transition hover:text-emerald-800 dark:text-[#bdcbbf] dark:hover:text-amber-300 sm:inline">
-                            How it works
-                        </a>
-                        {user ? (
-                            <Link href="/dashboard" className="rounded-lg px-3 py-2 text-sm font-semibold transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
-                                Dashboard
+                <header className="sticky top-0 z-50 border-b border-emerald-900/10 bg-[#F5F8F2] dark:border-emerald-100/10 dark:bg-[#17251c]">
+                    <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+                        <Link href="/" onClick={() => setActiveNav(null)} className="flex items-center gap-2.5 rounded-lg font-semibold tracking-tight focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-700">
+                            <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-800 text-amber-300 dark:bg-emerald-700">
+                                <Leaf aria-hidden="true" className="size-5" />
+                            </span>
+                            <span className="text-lg">TaskMate</span>
+                        </Link>
+                        <nav aria-label="Main navigation" className="flex items-center gap-1">
+                            <a
+                                href="#how-it-works"
+                                aria-current={activeNav === 'how' ? 'location' : undefined}
+                                onClick={() => setActiveNav('how')}
+                                className={`hidden rounded-lg px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 sm:inline ${activeNav === 'how' ? 'bg-[#E4EDDF] text-emerald-900 dark:bg-emerald-800 dark:text-amber-200' : 'text-[#526458] hover:bg-[#EAF0E6] hover:text-emerald-900 active:bg-[#E4EDDF] dark:text-[#bdcbbf] dark:hover:bg-emerald-900/50 dark:hover:text-amber-200'}`}
+                            >
+                                How it works
+                            </a>
+                            {user && (
+                                <Link
+                                    href="/dashboard"
+                                    aria-current={activeNav === 'dashboard' ? 'page' : undefined}
+                                    onClick={() => setActiveNav('dashboard')}
+                                    className={`rounded-lg px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 ${activeNav === 'dashboard' ? 'bg-[#E4EDDF] text-emerald-900 dark:bg-emerald-800 dark:text-amber-200' : 'text-[#526458] hover:bg-[#EAF0E6] hover:text-emerald-900 active:bg-[#E4EDDF] dark:text-[#bdcbbf] dark:hover:bg-emerald-900/50 dark:hover:text-amber-200'}`}
+                                >
+                                    Dashboard
+                                </Link>
+                            )}
+                            <Link href={login()} className="rounded-lg px-3 py-2 text-sm font-semibold text-[#526458] transition-colors hover:bg-[#EAF0E6] hover:text-emerald-900 active:bg-[#E4EDDF] dark:text-[#bdcbbf] dark:hover:bg-emerald-900/50 dark:hover:text-amber-200">
+                                Log in
                             </Link>
-                        ) : (
-                            <>
-                                <Link href={login()} className="rounded-lg px-3 py-2 text-sm font-semibold transition hover:bg-emerald-100 dark:hover:bg-emerald-900/50">
-                                    Log in
-                                </Link>
-                                <Link href={register()} className="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 dark:bg-amber-300 dark:text-emerald-950 dark:hover:bg-amber-200">
-                                    Register
-                                </Link>
-                            </>
-                        )}
-                    </nav>
+                            <Link href={register()} className="rounded-lg bg-emerald-800 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 dark:bg-amber-300 dark:text-emerald-950 dark:hover:bg-amber-200">
+                                Register
+                            </Link>
+                        </nav>
+                    </div>
                 </header>
 
                 <main>
@@ -132,7 +145,7 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section id="how-it-works" className="border-y border-emerald-100 bg-white/70 dark:border-emerald-900 dark:bg-[#142119]">
+                    <section id="how-it-works" className="scroll-mt-20 border-y border-emerald-100 bg-white/70 dark:border-emerald-900 dark:bg-[#142119]">
                         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20">
                             <div className="max-w-2xl">
                                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-emerald-800 dark:text-amber-300">Simple, transparent steps</p>

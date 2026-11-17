@@ -102,6 +102,7 @@ class BrowseController extends Controller
             'id' => $task->id,
             'title' => $task->title,
             'category' => config('taskmate.categories.'.$task->category, $task->category),
+            'description' => $task->description,
             'budget' => $task->budget,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
             'estimatedDurationHours' => $task->estimated_duration_hours,
