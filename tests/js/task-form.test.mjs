@@ -50,13 +50,28 @@ test('task form keeps only the essentials and required workplace details', () =>
         options: {
             categories: [{ value: 'other', label: 'Other' }],
             workModes: [{ value: 'remote', label: 'Remote' }, { value: 'onsite', label: 'On-site' }],
+            payTimings: [{ value: 'upon_completion', label: 'Upon completion' }, { value: 'to_be_discussed', label: 'To be discussed' }],
+            daysOfWeek: [{ value: 'mon', label: 'Mon' }, { value: 'sat', label: 'Sat' }],
             guidelines: ['Follow the platform rules.'],
         },
         task: null,
         resetWarning: false,
     }));
 
-    for (const text of ['Task title', 'Category', 'What needs to be done?', 'Estimated budget (PHP)', 'Work mode', 'Deadline (optional)', 'I confirm that this task follows the platform rules.']) {
+    for (const text of [
+        'Task title',
+        'Category',
+        'What needs to be done?',
+        'Estimated budget (PHP)',
+        'Pay amount is to be discussed',
+        'When is pay given? (Pay timing)',
+        'Work schedule / hours',
+        'Work hours are to be discussed',
+        'Can hours change?',
+        'Work mode',
+        'Deadline (optional)',
+        'I confirm that this task follows the platform rules.',
+    ]) {
         assert.match(markup, new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
     }
     for (const field of ['complexity', 'required_activities', 'deliverables', 'estimated_duration_hours', 'skill_requirements', 'physical_demand', 'academic_involvement', 'hazard_exposure', 'private_meeting_required', 'workplace_setting']) {

@@ -55,7 +55,10 @@ class NotificationsTest extends TestCase
         $task = Task::factory()->approved()->for($poster, 'poster')->create(['work_mode' => 'remote', 'workplace_name' => null, 'workplace_address' => null, 'workplace_setting' => null]);
 
         $this->actingAs($applicant)->post(route('applications.store', $task), [
-            'message' => 'Synthetic interest message.', 'work_details_confirmed' => '1',
+            'message' => 'Synthetic interest message.',
+            'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
         ])->assertRedirect();
         $this->assertSame('application.new', $poster->notifications()->firstOrFail()->data['event']);
         $this->assertSame(0, $applicant->notifications()->count());

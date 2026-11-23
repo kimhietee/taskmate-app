@@ -36,7 +36,7 @@ class TaskController extends Controller
             $task = $request->user()->tasks()->make($request->safe()->except('guidelines_confirmed'));
             $task->guidelines_confirmed_at = now();
             $task->save();
-            foreach (['title', 'description', 'required_activities', 'deliverables', 'skill_requirements'] as $field) {
+            foreach (['title', 'description', 'required_activities', 'deliverables', 'skill_requirements', 'pay_timing_note', 'schedule_note'] as $field) {
                 if ($task->{$field}) $scanner->flag($task, $request->user(), $field, $task->{$field});
             }
 
@@ -152,7 +152,7 @@ class TaskController extends Controller
             $task->fill($request->safe()->except('guidelines_confirmed'));
             $task->guidelines_confirmed_at = now();
             $task->save();
-            foreach (['title', 'description', 'required_activities', 'deliverables', 'skill_requirements'] as $field) {
+            foreach (['title', 'description', 'required_activities', 'deliverables', 'skill_requirements', 'pay_timing_note', 'schedule_note'] as $field) {
                 if ($task->{$field}) $scanner->flag($task, $request->user(), $field, $task->{$field});
             }
 
@@ -188,6 +188,8 @@ class TaskController extends Controller
         return [
             'categories' => $this->optionsFor(config('taskmate.categories', [])),
             'workModes' => $this->optionsFor(config('taskmate.work_modes', [])),
+            'payTimings' => $this->optionsFor(config('taskmate.pay_timings', [])),
+            'daysOfWeek' => $this->optionsFor(config('taskmate.days_of_week', [])),
             'guidelines' => config('taskmate.task_guidelines', []),
         ];
     }
@@ -204,6 +206,13 @@ class TaskController extends Controller
             'title' => $task->title,
             'category' => config('taskmate.categories.'.$task->category, $task->category),
             'budget' => $task->budget,
+            'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
+            'payTiming' => $task->pay_timing,
+            'payTimingLabel' => $task->payTimingLabel(),
+            'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
+            'scheduleSummary' => $task->scheduleSummary(),
+            'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
+            'canHoursChange' => $task->can_hours_change,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
             'status' => $task->status->value,
             'statusLabel' => $task->status->label(),
@@ -224,6 +233,11 @@ class TaskController extends Controller
             'deliverables' => $task->deliverables,
             'estimatedDurationHours' => $task->estimated_duration_hours,
             'skillRequirements' => $task->skill_requirements,
+            'payTimingNote' => $task->pay_timing_note,
+            'scheduleDays' => $task->schedule_days ?? [],
+            'scheduleStartTime' => $task->schedule_start_time,
+            'scheduleEndTime' => $task->schedule_end_time,
+            'scheduleNote' => $task->schedule_note,
             'workModeValue' => $task->work_mode,
             'workplaceName' => $task->workplace_name,
             'workplaceAddress' => $task->workplace_address,

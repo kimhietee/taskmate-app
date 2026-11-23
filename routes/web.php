@@ -30,6 +30,7 @@ use App\Http\Controllers\PublicInformationController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ConversationController;
 use App\Http\Controllers\ConversationMessageReportController;
+use App\Http\Controllers\ClassScheduleController;
 
 Route::inertia('/', 'welcome')->name('home');
 Route::get('/how-it-works', PublicInformationController::class)->defaults('page', 'how-it-works')->name('static.how-it-works');
@@ -137,6 +138,7 @@ Route::middleware(['auth', 'account.active', 'account.verified', 'can.apply'])->
     Route::get('/browse', [BrowseController::class, 'index'])->name('browse.index');
     Route::get('/browse/{task}', [BrowseController::class, 'show'])->name('browse.show');
     Route::post('/browse/{task}/apply', [ApplicationController::class, 'store'])->name('applications.store');
+    Route::put('/my-class-schedule', [ClassScheduleController::class, 'update'])->name('class-schedule.update');
     Route::get('/my-applications', [ApplicationController::class, 'mine'])->name('applications.mine');
     Route::get('/my-applications/{application}/task', [BrowseController::class, 'applicationTask'])->name('applications.task');
     Route::post('/my-applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');

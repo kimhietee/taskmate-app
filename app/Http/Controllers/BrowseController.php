@@ -30,10 +30,10 @@ class BrowseController extends Controller
             ->when($filters['category'] ?? null, fn ($query, string $category) => $query->where('category', $category))
             ->when($filters['work_mode'] ?? null, fn ($query, string $mode) => $query->where('work_mode', $mode))
             ->when($filters['complexity'] ?? null, fn ($query, string $complexity) => $query->where('complexity', $complexity))
-            ->when(isset($filters['min_budget']), fn ($query) => $query->where('budget', '>=', $filters['min_budget']))
-            ->when(isset($filters['max_budget']), fn ($query) => $query->where('budget', '<=', $filters['max_budget']))
-            ->when(($filters['sort'] ?? 'newest') === 'budget_high', fn ($query) => $query->orderByDesc('budget'))
-            ->when(($filters['sort'] ?? 'newest') === 'budget_low', fn ($query) => $query->orderBy('budget'))
+            ->when(isset($filters['min_budget']), fn ($query) => $query->whereNotNull('budget')->where('budget', '>=', $filters['min_budget']))
+            ->when(isset($filters['max_budget']), fn ($query) => $query->whereNotNull('budget')->where('budget', '<=', $filters['max_budget']))
+            ->when(($filters['sort'] ?? 'newest') === 'budget_high', fn ($query) => $query->orderByRaw('budget IS NULL ASC')->orderByDesc('budget'))
+            ->when(($filters['sort'] ?? 'newest') === 'budget_low', fn ($query) => $query->orderByRaw('budget IS NULL ASC')->orderBy('budget'))
             ->when(($filters['sort'] ?? 'newest') === 'newest', fn ($query) => $query->latest())
             ->paginate((int) config('taskmate.browse.per_page', 12))
             ->withQueryString()
@@ -75,6 +75,9 @@ class BrowseController extends Controller
             'offPlatformWarning' => $task->contentFlags()->where('source_user_id', '!=', $request->user()->id)->where('status', 'open')->exists(),
             'status' => $request->session()->get('status'),
             'messageMaxLength' => (int) config('taskmate.applications.message_max_length', 1000),
+            'studentClassSchedule' => $request->user()->class_schedule ?? [],
+            'daysOfWeek' => $this->options(config('taskmate.days_of_week', [])),
+            'maxClassBlocks' => (int) config('taskmate.class_schedule.max_blocks', 25),
         ]);
     }
 
@@ -97,6 +100,9 @@ class BrowseController extends Controller
             'limitedView' => $task->status !== TaskStatus::Approved,
             'currentTaskStatus' => $task->status->label(),
             'messageMaxLength' => (int) config('taskmate.applications.message_max_length', 1000),
+            'studentClassSchedule' => $request->user()->class_schedule ?? [],
+            'daysOfWeek' => $this->options(config('taskmate.days_of_week', [])),
+            'maxClassBlocks' => (int) config('taskmate.class_schedule.max_blocks', 25),
         ]);
     }
 
@@ -108,6 +114,12 @@ class BrowseController extends Controller
             'descriptionPreview' => Str::limit(strip_tags($task->description), 180),
             'category' => config('taskmate.categories.'.$task->category, $task->category),
             'budget' => $task->budget,
+            'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
+            'payTimingLabel' => $task->payTimingLabel(),
+            'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
+            'scheduleSummary' => $task->scheduleSummary(),
+            'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
+            'canHoursChange' => $task->can_hours_change,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
             'deadline' => $task->deadline?->toDateString(),
             'workplaceName' => $task->workplace_name,
@@ -131,6 +143,18 @@ class BrowseController extends Controller
             'estimatedDurationHours' => $task->estimated_duration_hours,
             'skillRequirements' => $task->skill_requirements,
             'budget' => $task->budget,
+            'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
+            'payTiming' => $task->pay_timing,
+            'payTimingLabel' => $task->payTimingLabel(),
+            'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
+            'payTimingNote' => $task->pay_timing_note,
+            'scheduleDays' => $task->schedule_days ?? [],
+            'scheduleStartTime' => $task->schedule_start_time,
+            'scheduleEndTime' => $task->schedule_end_time,
+            'scheduleNote' => $task->schedule_note,
+            'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
+            'scheduleSummary' => $task->scheduleSummary(),
+            'canHoursChange' => $task->can_hours_change,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
             'workplaceName' => $task->workplace_name,
             'workplaceAddress' => $task->workplace_address,

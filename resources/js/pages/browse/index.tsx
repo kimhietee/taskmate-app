@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import { ApplicationStatusBadge } from '@/components/application-status-badge';
 import { VerificationStatusBadge } from '@/components/verification-status-badge';
+import { ToBeDiscussedBadge } from '@/components/terms-status-badge';
 import browse from '@/routes/browse';
 
 type Option = { value: string; label: string };
@@ -11,7 +12,13 @@ type Listing = {
     title: string;
     descriptionPreview: string;
     category: string;
-    budget: string;
+    budget: string | null;
+    budgetToBeDiscussed?: boolean;
+    payTimingLabel?: string;
+    payTimingToBeDiscussed?: boolean;
+    scheduleSummary?: string | null;
+    scheduleToBeDiscussed?: boolean;
+    canHoursChange?: boolean | null;
     workMode: string;
     deadline: string | null;
     workplaceName: string | null;
@@ -99,11 +106,30 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
 
                                 <p className="line-clamp-3 text-sm text-muted-foreground">{task.descriptionPreview}</p>
 
-                                <div className="rounded-lg bg-muted/40 p-3">
-                                    <p className="text-xl font-semibold">₱{formatAmount(task.budget)}</p>
-                                    <p className="mt-1 text-sm">{task.workMode}</p>
-                                    {task.deadline && <p className="mt-1 text-sm">Deadline: {formatDate(task.deadline)}</p>}
-                                    {(task.workplaceName || task.workplaceAddress) && <p className="mt-1 text-sm">Workplace: {[task.workplaceName, task.workplaceAddress].filter(Boolean).join(' · ')}</p>}
+                                <div className="space-y-1.5 rounded-lg bg-muted/40 p-3">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                        {task.budgetToBeDiscussed || task.budget === null ? (
+                                            <ToBeDiscussedBadge label="Pay: To be discussed" />
+                                        ) : (
+                                            <p className="text-xl font-semibold">₱{formatAmount(task.budget)}</p>
+                                        )}
+                                        {task.payTimingToBeDiscussed ? (
+                                            <ToBeDiscussedBadge label="Timing: To be discussed" />
+                                        ) : task.payTimingLabel ? (
+                                            <span className="rounded bg-background px-2 py-0.5 text-xs font-medium">{task.payTimingLabel}</span>
+                                        ) : null}
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-1.5 text-sm">
+                                        <span className="font-medium">Hours:</span>
+                                        {task.scheduleToBeDiscussed || !task.scheduleSummary ? (
+                                            <ToBeDiscussedBadge />
+                                        ) : (
+                                            <span>{task.scheduleSummary}</span>
+                                        )}
+                                    </div>
+                                    <p className="text-sm">{task.workMode}</p>
+                                    {task.deadline && <p className="text-sm">Deadline: {formatDate(task.deadline)}</p>}
+                                    {(task.workplaceName || task.workplaceAddress) && <p className="text-sm">Workplace: {[task.workplaceName, task.workplaceAddress].filter(Boolean).join(' · ')}</p>}
                                 </div>
 
                                 <div className="mt-auto border-t pt-3">

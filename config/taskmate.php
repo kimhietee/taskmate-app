@@ -57,6 +57,32 @@ return [
         'hybrid' => 'Hybrid',
     ],
 
+    // PROVISIONAL: the team must confirm the upfront pay timing options shown on job terms cards.
+    'pay_timings' => [
+        'upon_completion' => 'Upon completion',
+        'daily' => 'Daily',
+        'weekly' => 'Weekly',
+        'bi_weekly' => 'Bi-weekly (every 2 weeks)',
+        'monthly' => 'Monthly',
+        'milestone' => 'Per milestone / installment',
+        'to_be_discussed' => 'To be discussed',
+    ],
+
+    'days_of_week' => [
+        'mon' => 'Mon',
+        'tue' => 'Tue',
+        'wed' => 'Wed',
+        'thu' => 'Thu',
+        'fri' => 'Fri',
+        'sat' => 'Sat',
+        'sun' => 'Sun',
+    ],
+
+    // PROVISIONAL: maximum saved weekly class schedule blocks per student.
+    'class_schedule' => [
+        'max_blocks' => 25,
+    ],
+
     'complexity_levels' => [
         'low' => 'Low',
         'medium' => 'Medium',

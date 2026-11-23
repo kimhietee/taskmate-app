@@ -66,6 +66,9 @@ class BrowseApplicationsTest extends TestCase
             'message' => 'I am interested and have relevant experience.',
             'proposed_amount' => 1800,
             'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
+            'known_person_or_reviews_checked' => '0',
         ], $overrides);
     }
 
@@ -306,5 +309,88 @@ class BrowseApplicationsTest extends TestCase
             ->where('applications.0.userId', $student->id)
             ->where('applications.0.applicantName', $student->name)
             ->missing('applications.0.email'));
+    }
+
+    public function test_application_requires_poster_identity_and_no_upfront_fee_checks_but_keeps_third_check_optional(): void
+    {
+        $student = $this->student();
+        $poster = $this->poster();
+        $task = $this->task($poster);
+
+        $this->actingAs($student)->post(route('applications.store', $task), [
+            'message' => 'Trying to skip checklist checks.',
+            'work_details_confirmed' => '1',
+        ])->assertSessionHasErrors(['poster_identity_checked', 'no_upfront_fee_checked']);
+
+        $this->actingAs($student)->post(route('applications.store', $task), [
+            'message' => 'Completed required checks without personal contact.',
+            'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
+            'known_person_or_reviews_checked' => '0',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('applications', ['task_id' => $task->id, 'applicant_id' => $student->id]);
+    }
+
+    public function test_verified_student_can_save_and_view_own_class_schedule_while_non_students_cannot(): void
+    {
+        $student = $this->student();
+        $poster = $this->poster();
+        $task = $this->task($poster, [
+            'pay_timing' => 'bi_weekly',
+            'schedule_days' => ['mon', 'wed'],
+            'schedule_start_time' => '09:00',
+            'schedule_end_time' => '11:00',
+            'can_hours_change' => false,
+        ]);
+
+        $this->actingAs($poster)->put(route('class-schedule.update'), ['blocks' => []])->assertForbidden();
+
+        $this->actingAs($student)->put(route('class-schedule.update'), [
+            'blocks' => [
+                ['day' => 'mon', 'start_time' => '12:00', 'end_time' => '10:00', 'label' => 'Invalid order'],
+            ],
+        ])->assertSessionHasErrors('blocks.0.end_time');
+
+        $this->actingAs($student)->put(route('class-schedule.update'), [
+            'blocks' => [
+                ['day' => 'wed', 'start_time' => '08:00', 'end_time' => '11:00', 'label' => 'IT57 Lecture'],
+                ['day' => 'mon', 'start_time' => '08:00', 'end_time' => '11:00', 'label' => 'IT57 Lecture'],
+            ],
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $this->assertSame('mon', $student->fresh()->class_schedule[0]['day']);
+        $this->assertSame('wed', $student->fresh()->class_schedule[1]['day']);
+
+        $this->actingAs($student)->get(route('browse.show', $task))->assertOk()->assertInertia(fn ($page) => $page
+            ->component('browse/show')
+            ->where('task.payTimingLabel', 'Bi-weekly (every 2 weeks)')
+            ->where('task.scheduleSummary', 'Mon, Wed · 9:00 AM–11:00 AM')
+            ->where('task.canHoursChange', false)
+            ->has('studentClassSchedule', 2)
+            ->where('studentClassSchedule.0.day', 'mon'));
+    }
+
+    public function test_browse_sorting_places_stated_budgets_before_to_be_discussed_tasks(): void
+    {
+        $student = $this->student();
+        $poster = $this->poster();
+        $tbd = Task::factory()->approved()->termsToBeDiscussed()->create(['poster_id' => $poster->id, 'title' => 'SortTarget TBD']);
+        $cheap = $this->task($poster, ['title' => 'SortTarget Cheap', 'budget' => 400]);
+        $high = $this->task($poster, ['title' => 'SortTarget High', 'budget' => 2500]);
+
+        $this->actingAs($student)->get(route('browse.index', ['search' => 'SortTarget', 'sort' => 'budget_low']))
+            ->assertOk()->assertInertia(fn ($page) => $page
+                ->where('tasks.data.0.id', $cheap->id)
+                ->where('tasks.data.1.id', $high->id)
+                ->where('tasks.data.2.id', $tbd->id)
+                ->where('tasks.data.2.budgetToBeDiscussed', true));
+
+        $this->actingAs($student)->get(route('browse.index', ['search' => 'SortTarget', 'sort' => 'budget_high']))
+            ->assertOk()->assertInertia(fn ($page) => $page
+                ->where('tasks.data.0.id', $high->id)
+                ->where('tasks.data.1.id', $cheap->id)
+                ->where('tasks.data.2.id', $tbd->id));
     }
 }

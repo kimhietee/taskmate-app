@@ -36,6 +36,7 @@ class ErrorHandlingTest extends TestCase
 
         $this->assertStringContainsString('Local debug marker', $response->getContent());
         $this->assertStringContainsString(RuntimeException::class, $response->getContent());
-        $this->assertStringNotContainsString('errors/status', $response->getContent());
+        $this->assertSame(0, preg_match('#data-page="[^"]*errors(?:\\\\/|/)status#', $response->getContent()));
+        $this->assertStringNotContainsString('id="app" '.'data-page=', $response->getContent());
     }
 }

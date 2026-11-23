@@ -45,6 +45,7 @@ const MyApplications = loadPage('resources/js/pages/applications/index.tsx', {
     '@/routes/browse': { default: { index: () => ({ url: '/browse' }) } },
     '@/routes/agreements': { default: { rate: (id) => ({ url: `/agreements/${id}/rate` }), show: (id) => ({ url: `/agreements/${id}` }) } },
     '@/components/payment-status-badge': { PaymentStatusBadge: () => null },
+    '@/components/terms-status-badge': { ToBeDiscussedBadge: ({ label = 'To be discussed' } = {}) => element('span', { children: label }) },
 }, 'my applications');
 
 const AgreementDetails = loadPage('resources/js/components/agreement-details.tsx', {

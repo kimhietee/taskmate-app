@@ -35,13 +35,18 @@ const modules = {
     '@/components/task-status-badge': { TaskStatusBadge: () => element('span', { children: 'Task status' }) },
     '@/components/verification-status-badge': { VerificationStatusBadge: () => element('span', { children: 'Verification status' }) },
     '@/components/safety-notice': { SafetyNotice: () => element('p', { children: 'Safety notice' }) },
+    '@/components/terms-status-badge': { ToBeDiscussedBadge: ({ label = 'To be discussed' } = {}) => element('span', { children: label }) },
     '@/components/ui/button': { Button: (props) => element('button', props) },
     '@/components/ui/textarea': { Textarea: (props) => element('textarea', props) },
     '@/components/input-error': () => null,
     '@/routes/admin': { default: { tasks: { index: route('/admin/tasks'), decision: { form: () => ({ action: '/admin/tasks/1/decision', method: 'post' }) } }, agreements: { show: route('/admin/agreements/1') } } },
     '@/routes/admin/users': { default: { show: route('/admin/users/1') } },
     '@/components/completion-payment-panel': { CompletionPaymentPanel: () => element('section', { children: 'Completion and payment' }) },
-    '@/lib/format': { formatAmount: (value) => String(value), formatDateTime: (value) => value ?? '—' },
+    '@/lib/format': {
+        formatAmount: (value) => String(value),
+        formatDateTime: (value) => value ?? '—',
+        formatHoursFlexibility: (value) => (value === true ? 'Yes — hours can change around classes' : value === false ? 'No — fixed schedule' : 'Not specified'),
+    },
     '@/constants/notices': { PAYMENT_BOUNDARY_NOTICE: 'Payment notice' },
 };
 

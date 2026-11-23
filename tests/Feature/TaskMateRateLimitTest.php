@@ -34,7 +34,12 @@ class TaskMateRateLimitTest extends TestCase
         $task = Task::factory()->approved()->create();
         $url = '/browse/'.$task->id.'/apply';
         RateLimiter::clear('apply|'.$student->id);
-        $data = ['message' => 'Synthetic application.', 'work_details_confirmed' => '1'];
+        $data = [
+            'message' => 'Synthetic application.',
+            'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
+        ];
         $this->actingAs($student)->post($url, $data)->assertRedirect();
         $this->actingAs($student)->post($url, $data)->assertTooManyRequests();
     }

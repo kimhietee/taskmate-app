@@ -67,6 +67,15 @@ class DemoScenarioSeeder extends Seeder
             $task->skill_requirements = null;
             $task->complexity = 'low';
             $task->budget = 500;
+            $task->budget_to_be_discussed = false;
+            $task->pay_timing = 'upon_completion';
+            $task->pay_timing_note = null;
+            $task->schedule_days = ['sat'];
+            $task->schedule_start_time = '10:00';
+            $task->schedule_end_time = '12:00';
+            $task->schedule_note = null;
+            $task->schedule_to_be_discussed = false;
+            $task->can_hours_change = true;
             $task->work_mode = 'remote';
             $task->workplace_name = null;
             $task->workplace_address = null;

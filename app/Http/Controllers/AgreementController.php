@@ -34,17 +34,23 @@ class AgreementController extends Controller
         $deadline = $task->deadline?->toDateString();
         $defaultDueDate = $deadline && $deadline > today()->toDateString() ? $deadline : today()->addDays(7)->toDateString();
 
+        $paymentArrangementDefault = '';
+        if (! $task->isPayTimingToBeDiscussed()) {
+            $paymentArrangementDefault = $task->payTimingLabel().($task->pay_timing_note ? ' — '.$task->pay_timing_note : '');
+        }
+
         return Inertia::render('agreements/create', [
             'task' => $this->taskSummary($task),
             'workerName' => $accepted->applicant->name,
             'defaults' => [
-                'deliverables' => $task->deliverables,
-                'finalAmount' => $accepted->proposed_amount ?? $task->budget,
+                'deliverables' => $task->deliverables ?? '',
+                'finalAmount' => $accepted->proposed_amount ?? $task->budget ?? '',
                 'startDate' => today()->addDay()->toDateString(),
                 'dueDate' => $defaultDueDate,
                 'workplaceName' => $task->workplace_name,
                 'workplaceAddress' => $task->workplace_address,
                 'workMode' => $task->work_mode,
+                'paymentArrangement' => $paymentArrangementDefault,
             ],
             'termsMaxLength' => config('taskmate.agreement.terms_max_length', 3000),
         ]);
@@ -272,6 +278,21 @@ class AgreementController extends Controller
 
     private function taskSummary(Task $task): array
     {
-        return ['id' => $task->id, 'title' => $task->title, 'budget' => $task->budget, 'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode), 'workplaceName' => $task->workplace_name, 'workplaceAddress' => $task->workplace_address];
+        return [
+            'id' => $task->id,
+            'title' => $task->title,
+            'budget' => $task->budget,
+            'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
+            'payTimingLabel' => $task->payTimingLabel(),
+            'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
+            'payTimingNote' => $task->pay_timing_note,
+            'scheduleSummary' => $task->scheduleSummary(),
+            'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
+            'scheduleNote' => $task->schedule_note,
+            'canHoursChange' => $task->can_hours_change,
+            'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
+            'workplaceName' => $task->workplace_name,
+            'workplaceAddress' => $task->workplace_address,
+        ];
     }
 }

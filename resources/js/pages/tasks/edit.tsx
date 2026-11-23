@@ -5,11 +5,14 @@ import { update } from '@/routes/tasks';
 type Option = { value: string; label: string };
 type TaskData = {
     id: number; title: string; category: string; description: string; requiredActivities: string | null; deliverables: string | null;
-    estimatedDurationHours: string | null; skillRequirements: string | null; complexity: string | null; budget: string;
+    estimatedDurationHours: string | null; skillRequirements: string | null; complexity: string | null; budget: string | null;
+    budgetToBeDiscussed?: boolean; payTiming?: string | null; payTimingNote?: string | null;
+    scheduleDays?: string[]; scheduleStartTime?: string | null; scheduleEndTime?: string | null; scheduleNote?: string | null;
+    scheduleToBeDiscussed?: boolean; canHoursChange?: boolean | null;
     workModeValue: string; workplaceName: string | null; workplaceAddress: string | null; deadline: string | null;
 };
 type Props = {
-    options: { categories: Option[]; workModes: Option[]; guidelines: string[] };
+    options: { categories: Option[]; workModes: Option[]; payTimings: Option[]; daysOfWeek: Option[]; guidelines: string[] };
     task: TaskData;
     resetWarning: boolean;
 };

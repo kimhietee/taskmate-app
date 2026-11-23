@@ -199,4 +199,35 @@ class PrivacyAuditTest extends TestCase
         config(['taskmate.prototype_mode' => false]);
         $this->get('/')->assertInertia(fn (Assert $page) => $page->where('prototypeMode', false));
     }
+
+    public function test_student_class_schedule_stays_private_to_owner_and_is_not_exposed_in_shared_or_other_views(): void
+    {
+        $student = User::factory()->verified()->create();
+        $student->class_schedule = [
+            ['day' => 'mon', 'start_time' => '08:00', 'end_time' => '11:00', 'label' => 'Private Class'],
+        ];
+        $student->save();
+
+        $poster = User::factory()->verified()->facultyStaff()->create();
+        $admin = User::factory()->verified()->create();
+        $admin->is_admin = true;
+        $admin->save();
+
+        $task = Task::factory()->approved()->for($poster, 'poster')->create();
+        \App\Models\Application::factory()->for($task)->for($student, 'applicant')->create();
+
+        $this->actingAs($student)->get('/users/'.$student->id)->assertInertia(fn (Assert $page) => $page
+            ->missing('auth.user.class_schedule')
+            ->missing('auth.user.classSchedule')
+            ->missing('profile.class_schedule')
+            ->missing('profile.classSchedule'));
+
+        $this->actingAs($poster)->get(route('tasks.show', $task))->assertInertia(fn (Assert $page) => $page
+            ->missing('applicants.0.applicant.class_schedule')
+            ->missing('applicants.0.applicant.classSchedule'));
+
+        $this->actingAs($admin)->get(route('admin.users.show', $student))->assertInertia(fn (Assert $page) => $page
+            ->missing('user.class_schedule')
+            ->missing('user.classSchedule'));
+    }
 }

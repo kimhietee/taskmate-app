@@ -25,6 +25,9 @@ class TaskFactory extends Factory
             'skill_requirements' => fake()->optional()->sentence(),
             'complexity' => 'medium',
             'budget' => fake()->randomFloat(2, 500, 10000),
+            'budget_to_be_discussed' => false,
+            'pay_timing' => 'upon_completion',
+            'pay_timing_note' => null,
             'work_mode' => 'onsite',
             'workplace_name' => 'Synthetic Campus Office',
             'workplace_address' => 'Synthetic campus location',
@@ -35,9 +38,30 @@ class TaskFactory extends Factory
             'private_meeting_required' => false,
             'workplace_setting' => 'on_campus',
             'deadline' => fake()->optional()->dateTimeBetween('+2 days', '+2 months')?->format('Y-m-d'),
+            'schedule_days' => ['sat'],
+            'schedule_start_time' => '09:00',
+            'schedule_end_time' => '12:00',
+            'schedule_note' => null,
+            'schedule_to_be_discussed' => false,
+            'can_hours_change' => true,
             'status' => TaskStatus::PendingReview,
             'guidelines_confirmed_at' => now(),
         ];
+    }
+
+    public function termsToBeDiscussed(): static
+    {
+        return $this->state(fn () => [
+            'budget' => null,
+            'budget_to_be_discussed' => true,
+            'pay_timing' => 'to_be_discussed',
+            'pay_timing_note' => null,
+            'schedule_days' => null,
+            'schedule_start_time' => null,
+            'schedule_end_time' => null,
+            'schedule_to_be_discussed' => true,
+            'can_hours_change' => true,
+        ]);
     }
 
     public function approved(): static

@@ -283,4 +283,81 @@ class TaskPostingTest extends TestCase
         ]))->assertRedirect();
         $this->assertNull(Task::latest('id')->firstOrFail()->workplace_setting);
     }
+
+    public function test_poster_can_submit_upfront_schedule_pay_timing_and_to_be_discussed_terms(): void
+    {
+        $poster = $this->verifiedPoster();
+
+        $this->actingAs($poster)->post(route('tasks.store'), [
+            'title' => 'Synthetic flexible terms offer',
+            'category' => 'other',
+            'description' => 'Employer A style synthetic offer with negotiable pay and hours.',
+            'budget_to_be_discussed' => '1',
+            'budget' => '',
+            'pay_timing' => 'to_be_discussed',
+            'pay_timing_note' => 'Discussed after reviewing availability.',
+            'schedule_to_be_discussed' => '1',
+            'can_hours_change' => '1',
+            'work_mode' => 'remote',
+            'guidelines_confirmed' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $tbdTask = $poster->tasks()->latest('id')->firstOrFail();
+        $this->assertNull($tbdTask->budget);
+        $this->assertTrue($tbdTask->budget_to_be_discussed);
+        $this->assertTrue($tbdTask->isBudgetToBeDiscussed());
+        $this->assertSame('to_be_discussed', $tbdTask->pay_timing);
+        $this->assertTrue($tbdTask->isPayTimingToBeDiscussed());
+        $this->assertTrue($tbdTask->schedule_to_be_discussed);
+        $this->assertTrue($tbdTask->isScheduleToBeDiscussed());
+        $this->assertTrue($tbdTask->can_hours_change);
+
+        $this->actingAs($poster)->post(route('tasks.store'), [
+            'title' => 'Synthetic structured weekend offer',
+            'category' => 'event_support',
+            'description' => 'Synthetic offer with explicit bi-weekly pay and fixed schedule.',
+            'budget_to_be_discussed' => '0',
+            'budget' => 900,
+            'pay_timing' => 'bi_weekly',
+            'pay_timing_note' => 'Paid every other Saturday.',
+            'schedule_to_be_discussed' => '0',
+            'schedule_days' => ['sat', 'sun'],
+            'schedule_start_time' => '09:00',
+            'schedule_end_time' => '12:00',
+            'can_hours_change' => '0',
+            'work_mode' => 'remote',
+            'guidelines_confirmed' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $structuredTask = $poster->tasks()->latest('id')->firstOrFail();
+        $this->assertSame('900.00', $structuredTask->budget);
+        $this->assertFalse($structuredTask->isBudgetToBeDiscussed());
+        $this->assertSame('Bi-weekly (every 2 weeks)', $structuredTask->payTimingLabel());
+        $this->assertSame(['sat', 'sun'], $structuredTask->schedule_days);
+        $this->assertSame('Sat, Sun · 9:00 AM–12:00 PM', $structuredTask->scheduleSummary());
+        $this->assertFalse($structuredTask->can_hours_change);
+    }
+
+    public function test_invalid_pay_timing_and_incomplete_or_reversed_schedule_are_rejected(): void
+    {
+        $poster = $this->verifiedPoster();
+
+        $this->actingAs($poster)->post(route('tasks.store'), $this->taskData([
+            'pay_timing' => 'every_decade',
+        ]))->assertSessionHasErrors('pay_timing');
+
+        $this->post(route('tasks.store'), $this->taskData([
+            'schedule_to_be_discussed' => '0',
+            'schedule_days' => ['mon'],
+            'schedule_start_time' => '14:00',
+            'schedule_end_time' => '',
+        ]))->assertSessionHasErrors('schedule_end_time');
+
+        $this->post(route('tasks.store'), $this->taskData([
+            'schedule_to_be_discussed' => '0',
+            'schedule_days' => ['mon'],
+            'schedule_start_time' => '15:00',
+            'schedule_end_time' => '13:00',
+        ]))->assertSessionHasErrors('schedule_end_time');
+    }
 }

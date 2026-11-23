@@ -40,7 +40,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property-read Collection<int, Team> $teams
  */
 #[Fillable(['name', 'email', 'password', 'user_type', 'id_number', 'affiliation', 'organization_name', 'position', 'supporting_info'])]
-#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
+#[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'class_schedule'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     public function isAdmin(): bool
@@ -176,6 +176,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'password' => 'hashed',
             'user_type' => UserType::class,
             'verification_status' => VerificationStatus::class,
+            'class_schedule' => 'array',
             /* @chisel-2fa */
             'two_factor_confirmed_at' => 'datetime',
             /* @end-chisel-2fa */

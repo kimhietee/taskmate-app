@@ -79,9 +79,20 @@ class AgreementWorkflowTest extends TestCase
     public function test_initial_proposal_uses_disclosed_workplace_and_work_mode_and_prefills_amount(): void
     {
         $pair = $this->assignedTask();
-        $pair['task']->update(['work_mode' => 'hybrid', 'workplace_name' => 'Synthetic campus library', 'workplace_address' => 'Synthetic campus address']);
+        $pair['task']->update([
+            'work_mode' => 'hybrid',
+            'workplace_name' => 'Synthetic campus library',
+            'workplace_address' => 'Synthetic campus address',
+            'pay_timing' => 'weekly',
+            'pay_timing_note' => 'Paid Saturdays in cash',
+        ]);
         $this->actingAs($pair['poster'])->get(route('agreements.create', $pair['task']))
-            ->assertOk()->assertInertia(fn (Assert $page) => $page->component('agreements/create')->where('defaults.finalAmount', '1250.00')->where('defaults.workMode', 'hybrid'));
+            ->assertOk()->assertInertia(fn (Assert $page) => $page
+                ->component('agreements/create')
+                ->where('defaults.finalAmount', '1250.00')
+                ->where('defaults.workMode', 'hybrid')
+                ->where('defaults.paymentArrangement', 'Weekly — Paid Saturdays in cash')
+                ->where('task.payTimingLabel', 'Weekly'));
 
         $data = $this->proposalData(['work_mode' => 'remote', 'workplace_name' => 'Forged place', 'workplace_address' => 'Forged address']);
         $this->actingAs($pair['poster'])->post(route('agreements.store', $pair['task']), $data)->assertRedirect();
@@ -211,7 +222,7 @@ class AgreementWorkflowTest extends TestCase
         $this->assertSame($pair['student']->id, $agreement->fresh()->cancelled_by);
         $this->assertTrue($pair['poster']->can('cancel', $pair['task']->fresh()));
         $this->actingAs($pair['poster'])->get(route('agreements.show', $agreement))->assertInertia(fn (Assert $page) => $page->where('agreement.cancellationReason', 'The dates no longer work.'));
-        $this->actingAs($pair['student'])->post(route('applications.store', $pair['task']), ['message' => 'Trying to reapply.', 'work_details_confirmed' => '1'])->assertForbidden();
+        $this->actingAs($pair['student'])->post(route('applications.store', $pair['task']), ['message' => 'Trying to reapply.', 'work_details_confirmed' => '1', 'poster_identity_checked' => '1', 'no_upfront_fee_checked' => '1'])->assertForbidden();
         $this->actingAs($pair['poster'])->post(route('agreements.cancel', $agreement), ['reason' => 'A duplicate cancel.'])->assertForbidden();
         $this->assertSame('The dates no longer work.', $agreement->fresh()->cancellation_reason);
         $this->assertDatabaseHas('notifications', ['notifiable_id' => $pair['poster']->id, 'data->event' => 'agreement.cancelled']);
@@ -255,7 +266,7 @@ class AgreementWorkflowTest extends TestCase
         $newStudent = User::factory()->verified()->create();
         $this->actingAs($newStudent)->get(route('browse.index'))->assertInertia(fn (Assert $page) => $page
             ->where('tasks.data.0.id', $pair['task']->id));
-        $this->post(route('applications.store', $pair['task']), ['message' => 'I am interested in this reopened task.', 'work_details_confirmed' => '1'])->assertRedirect();
+        $this->post(route('applications.store', $pair['task']), ['message' => 'I am interested in this reopened task.', 'work_details_confirmed' => '1', 'poster_identity_checked' => '1', 'no_upfront_fee_checked' => '1'])->assertRedirect();
         $this->assertDatabaseHas('applications', ['task_id' => $pair['task']->id, 'applicant_id' => $newStudent->id, 'status' => ApplicationStatus::Pending->value]);
     }
 
@@ -270,7 +281,10 @@ class AgreementWorkflowTest extends TestCase
         $otherTask = Task::factory()->approved()->for($otherPoster, 'poster')->create();
 
         $this->actingAs($worker)->post(route('applications.store', $task), [
-            'message' => 'I can complete this synthetic task.', 'work_details_confirmed' => '1',
+            'message' => 'I can complete this synthetic task.',
+            'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
         ])->assertRedirect();
         $application = Application::query()->where('task_id', $task->id)->firstOrFail();
         $this->actingAs($studentPoster)->get(route('tasks.mine'))->assertInertia(fn (Assert $page) => $page
@@ -303,7 +317,10 @@ class AgreementWorkflowTest extends TestCase
         $this->assertSame($studentPoster->id, Report::query()->where('agreement_id', $agreement->id)->firstOrFail()->reported_user_id);
 
         $this->actingAs($studentPoster)->post(route('applications.store', $otherTask), [
-            'message' => 'I can also apply to this separate synthetic task.', 'work_details_confirmed' => '1',
+            'message' => 'I can also apply to this separate synthetic task.',
+            'work_details_confirmed' => '1',
+            'poster_identity_checked' => '1',
+            'no_upfront_fee_checked' => '1',
         ])->assertRedirect();
         $this->assertDatabaseHas('applications', ['task_id' => $otherTask->id, 'applicant_id' => $studentPoster->id]);
     }

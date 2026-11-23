@@ -18,6 +18,33 @@ class UpdateTaskRequest extends FormRequest
         if ($this->exists('hazard_exposure') && ! $this->boolean('hazard_exposure')) {
             $this->merge(['hazard_description' => null]);
         }
+        if ($this->boolean('budget_to_be_discussed')) {
+            $this->merge(['budget_to_be_discussed' => true, 'budget' => null]);
+        } elseif ($this->exists('budget_to_be_discussed') || $this->filled('budget')) {
+            $this->merge(['budget_to_be_discussed' => false]);
+        }
+        if ($this->boolean('schedule_to_be_discussed')) {
+            $this->merge([
+                'schedule_to_be_discussed' => true,
+                'schedule_days' => null,
+                'schedule_start_time' => null,
+                'schedule_end_time' => null,
+            ]);
+        } elseif ($this->exists('schedule_to_be_discussed') || $this->exists('schedule_days') || $this->exists('schedule_start_time') || $this->exists('schedule_end_time')) {
+            $days = is_array($this->input('schedule_days'))
+                ? array_values(array_unique(array_filter($this->input('schedule_days'), fn ($day) => is_string($day) && $day !== '')))
+                : null;
+            $this->merge([
+                'schedule_to_be_discussed' => false,
+                'schedule_days' => $days === [] ? null : $days,
+            ]);
+        }
+        if ($this->exists('pay_timing') && $this->input('pay_timing') === '') {
+            $this->merge(['pay_timing' => null]);
+        }
+        if ($this->exists('can_hours_change') && $this->input('can_hours_change') === '') {
+            $this->merge(['can_hours_change' => null]);
+        }
     }
 
     public function authorize(): bool
@@ -36,6 +63,7 @@ class UpdateTaskRequest extends FormRequest
     public function rules(): array
     {
         $requiresWorkplace = in_array($this->input('work_mode'), ['onsite', 'hybrid'], true);
+        $budgetToBeDiscussed = $this->boolean('budget_to_be_discussed');
         $physicalDemand = config('taskmate.risk_questions.physical_demand', []);
         $academicInvolvement = config('taskmate.risk_questions.academic_involvement', []);
         $workplaceSettings = config('taskmate.risk_questions.workplace_setting', []);
@@ -49,11 +77,21 @@ class UpdateTaskRequest extends FormRequest
             'estimated_duration_hours' => ['nullable', 'numeric', 'min:0.5', 'max:500'],
             'skill_requirements' => ['nullable', 'string', 'max:5000'],
             'complexity' => ['nullable', 'string', Rule::in(array_keys(config('taskmate.complexity_levels', [])))],
-            'budget' => ['required', 'numeric', 'min:1', 'max:1000000'],
+            'budget_to_be_discussed' => ['nullable', 'boolean'],
+            'budget' => [$budgetToBeDiscussed ? 'nullable' : 'required', 'numeric', 'min:1', 'max:1000000'],
+            'pay_timing' => ['nullable', 'string', Rule::in(array_keys(config('taskmate.pay_timings', [])))],
+            'pay_timing_note' => ['nullable', 'string', 'max:255'],
             'work_mode' => ['required', 'string', Rule::in(array_keys(config('taskmate.work_modes', [])))],
             'workplace_name' => [$requiresWorkplace ? 'required' : 'nullable', 'string', 'max:255'],
             'workplace_address' => [$requiresWorkplace ? 'required' : 'nullable', 'string', 'max:255'],
             'deadline' => ['nullable', 'date', 'after:today'],
+            'schedule_to_be_discussed' => ['nullable', 'boolean'],
+            'schedule_days' => ['nullable', 'array'],
+            'schedule_days.*' => ['string', Rule::in(array_keys(config('taskmate.days_of_week', [])))],
+            'schedule_start_time' => ['nullable', 'date_format:H:i'],
+            'schedule_end_time' => ['nullable', 'date_format:H:i', 'after:schedule_start_time'],
+            'schedule_note' => ['nullable', 'string', 'max:255'],
+            'can_hours_change' => ['nullable', 'boolean'],
             'guidelines_confirmed' => ['required', 'accepted'],
             'physical_demand' => ['nullable', 'string', Rule::in(array_keys($physicalDemand))],
             'academic_involvement' => ['nullable', 'string', Rule::in(array_keys($academicInvolvement))],
@@ -64,8 +102,34 @@ class UpdateTaskRequest extends FormRequest
         ];
     }
 
+    public function after(): array
+    {
+        return [function ($validator): void {
+            if ($this->boolean('schedule_to_be_discussed')) {
+                return;
+            }
+            $hasDays = is_array($this->input('schedule_days')) && count($this->input('schedule_days')) > 0;
+            $hasStart = $this->filled('schedule_start_time');
+            $hasEnd = $this->filled('schedule_end_time');
+            if (($hasDays || $hasStart || $hasEnd) && ! ($hasDays && $hasStart && $hasEnd)) {
+                if (! $hasDays) {
+                    $validator->errors()->add('schedule_days', 'Select at least one work day, or mark work hours as to be discussed.');
+                }
+                if (! $hasStart) {
+                    $validator->errors()->add('schedule_start_time', 'Enter a start time, or mark work hours as to be discussed.');
+                }
+                if (! $hasEnd) {
+                    $validator->errors()->add('schedule_end_time', 'Enter an end time, or mark work hours as to be discussed.');
+                }
+            }
+        }];
+    }
+
     public function messages(): array
     {
-        return ['guidelines_confirmed.accepted' => 'You must confirm that this task follows the platform rules.'];
+        return [
+            'guidelines_confirmed.accepted' => 'You must confirm that this task follows the platform rules.',
+            'schedule_end_time.after' => 'The end time must be later than the start time.',
+        ];
     }
 }

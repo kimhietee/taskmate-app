@@ -36,10 +36,19 @@ class Task extends Model
         'skill_requirements',
         'complexity',
         'budget',
+        'budget_to_be_discussed',
+        'pay_timing',
+        'pay_timing_note',
         'work_mode',
         'workplace_name',
         'workplace_address',
         'deadline',
+        'schedule_days',
+        'schedule_start_time',
+        'schedule_end_time',
+        'schedule_note',
+        'schedule_to_be_discussed',
+        'can_hours_change',
         'physical_demand',
         'academic_involvement',
         'hazard_exposure',
@@ -54,7 +63,11 @@ class Task extends Model
             'status' => TaskStatus::class,
             'estimated_duration_hours' => 'decimal:1',
             'budget' => 'decimal:2',
+            'budget_to_be_discussed' => 'boolean',
             'deadline' => 'date',
+            'schedule_days' => 'array',
+            'schedule_to_be_discussed' => 'boolean',
+            'can_hours_change' => 'boolean',
             'hazard_exposure' => 'boolean',
             'private_meeting_required' => 'boolean',
             'guidelines_confirmed_at' => 'datetime',
@@ -62,6 +75,57 @@ class Task extends Model
             'screened_at' => 'datetime',
             'removed_at' => 'datetime',
         ];
+    }
+
+    public function isBudgetToBeDiscussed(): bool
+    {
+        return (bool) $this->budget_to_be_discussed || $this->budget === null;
+    }
+
+    public function isPayTimingToBeDiscussed(): bool
+    {
+        return ! $this->pay_timing || $this->pay_timing === 'to_be_discussed';
+    }
+
+    public function payTimingLabel(): string
+    {
+        if ($this->isPayTimingToBeDiscussed()) {
+            return config('taskmate.pay_timings.to_be_discussed', 'To be discussed');
+        }
+
+        return config('taskmate.pay_timings.'.$this->pay_timing, $this->pay_timing);
+    }
+
+    public function isScheduleToBeDiscussed(): bool
+    {
+        return (bool) $this->schedule_to_be_discussed
+            || empty($this->schedule_days)
+            || ! $this->schedule_start_time
+            || ! $this->schedule_end_time;
+    }
+
+    public function scheduleSummary(): ?string
+    {
+        if ($this->isScheduleToBeDiscussed()) {
+            return null;
+        }
+
+        $dayMap = config('taskmate.days_of_week', []);
+        $orderedDays = array_values(array_intersect(array_keys($dayMap), (array) $this->schedule_days));
+        if ($orderedDays === []) {
+            return null;
+        }
+
+        $dayLabels = array_map(fn (string $day): string => $dayMap[$day] ?? $day, $orderedDays);
+
+        return implode(', ', $dayLabels).' · '.$this->formatTimeLabel($this->schedule_start_time).'–'.$this->formatTimeLabel($this->schedule_end_time);
+    }
+
+    private function formatTimeLabel(string $time): string
+    {
+        $parsed = Carbon::createFromFormat('H:i', $time);
+
+        return $parsed ? $parsed->format('g:i A') : $time;
     }
 
     public function poster(): BelongsTo

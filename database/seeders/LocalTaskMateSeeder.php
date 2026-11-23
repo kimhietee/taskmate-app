@@ -45,8 +45,25 @@ class LocalTaskMateSeeder extends Seeder
         $organization = User::query()->where('email', 'organization@example.test')->firstOrFail();
         $studentOne = User::query()->where('email', 'student1@example.test')->firstOrFail();
         $studentTwo = User::query()->where('email', 'student2@example.test')->firstOrFail();
+        if (empty($studentOne->class_schedule)) {
+            $studentOne->class_schedule = [
+                ['day' => 'mon', 'start_time' => '08:00', 'end_time' => '12:00', 'label' => 'Synthetic Morning Classes'],
+                ['day' => 'wed', 'start_time' => '08:00', 'end_time' => '12:00', 'label' => 'Synthetic Morning Classes'],
+                ['day' => 'fri', 'start_time' => '08:00', 'end_time' => '12:00', 'label' => 'Synthetic Morning Classes'],
+                ['day' => 'tue', 'start_time' => '13:00', 'end_time' => '16:00', 'label' => 'Synthetic Afternoon Lab'],
+                ['day' => 'thu', 'start_time' => '13:00', 'end_time' => '16:00', 'label' => 'Synthetic Afternoon Lab'],
+            ];
+            $studentOne->save();
+        }
         $categories = array_keys(config('taskmate.categories', []));
         $modes = array_keys(config('taskmate.work_modes', []));
+        $termsPresets = [
+            1 => [750, false, 'upon_completion', 'Paid in cash after finishing.', ['sat'], '09:00', '12:00', 'Weekend morning shift.', false, true],
+            2 => [null, true, 'to_be_discussed', 'Rate and pay timing will be agreed before starting.', null, null, null, 'Hours to be arranged around student availability.', true, true],
+            3 => [1250, false, 'bi_weekly', 'Paid every other Saturday (bi-weekly, not monthly).', ['mon', 'wed', 'fri'], '09:00', '11:30', 'Fixed weekday morning shift.', false, false],
+            4 => [1500, false, 'weekly', 'Paid every Saturday in cash.', ['tue', 'thu'], '14:00', '16:00', 'Shift can move to late afternoon if classes overlap.', false, true],
+            6 => [null, true, 'to_be_discussed', null, null, null, null, null, true, null],
+        ];
 
         for ($index = 1; $index <= 12; $index++) {
             $mode = $modes[($index - 1) % count($modes)];
@@ -64,7 +81,28 @@ class LocalTaskMateSeeder extends Seeder
             $task->estimated_duration_hours = ($index % 5) + 1;
             $task->skill_requirements = 'Synthetic general skills only.';
             $task->complexity = ['low', 'medium', 'high'][($index - 1) % 3];
-            $task->budget = 500 + ($index * 250);
+            [$budget, $budgetTbd, $payTiming, $payTimingNote, $schedDays, $schedStart, $schedEnd, $schedNote, $schedTbd, $canChange] = $termsPresets[$index] ?? [
+                500 + ($index * 250),
+                false,
+                ['upon_completion', 'daily', 'weekly', 'milestone'][($index - 1) % 4],
+                null,
+                $index % 2 === 0 ? ['sat', 'sun'] : ['tue', 'thu'],
+                $index % 2 === 0 ? '10:00' : '17:00',
+                $index % 2 === 0 ? '13:00' : '19:00',
+                null,
+                false,
+                true,
+            ];
+            $task->budget = $budget;
+            $task->budget_to_be_discussed = $budgetTbd;
+            $task->pay_timing = $payTiming;
+            $task->pay_timing_note = $payTimingNote;
+            $task->schedule_days = $schedDays;
+            $task->schedule_start_time = $schedStart;
+            $task->schedule_end_time = $schedEnd;
+            $task->schedule_note = $schedNote;
+            $task->schedule_to_be_discussed = $schedTbd;
+            $task->can_hours_change = $canChange;
             $task->work_mode = $mode;
             $task->workplace_name = $mode === 'remote' ? null : 'Synthetic Demo Worksite '.$index;
             $task->workplace_address = $mode === 'remote' ? null : 'Synthetic campus location '.$index;
