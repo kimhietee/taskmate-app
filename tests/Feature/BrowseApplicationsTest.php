@@ -393,4 +393,18 @@ class BrowseApplicationsTest extends TestCase
                 ->where('tasks.data.1.id', $cheap->id)
                 ->where('tasks.data.2.id', $tbd->id));
     }
+
+    public function test_browse_can_filter_between_one_time_gigs_and_short_term_part_time_tasks(): void
+    {
+        $student = $this->student();
+        $poster = $this->poster();
+        $gig = $this->task($poster, ['title' => 'TypeFilter Gig', 'work_type' => 'one_time_gig', 'schedule_flexible' => true]);
+        $partTime = $this->task($poster, ['title' => 'TypeFilter PartTime', 'work_type' => 'part_time']);
+
+        $this->actingAs($student)->get(route('browse.index', ['search' => 'TypeFilter', 'work_type' => 'one_time_gig']))
+            ->assertOk()->assertInertia(fn ($page) => $page->has('tasks.data', 1)->where('tasks.data.0.id', $gig->id));
+
+        $this->actingAs($student)->get(route('browse.index', ['search' => 'TypeFilter', 'work_type' => 'part_time']))
+            ->assertOk()->assertInertia(fn ($page) => $page->has('tasks.data', 1)->where('tasks.data.0.id', $partTime->id));
+    }
 }

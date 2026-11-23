@@ -61,11 +61,13 @@ test('task form keeps only the essentials and required workplace details', () =>
     for (const text of [
         'Task title',
         'Category',
+        'Work type',
         'What needs to be done?',
         'Estimated budget (PHP)',
         'Pay amount is to be discussed',
         'When is pay given? (Pay timing)',
         'Work schedule / hours',
+        'Flexible / self-paced before deadline',
         'Work hours are to be discussed',
         'Can hours change?',
         'Work mode',

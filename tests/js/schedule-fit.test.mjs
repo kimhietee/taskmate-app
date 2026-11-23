@@ -76,6 +76,10 @@ test('evaluateScheduleFit detects fits, clashes, boundary non-overlap, and to-be
     );
     assert.equal(noClasses.status, 'cannot_check');
 
+    const flexibleGig = evaluateScheduleFit({ scheduleFlexible: true }, classes);
+    assert.equal(flexibleGig.status, 'fits');
+    assert.match(flexibleGig.reason, /flexible, self-paced/i);
+
     const msg = buildAskPosterMessage({
         taskTitle: 'Synthetic Shop Helper',
         missingTerms: ['Pay amount', 'When paid (pay timing)'],

@@ -19,9 +19,9 @@ type Applicant = {
     message: string; proposedAmount: string | null; status: string; statusLabel: string; appliedAt: string | null; conversationId: number | null; messageBlockedReason: string | null;
 };
 type Task = {
-    id: number; title: string; category: string; budget: string | null; budgetToBeDiscussed?: boolean;
+    id: number; title: string; category: string; workTypeLabel?: string; budget: string | null; budgetToBeDiscussed?: boolean;
     payTimingLabel?: string; payTimingToBeDiscussed?: boolean; payTimingNote?: string | null;
-    scheduleSummary?: string | null; scheduleNote?: string | null; scheduleToBeDiscussed?: boolean; canHoursChange?: boolean | null;
+    scheduleSummary?: string | null; scheduleNote?: string | null; scheduleFlexible?: boolean; scheduleToBeDiscussed?: boolean; canHoursChange?: boolean | null;
     workMode: string; status: string; description: string;
     requiredActivities: string | null; deliverables: string | null; estimatedDurationHours: string | null; skillRequirements: string | null;
     workplaceName: string | null; workplaceAddress: string | null;
@@ -37,7 +37,7 @@ export default function ShowTask({ task, statusLabel, canEdit, canCancel, canRes
             <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
                 {status && <div role="status" className="rounded-lg border px-4 py-3 text-sm">{status}</div>}
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div><p className="text-sm text-muted-foreground">{task.category}</p><h1 className="mt-1 text-2xl font-semibold">{task.title}</h1></div>
+                    <div><p className="text-sm text-muted-foreground">{task.category}{task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}</p><h1 className="mt-1 text-2xl font-semibold">{task.title}</h1></div>
                     <TaskStatusBadge status={task.status} label={statusLabel} />
                 </div>
                 <section className="space-y-4 rounded-xl border p-5">

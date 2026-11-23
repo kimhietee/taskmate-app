@@ -35,6 +35,7 @@ class VerificationDetailsController extends Controller
             'user' => ['userType' => $user->user_type->value, ...$details],
             'verificationStatus' => $user->verification_status->value,
             'verificationNote' => $user->verification_note,
+            'affiliationOptions' => config('taskmate.affiliations', ['student' => [], 'faculty_staff' => []]),
         ]);
     }
 
@@ -63,6 +64,10 @@ class VerificationDetailsController extends Controller
             $alerts->admins('account.resubmitted', route('admin.users.index', [], false), ['user_id' => $user->id], actorId: $user->id);
         });
 
-        return to_route('dashboard')->with('status', 'Your information was submitted for review.');
+        $redirect = $user->currentTeam
+            ? to_route('dashboard', ['current_team' => $user->currentTeam->slug])
+            : to_route('taskmate.dashboard');
+
+        return $redirect->with('status', 'Your information was submitted for review.');
     }
 }

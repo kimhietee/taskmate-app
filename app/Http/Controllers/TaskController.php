@@ -187,6 +187,7 @@ class TaskController extends Controller
     {
         return [
             'categories' => $this->optionsFor(config('taskmate.categories', [])),
+            'workTypes' => $this->optionsFor(config('taskmate.work_types', [])),
             'workModes' => $this->optionsFor(config('taskmate.work_modes', [])),
             'payTimings' => $this->optionsFor(config('taskmate.pay_timings', [])),
             'daysOfWeek' => $this->optionsFor(config('taskmate.days_of_week', [])),
@@ -205,12 +206,15 @@ class TaskController extends Controller
             'id' => $task->id,
             'title' => $task->title,
             'category' => config('taskmate.categories.'.$task->category, $task->category),
+            'workType' => $task->work_type ?? 'one_time_gig',
+            'workTypeLabel' => $task->workTypeLabel(),
             'budget' => $task->budget,
             'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
             'payTiming' => $task->pay_timing,
             'payTimingLabel' => $task->payTimingLabel(),
             'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
             'scheduleSummary' => $task->scheduleSummary(),
+            'scheduleFlexible' => $task->isScheduleFlexible(),
             'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
             'canHoursChange' => $task->can_hours_change,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),

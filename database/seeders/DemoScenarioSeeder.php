@@ -60,6 +60,7 @@ class DemoScenarioSeeder extends Seeder
             $task->poster()->associate($faculty);
             $task->title = $title;
             $task->category = array_key_first(config('taskmate.categories'));
+            $task->work_type = 'one_time_gig';
             $task->description = 'Synthetic scenario record for local testing only.';
             $task->required_activities = 'Review the clearly synthetic scenario details.';
             $task->deliverables = 'A synthetic sample deliverable.';

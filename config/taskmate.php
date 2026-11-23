@@ -19,6 +19,41 @@ return [
     // The project team must confirm CMU's real institutional email domain(s).
     'institutional_email_domains' => ['cmu.edu.ph'],
 
+    // PROVISIONAL: keep true for CMU deployment; set TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL=false for open local testing.
+    'require_institutional_email' => env('TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL', true),
+
+    // PROVISIONAL: standardized affiliation suggestions (users may also choose "Other" to specify another program or office).
+    'affiliations' => [
+        'student' => [
+            'College of Information Sciences and Computing — BSIT',
+            'College of Information Sciences and Computing — BSCS',
+            'College of Information Sciences and Computing — BSIS',
+            'College of Agriculture',
+            'College of Arts and Sciences',
+            'College of Business and Management',
+            'College of Education',
+            'College of Engineering',
+            'College of Forestry and Environmental Science',
+            'College of Human Ecology',
+            'College of Nursing',
+            'College of Veterinary Medicine',
+            'Graduate School (Master’s / Doctoral)',
+        ],
+        'faculty_staff' => [
+            'College of Information Sciences and Computing',
+            'College of Agriculture',
+            'College of Arts and Sciences',
+            'College of Business and Management',
+            'College of Education',
+            'College of Engineering',
+            'College of Forestry and Environmental Science',
+            'College of Human Ecology',
+            'College of Nursing',
+            'College of Veterinary Medicine',
+            'University Administration / Campus Office',
+        ],
+    ],
+
     'students_can_post' => true,
     'require_verification' => true,
 
@@ -55,6 +90,12 @@ return [
         'onsite' => 'Onsite',
         'remote' => 'Remote',
         'hybrid' => 'Hybrid',
+    ],
+
+    // PROVISIONAL: distinguishes one-time output-based gigs from scheduled short-term part-time work.
+    'work_types' => [
+        'one_time_gig' => 'One-time gig / task',
+        'part_time' => 'Short-term part-time',
     ],
 
     // PROVISIONAL: the team must confirm the upfront pay timing options shown on job terms cards.

@@ -29,6 +29,7 @@ class Task extends Model
     protected $fillable = [
         'title',
         'category',
+        'work_type',
         'description',
         'required_activities',
         'deliverables',
@@ -48,6 +49,7 @@ class Task extends Model
         'schedule_end_time',
         'schedule_note',
         'schedule_to_be_discussed',
+        'schedule_flexible',
         'can_hours_change',
         'physical_demand',
         'academic_involvement',
@@ -67,6 +69,7 @@ class Task extends Model
             'deadline' => 'date',
             'schedule_days' => 'array',
             'schedule_to_be_discussed' => 'boolean',
+            'schedule_flexible' => 'boolean',
             'can_hours_change' => 'boolean',
             'hazard_exposure' => 'boolean',
             'private_meeting_required' => 'boolean',
@@ -75,6 +78,13 @@ class Task extends Model
             'screened_at' => 'datetime',
             'removed_at' => 'datetime',
         ];
+    }
+
+    public function workTypeLabel(): string
+    {
+        $key = $this->work_type ?: 'one_time_gig';
+
+        return config('taskmate.work_types.'.$key, $key);
     }
 
     public function isBudgetToBeDiscussed(): bool
@@ -96,8 +106,17 @@ class Task extends Model
         return config('taskmate.pay_timings.'.$this->pay_timing, $this->pay_timing);
     }
 
+    public function isScheduleFlexible(): bool
+    {
+        return (bool) $this->schedule_flexible;
+    }
+
     public function isScheduleToBeDiscussed(): bool
     {
+        if ($this->isScheduleFlexible()) {
+            return false;
+        }
+
         return (bool) $this->schedule_to_be_discussed
             || empty($this->schedule_days)
             || ! $this->schedule_start_time
@@ -106,6 +125,10 @@ class Task extends Model
 
     public function scheduleSummary(): ?string
     {
+        if ($this->isScheduleFlexible()) {
+            return 'Flexible / self-paced before deadline';
+        }
+
         if ($this->isScheduleToBeDiscussed()) {
             return null;
         }

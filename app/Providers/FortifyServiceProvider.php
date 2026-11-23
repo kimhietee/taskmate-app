@@ -121,6 +121,7 @@ class FortifyServiceProvider extends ServiceProvider
         /* @chisel-email-verification */
         Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
             'status' => $request->session()->get('status'),
+            'mailUsesLogDriver' => config('mail.default') === 'log',
         ]));
         /* @end-chisel-email-verification */
 
@@ -128,6 +129,8 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::registerView(fn (Request $request) => Inertia::render('auth/register', [
             'teamInvitation' => $this->teamInvitation($request),
             'institutionalEmailDomains' => config('taskmate.institutional_email_domains', []),
+            'requireInstitutionalEmail' => (bool) config('taskmate.require_institutional_email', true),
+            'affiliationOptions' => config('taskmate.affiliations', ['student' => [], 'faculty_staff' => []]),
         ]));
         /* @end-chisel-registration */
 

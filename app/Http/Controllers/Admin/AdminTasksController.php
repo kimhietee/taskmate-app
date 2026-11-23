@@ -58,6 +58,7 @@ class AdminTasksController extends Controller
                 'title' => $task->title,
                 'category' => config('taskmate.categories.'.$task->category, $task->category),
                 'categoryKey' => $task->category,
+                'workTypeLabel' => $task->workTypeLabel(),
                 'description' => $task->description,
                 'requiredActivities' => $task->required_activities,
                 'deliverables' => $task->deliverables,

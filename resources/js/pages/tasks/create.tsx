@@ -4,7 +4,7 @@ import { store } from '@/routes/tasks';
 
 type Option = { value: string; label: string };
 type Props = {
-    options: { categories: Option[]; workModes: Option[]; payTimings: Option[]; daysOfWeek: Option[]; guidelines: string[] };
+    options: { categories: Option[]; workTypes?: Option[]; workModes: Option[]; payTimings: Option[]; daysOfWeek: Option[]; guidelines: string[] };
     task: null;
     resetWarning: false;
 };

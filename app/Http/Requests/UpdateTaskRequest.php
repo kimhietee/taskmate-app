@@ -23,21 +23,35 @@ class UpdateTaskRequest extends FormRequest
         } elseif ($this->exists('budget_to_be_discussed') || $this->filled('budget')) {
             $this->merge(['budget_to_be_discussed' => false]);
         }
-        if ($this->boolean('schedule_to_be_discussed')) {
+        if ($this->boolean('schedule_flexible')) {
             $this->merge([
+                'schedule_flexible' => true,
+                'schedule_to_be_discussed' => false,
+                'schedule_days' => null,
+                'schedule_start_time' => null,
+                'schedule_end_time' => null,
+                'can_hours_change' => true,
+            ]);
+        } elseif ($this->boolean('schedule_to_be_discussed')) {
+            $this->merge([
+                'schedule_flexible' => false,
                 'schedule_to_be_discussed' => true,
                 'schedule_days' => null,
                 'schedule_start_time' => null,
                 'schedule_end_time' => null,
             ]);
-        } elseif ($this->exists('schedule_to_be_discussed') || $this->exists('schedule_days') || $this->exists('schedule_start_time') || $this->exists('schedule_end_time')) {
+        } elseif ($this->exists('schedule_flexible') || $this->exists('schedule_to_be_discussed') || $this->exists('schedule_days') || $this->exists('schedule_start_time') || $this->exists('schedule_end_time')) {
             $days = is_array($this->input('schedule_days'))
                 ? array_values(array_unique(array_filter($this->input('schedule_days'), fn ($day) => is_string($day) && $day !== '')))
                 : null;
             $this->merge([
+                'schedule_flexible' => false,
                 'schedule_to_be_discussed' => false,
                 'schedule_days' => $days === [] ? null : $days,
             ]);
+        }
+        if ($this->exists('work_type') && $this->input('work_type') === '') {
+            $this->merge(['work_type' => null]);
         }
         if ($this->exists('pay_timing') && $this->input('pay_timing') === '') {
             $this->merge(['pay_timing' => null]);
@@ -71,6 +85,7 @@ class UpdateTaskRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:150'],
             'category' => ['required', 'string', Rule::in(array_keys(config('taskmate.categories', [])))],
+            'work_type' => ['nullable', 'string', Rule::in(array_keys(config('taskmate.work_types', [])))],
             'description' => ['required', 'string', 'max:10000'],
             'required_activities' => ['nullable', 'string', 'max:10000'],
             'deliverables' => ['nullable', 'string', 'max:10000'],
@@ -86,6 +101,7 @@ class UpdateTaskRequest extends FormRequest
             'workplace_address' => [$requiresWorkplace ? 'required' : 'nullable', 'string', 'max:255'],
             'deadline' => ['nullable', 'date', 'after:today'],
             'schedule_to_be_discussed' => ['nullable', 'boolean'],
+            'schedule_flexible' => ['nullable', 'boolean'],
             'schedule_days' => ['nullable', 'array'],
             'schedule_days.*' => ['string', Rule::in(array_keys(config('taskmate.days_of_week', [])))],
             'schedule_start_time' => ['nullable', 'date_format:H:i'],
@@ -105,7 +121,7 @@ class UpdateTaskRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator): void {
-            if ($this->boolean('schedule_to_be_discussed')) {
+            if ($this->boolean('schedule_to_be_discussed') || $this->boolean('schedule_flexible')) {
                 return;
             }
             $hasDays = is_array($this->input('schedule_days')) && count($this->input('schedule_days')) > 0;

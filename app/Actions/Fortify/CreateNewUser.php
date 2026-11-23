@@ -36,8 +36,22 @@ class CreateNewUser implements CreatesNewUsers
             throw ValidationException::withMessages(['documents' => 'Identity document and face photo uploads are not accepted.']);
         }
 
+        foreach (['name', 'id_number', 'affiliation', 'organization_name', 'position', 'supporting_info'] as $field) {
+            if (array_key_exists($field, $input)) {
+                $cleaned = $this->cleanText($input[$field]);
+                $input[$field] = $cleaned === '' ? null : $cleaned;
+            }
+        }
+        if (isset($input['email']) && is_string($input['email'])) {
+            $input['email'] = trim($input['email']);
+        }
+
         $profileRules = $this->profileRules();
         $profileRules['email'][] = function (string $attribute, mixed $value, \Closure $fail) use ($input): void {
+            if (! config('taskmate.require_institutional_email', true)) {
+                return;
+            }
+
             if (! in_array($input['user_type'] ?? null, [UserType::Student->value, UserType::FacultyStaff->value], true)) {
                 return;
             }
@@ -54,11 +68,13 @@ class CreateNewUser implements CreatesNewUsers
             ...$profileRules,
             'password' => $this->passwordRules(),
             'user_type' => ['required', Rule::in(array_keys(config('taskmate.user_types', [])))],
-            'id_number' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'max:255'],
-            'affiliation' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'max:255'],
-            'organization_name' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'max:255'],
-            'position' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'max:255'],
+            'id_number' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'],
+            'affiliation' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'],
+            'organization_name' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'min:2', 'max:255'],
+            'position' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'min:2', 'max:255'],
             'supporting_info' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'max:1000'],
+        ], [
+            'name.regex' => 'Enter a valid name using letters, spaces, periods, hyphens, or apostrophes.',
         ])->validate();
 
         return DB::transaction(function () use ($input) {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
 import { SafetyNotice } from '@/components/safety-notice';
@@ -17,8 +18,32 @@ type UserDetails = {
     supportingInfo?: string | null;
 };
 
-export default function VerificationDetails({ user, verificationStatus, verificationNote }: { user: UserDetails; verificationStatus: 'rejected' | 'more_info_requested'; verificationNote: string | null }) {
+type AffiliationOptions = { student: string[]; faculty_staff: string[] };
+
+const OTHER_VALUE = '__other__';
+
+export default function VerificationDetails({
+    user,
+    verificationStatus,
+    verificationNote,
+    affiliationOptions = { student: [], faculty_staff: [] },
+}: {
+    user: UserDetails;
+    verificationStatus: 'rejected' | 'more_info_requested';
+    verificationNote: string | null;
+    affiliationOptions?: AffiliationOptions;
+}) {
     const isOrganization = user.userType === 'organization';
+    const presets = user.userType === 'student' ? affiliationOptions.student : affiliationOptions.faculty_staff;
+    const savedAffiliation = user.affiliation ?? '';
+    const initialInPresets = presets.includes(savedAffiliation);
+    const [selectedAffiliation, setSelectedAffiliation] = useState(
+        presets.length > 0 ? (initialInPresets ? savedAffiliation : savedAffiliation ? OTHER_VALUE : '') : '',
+    );
+    const [customAffiliation, setCustomAffiliation] = useState(initialInPresets ? '' : savedAffiliation);
+    const resolvedAffiliation = presets.length > 0
+        ? (selectedAffiliation === OTHER_VALUE ? customAffiliation : selectedAffiliation)
+        : customAffiliation;
 
     return (
         <>
@@ -44,7 +69,38 @@ export default function VerificationDetails({ user, verificationStatus, verifica
                             ) : (
                                 <>
                                     <div className="grid gap-2"><Label htmlFor="id_number">{user.userType === 'student' ? 'Student ID number' : 'Employee ID number'}</Label><Input id="id_number" name="id_number" defaultValue={user.idNumber ?? ''} required /><p className="text-xs text-muted-foreground">Used for account review. Your ID number is visible only to you and administrators.</p><InputError message={errors.id_number} /></div>
-                                    <div className="grid gap-2"><Label htmlFor="affiliation">{user.userType === 'student' ? 'College and program' : 'College or office'}</Label><Input id="affiliation" name="affiliation" defaultValue={user.affiliation ?? ''} required /><p className="text-xs text-muted-foreground">Helps other users understand your campus affiliation and may appear on your profile.</p><InputError message={errors.affiliation} /></div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor={presets.length > 0 ? 'affiliation_select' : 'affiliation'}>{user.userType === 'student' ? 'College and program' : 'College or office'}</Label>
+                                        {presets.length > 0 ? (
+                                            <>
+                                                <input type="hidden" name="affiliation" value={resolvedAffiliation} />
+                                                <select
+                                                    id="affiliation_select"
+                                                    value={selectedAffiliation}
+                                                    onChange={(event) => setSelectedAffiliation(event.target.value)}
+                                                    required
+                                                    className="border-input bg-background h-10 w-full rounded-md border px-3 py-2 text-sm"
+                                                >
+                                                    <option value="" disabled>Select affiliation</option>
+                                                    {presets.map((item) => <option key={item} value={item}>{item}</option>)}
+                                                    <option value={OTHER_VALUE}>Other (specify below)</option>
+                                                </select>
+                                                {selectedAffiliation === OTHER_VALUE && (
+                                                    <Input
+                                                        id="affiliation_custom"
+                                                        value={customAffiliation}
+                                                        onChange={(event) => setCustomAffiliation(event.target.value)}
+                                                        required
+                                                        placeholder="Enter your college, program, or office"
+                                                    />
+                                                )}
+                                            </>
+                                        ) : (
+                                            <Input id="affiliation" name="affiliation" value={customAffiliation} onChange={(event) => setCustomAffiliation(event.target.value)} required />
+                                        )}
+                                        <p className="text-xs text-muted-foreground">Helps other users understand your campus affiliation and may appear on your profile.</p>
+                                        <InputError message={errors.affiliation} />
+                                    </div>
                                 </>
                             )}
                             <Button disabled={processing}>Submit for review</Button>

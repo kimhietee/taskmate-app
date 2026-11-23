@@ -21,6 +21,7 @@ class BrowseTasksRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:150'],
             'category' => ['nullable', Rule::in(array_keys(config('taskmate.categories', [])))],
+            'work_type' => ['nullable', Rule::in(array_keys(config('taskmate.work_types', [])))],
             'work_mode' => ['nullable', Rule::in(array_keys(config('taskmate.work_modes', [])))],
             'complexity' => ['nullable', Rule::in(array_keys(config('taskmate.complexity_levels', [])))],
             'min_budget' => ['nullable', 'numeric', 'min:0', 'max:1000000'],

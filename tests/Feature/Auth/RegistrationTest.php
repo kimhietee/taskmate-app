@@ -208,6 +208,68 @@ class RegistrationTest extends TestCase
             ->assertFailed();
     }
 
+    public function test_registration_cleans_whitespace_rejects_junk_names_and_supports_configurable_email_restriction(): void
+    {
+        $this->from(route('register'))->post(route('register.store'), [
+            ...$this->validStudent(),
+            'name' => '123456',
+            'email' => 'junk-name@cmu.edu.ph',
+        ])->assertSessionHasErrors('name');
+
+        $this->post(route('register.store'), [
+            ...$this->validStudent(),
+            'name' => '  Ma. Elena   Niño-Santos Jr.  ',
+            'email' => '  clean-name@cmu.edu.ph  ',
+            'affiliation' => '  College of Information Sciences and Computing — BSIT  ',
+        ])->assertRedirect(route('dashboard'));
+
+        $cleaned = User::query()->where('email', 'clean-name@cmu.edu.ph')->firstOrFail();
+        $this->assertSame('Ma. Elena Niño-Santos Jr.', $cleaned->name);
+        $this->assertSame('College of Information Sciences and Computing — BSIT', $cleaned->affiliation);
+
+        auth()->logout();
+        config(['taskmate.require_institutional_email' => false]);
+        $this->post(route('register.store'), [
+            ...$this->baseRegistration('open-student@example.test'),
+            'user_type' => 'student',
+            'id_number' => 'FAKE-OPEN-001',
+            'affiliation' => 'College of Engineering',
+        ])->assertRedirect(route('dashboard'));
+
+        $openUser = User::query()->where('email', 'open-student@example.test')->firstOrFail();
+        $this->assertSame(VerificationStatus::Pending, $openUser->verification_status);
+    }
+
+    public function test_unverified_users_without_a_team_redirect_safely_without_server_errors(): void
+    {
+        $pendingWithoutTeam = User::factory()->create([
+            'user_type' => UserType::Student,
+            'verification_status' => VerificationStatus::Pending,
+        ]);
+        $pendingWithoutTeam->forceFill(['current_team_id' => null])->save();
+        $pendingWithoutTeam->teams()->detach();
+        $pendingWithoutTeam->refresh();
+
+        $this->actingAs($pendingWithoutTeam)->get(route('browse.index'))
+            ->assertRedirect(route('taskmate.dashboard'));
+
+        $moreInfoWithoutTeam = User::factory()->create([
+            'user_type' => UserType::Student,
+            'verification_status' => VerificationStatus::MoreInfoRequested,
+        ]);
+        $moreInfoWithoutTeam->forceFill(['current_team_id' => null])->save();
+        $moreInfoWithoutTeam->teams()->detach();
+        $moreInfoWithoutTeam->refresh();
+
+        $this->actingAs($moreInfoWithoutTeam)->put(route('verification.details.update'), [
+            'id_number' => '  FAKE-STU-999  ',
+            'affiliation' => '  College of Nursing  ',
+        ])->assertRedirect(route('taskmate.dashboard'));
+
+        $this->assertSame('FAKE-STU-999', $moreInfoWithoutTeam->fresh()->id_number);
+        $this->assertSame('College of Nursing', $moreInfoWithoutTeam->fresh()->affiliation);
+    }
+
     /** @return array<string, string> */
     private function validStudent(): array
     {

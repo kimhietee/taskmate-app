@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 type Option = { value: string; label: string };
+type ScheduleMode = 'fixed' | 'flexible' | 'tbd';
 type TaskData = {
     title: string;
     category: string;
+    workType?: string | null;
     description: string;
     budget: string | null;
     budgetToBeDiscussed?: boolean;
@@ -20,6 +22,7 @@ type TaskData = {
     scheduleStartTime?: string | null;
     scheduleEndTime?: string | null;
     scheduleNote?: string | null;
+    scheduleFlexible?: boolean;
     scheduleToBeDiscussed?: boolean;
     canHoursChange?: boolean | null;
     workModeValue: string;
@@ -31,6 +34,7 @@ type Props = {
     action: { action: string; method: 'post' | 'put' };
     options: {
         categories: Option[];
+        workTypes?: Option[];
         workModes: Option[];
         payTimings?: Option[];
         daysOfWeek?: Option[];
@@ -43,9 +47,18 @@ type Props = {
 export default function TaskForm({ action, options, task, resetWarning }: Props) {
     const [workMode, setWorkMode] = useState(task?.workModeValue ?? '');
     const [budgetToBeDiscussed, setBudgetToBeDiscussed] = useState(Boolean(task?.budgetToBeDiscussed));
-    const [scheduleToBeDiscussed, setScheduleToBeDiscussed] = useState(Boolean(task?.scheduleToBeDiscussed));
+    const initialScheduleMode: ScheduleMode = task?.scheduleFlexible
+        ? 'flexible'
+        : task?.scheduleToBeDiscussed
+          ? 'tbd'
+          : 'fixed';
+    const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(initialScheduleMode);
     const [selectedDays, setSelectedDays] = useState<string[]>(task?.scheduleDays ?? []);
     const hasWorkplace = workMode === 'onsite' || workMode === 'hybrid';
+    const workTypes = options.workTypes ?? [
+        { value: 'one_time_gig', label: 'One-time gig / task' },
+        { value: 'part_time', label: 'Short-term part-time' },
+    ];
     const payTimings = options.payTimings ?? [];
     const daysOfWeek = options.daysOfWeek ?? [];
 
@@ -60,7 +73,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
             {({ errors, processing }) => (
                 <>
                     {resetWarning && (
-                        <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                        <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                             Saving these changes will send this task back for review and clear the previous review note.
                         </div>
                     )}
@@ -75,21 +88,37 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                             <Input id="title" name="title" maxLength={150} defaultValue={task?.title} required />
                             <InputError message={errors.title} />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="category">Category</Label>
-                            <select
-                                id="category"
-                                name="category"
-                                defaultValue={task?.category ? options.categories.find((option) => option.label === task.category)?.value ?? '' : ''}
-                                className="h-10 rounded-md border bg-background px-3 text-sm"
-                                required
-                            >
-                                <option value="" disabled>Select a category</option>
-                                {options.categories.map((option) => (
-                                    <option key={option.value} value={option.value}>{option.label}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.category} />
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                                <Label htmlFor="category">Category</Label>
+                                <select
+                                    id="category"
+                                    name="category"
+                                    defaultValue={task?.category ? options.categories.find((option) => option.label === task.category)?.value ?? '' : ''}
+                                    className="h-10 rounded-md border bg-background px-3 text-sm"
+                                    required
+                                >
+                                    <option value="" disabled>Select a category</option>
+                                    {options.categories.map((option) => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                                <InputError message={errors.category} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="work_type">Work type</Label>
+                                <select
+                                    id="work_type"
+                                    name="work_type"
+                                    defaultValue={task?.workType ?? 'one_time_gig'}
+                                    className="h-10 rounded-md border bg-background px-3 text-sm"
+                                >
+                                    {workTypes.map((option) => (
+                                        <option key={option.value} value={option.value}>{option.label}</option>
+                                    ))}
+                                </select>
+                                <InputError message={errors.work_type} />
+                            </div>
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="description">What needs to be done?</Label>
@@ -172,24 +201,46 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                         <p className="text-sm text-muted-foreground">{PAYMENT_BOUNDARY_NOTICE}</p>
 
                         <div className="space-y-3 rounded-lg border bg-muted/20 p-4">
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                <div>
-                                    <h3 className="text-sm font-semibold">Work schedule / hours</h3>
-                                    <p className="text-xs text-muted-foreground">Students compare these hours against their class schedule before applying.</p>
-                                </div>
-                                <input type="hidden" name="schedule_to_be_discussed" value={scheduleToBeDiscussed ? '1' : '0'} />
-                                <label className="flex items-center gap-2 text-sm">
+                            <div>
+                                <h3 className="text-sm font-semibold">Work schedule / hours</h3>
+                                <p className="text-xs text-muted-foreground">Students compare these hours against their class schedule before applying.</p>
+                            </div>
+
+                            <input type="hidden" name="schedule_flexible" value={scheduleMode === 'flexible' ? '1' : '0'} />
+                            <input type="hidden" name="schedule_to_be_discussed" value={scheduleMode === 'tbd' ? '1' : '0'} />
+
+                            <fieldset className="flex flex-wrap gap-3 text-sm">
+                                <legend className="sr-only">Choose how work hours are set</legend>
+                                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5">
                                     <input
-                                        id="schedule_to_be_discussed"
-                                        type="checkbox"
-                                        checked={scheduleToBeDiscussed}
-                                        onChange={(event) => setScheduleToBeDiscussed(event.target.checked)}
+                                        type="radio"
+                                        name="schedule_mode_ui"
+                                        checked={scheduleMode === 'fixed'}
+                                        onChange={() => setScheduleMode('fixed')}
+                                    />
+                                    <span>Set weekly hours</span>
+                                </label>
+                                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5">
+                                    <input
+                                        type="radio"
+                                        name="schedule_mode_ui"
+                                        checked={scheduleMode === 'flexible'}
+                                        onChange={() => setScheduleMode('flexible')}
+                                    />
+                                    <span>Flexible / self-paced before deadline</span>
+                                </label>
+                                <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-1.5">
+                                    <input
+                                        type="radio"
+                                        name="schedule_mode_ui"
+                                        checked={scheduleMode === 'tbd'}
+                                        onChange={() => setScheduleMode('tbd')}
                                     />
                                     <span>Work hours are to be discussed</span>
                                 </label>
-                            </div>
+                            </fieldset>
 
-                            {!scheduleToBeDiscussed && (
+                            {scheduleMode === 'fixed' && (
                                 <div className="space-y-3">
                                     <fieldset className="space-y-2">
                                         <legend className="text-sm font-medium">Work days</legend>
@@ -248,7 +299,8 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                                         id="can_hours_change"
                                         name="can_hours_change"
                                         defaultValue={canHoursChangeDefault}
-                                        className="h-10 rounded-md border bg-background px-3 text-sm"
+                                        disabled={scheduleMode === 'flexible'}
+                                        className="h-10 rounded-md border bg-background px-3 text-sm disabled:opacity-60"
                                     >
                                         <option value="">Not specified</option>
                                         <option value="1">Yes — hours can adjust around classes</option>
@@ -263,7 +315,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                                         name="schedule_note"
                                         maxLength={255}
                                         defaultValue={task?.scheduleNote ?? ''}
-                                        placeholder="e.g. Flexible after 3:00 PM or weekends"
+                                        placeholder="e.g. Flexible after 3:00 PM or complete before Friday"
                                     />
                                     <InputError message={errors.schedule_note} />
                                 </div>

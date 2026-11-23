@@ -359,5 +359,35 @@ class TaskPostingTest extends TestCase
             'schedule_start_time' => '15:00',
             'schedule_end_time' => '13:00',
         ]))->assertSessionHasErrors('schedule_end_time');
+
+        $this->post(route('tasks.store'), $this->taskData([
+            'work_type' => 'invented_type',
+        ]))->assertSessionHasErrors('work_type');
+    }
+
+    public function test_poster_can_submit_one_time_gig_with_flexible_self_paced_schedule(): void
+    {
+        $poster = $this->verifiedPoster();
+
+        $this->actingAs($poster)->post(route('tasks.store'), [
+            'title' => 'Synthetic poster design gig',
+            'category' => 'design_and_creative',
+            'work_type' => 'one_time_gig',
+            'description' => 'Design three synthetic event posters before the deadline.',
+            'budget' => 800,
+            'budget_to_be_discussed' => '0',
+            'pay_timing' => 'upon_completion',
+            'schedule_flexible' => '1',
+            'schedule_to_be_discussed' => '0',
+            'work_mode' => 'remote',
+            'guidelines_confirmed' => '1',
+        ])->assertRedirect()->assertSessionHasNoErrors();
+
+        $gig = $poster->tasks()->latest('id')->firstOrFail();
+        $this->assertSame('one_time_gig', $gig->work_type);
+        $this->assertSame('One-time gig / task', $gig->workTypeLabel());
+        $this->assertTrue($gig->isScheduleFlexible());
+        $this->assertFalse($gig->isScheduleToBeDiscussed());
+        $this->assertSame('Flexible / self-paced before deadline', $gig->scheduleSummary());
     }
 }

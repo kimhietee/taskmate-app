@@ -55,12 +55,21 @@ test('registration explains account review and why requested student details are
     const markup = renderToStaticMarkup(React.createElement(Register, {
         passwordRules: '',
         institutionalEmailDomains: ['cmu.edu.ph'],
+        requireInstitutionalEmail: true,
+        affiliationOptions: {
+            student: ['College of Information Sciences and Computing — BSIT'],
+            faculty_staff: ['College of Information Sciences and Computing'],
+        },
     }));
 
     assert.match(markup, /How account review works/);
     assert.match(markup, /Email confirmation and TaskMate account review are separate steps/);
+    assert.match(markup, /Step 1 — Confirm your email/);
+    assert.match(markup, /Step 2 — Administrator approval/);
     assert.match(markup, /browse, post, or apply/);
     assert.match(markup, /Student ID number/);
+    assert.match(markup, /College of Information Sciences and Computing — BSIT/);
+    assert.match(markup, /Other \(specify below\)/);
     assert.match(markup, /Your ID number is visible only to you and administrators/);
     assert.match(markup, /may appear on your profile/);
 });

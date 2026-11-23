@@ -2,7 +2,7 @@ import { AlertCircle, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
 export function ToBeDiscussedBadge({ label = 'To be discussed' }: { label?: string }) {
     return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-950">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-400 bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-950 dark:border-amber-700 dark:bg-amber-950/70 dark:text-amber-100">
             <AlertCircle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>{label}</span>
         </span>
@@ -12,7 +12,7 @@ export function ToBeDiscussedBadge({ label = 'To be discussed' }: { label?: stri
 export function ScheduleFitBadge({ status }: { status: 'fits' | 'clashes' | 'cannot_check' }) {
     if (status === 'fits') {
         return (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-950">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-400 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-950 dark:border-emerald-700 dark:bg-emerald-950/70 dark:text-emerald-100">
                 <CheckCircle2 className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>Fits your classes</span>
             </span>
@@ -21,7 +21,7 @@ export function ScheduleFitBadge({ status }: { status: 'fits' | 'clashes' | 'can
 
     if (status === 'clashes') {
         return (
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-950">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-red-400 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-950 dark:border-red-700 dark:bg-red-950/70 dark:text-red-100">
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 <span>Clashes with your classes</span>
             </span>
@@ -29,7 +29,7 @@ export function ScheduleFitBadge({ status }: { status: 'fits' | 'clashes' | 'can
     }
 
     return (
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-900">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
             <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>Cannot check yet</span>
         </span>

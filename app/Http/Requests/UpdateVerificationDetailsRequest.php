@@ -6,6 +6,20 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateVerificationDetailsRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $cleaned = [];
+        foreach (['id_number', 'affiliation', 'organization_name', 'position', 'supporting_info'] as $field) {
+            if ($this->exists($field) && is_string($this->input($field))) {
+                $normalized = preg_replace('/\s+/u', ' ', trim($this->input($field))) ?? trim($this->input($field));
+                $cleaned[$field] = $normalized === '' ? null : $normalized;
+            }
+        }
+        if ($cleaned !== []) {
+            $this->merge($cleaned);
+        }
+    }
+
     public function authorize(): bool
     {
         return $this->user() !== null

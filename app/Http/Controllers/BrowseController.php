@@ -28,6 +28,9 @@ class BrowseController extends Controller
                     ->orWhere('required_activities', 'like', "%{$search}%"));
             })
             ->when($filters['category'] ?? null, fn ($query, string $category) => $query->where('category', $category))
+            ->when($filters['work_type'] ?? null, fn ($query, string $workType) => $workType === 'one_time_gig'
+                ? $query->where(fn ($q) => $q->where('work_type', 'one_time_gig')->orWhereNull('work_type'))
+                : $query->where('work_type', $workType))
             ->when($filters['work_mode'] ?? null, fn ($query, string $mode) => $query->where('work_mode', $mode))
             ->when($filters['complexity'] ?? null, fn ($query, string $complexity) => $query->where('complexity', $complexity))
             ->when(isset($filters['min_budget']), fn ($query) => $query->whereNotNull('budget')->where('budget', '>=', $filters['min_budget']))
@@ -44,6 +47,7 @@ class BrowseController extends Controller
             'filters' => $filters,
             'options' => [
                 'categories' => $this->options(config('taskmate.categories', [])),
+                'workTypes' => $this->options(config('taskmate.work_types', [])),
                 'workModes' => $this->options(config('taskmate.work_modes', [])),
                 'sorts' => $this->options(config('taskmate.browse.sort_options', [])),
             ],
@@ -113,11 +117,14 @@ class BrowseController extends Controller
             'title' => $task->title,
             'descriptionPreview' => Str::limit(strip_tags($task->description), 180),
             'category' => config('taskmate.categories.'.$task->category, $task->category),
+            'workType' => $task->work_type ?? 'one_time_gig',
+            'workTypeLabel' => $task->workTypeLabel(),
             'budget' => $task->budget,
             'budgetToBeDiscussed' => $task->isBudgetToBeDiscussed(),
             'payTimingLabel' => $task->payTimingLabel(),
             'payTimingToBeDiscussed' => $task->isPayTimingToBeDiscussed(),
             'scheduleSummary' => $task->scheduleSummary(),
+            'scheduleFlexible' => $task->isScheduleFlexible(),
             'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
             'canHoursChange' => $task->can_hours_change,
             'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
@@ -137,6 +144,8 @@ class BrowseController extends Controller
             'id' => $task->id,
             'title' => $task->title,
             'category' => config('taskmate.categories.'.$task->category, $task->category),
+            'workType' => $task->work_type ?? 'one_time_gig',
+            'workTypeLabel' => $task->workTypeLabel(),
             'description' => $task->description,
             'requiredActivities' => $task->required_activities,
             'deliverables' => $task->deliverables,
@@ -152,6 +161,7 @@ class BrowseController extends Controller
             'scheduleStartTime' => $task->schedule_start_time,
             'scheduleEndTime' => $task->schedule_end_time,
             'scheduleNote' => $task->schedule_note,
+            'scheduleFlexible' => $task->isScheduleFlexible(),
             'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
             'scheduleSummary' => $task->scheduleSummary(),
             'canHoursChange' => $task->can_hours_change,

@@ -79,7 +79,7 @@ export default function CreateAgreement({ task, workerName, defaults, termsMaxLe
                     <p className="text-sm">Workplace address: {defaults.workplaceAddress ?? 'Not applicable'}</p>
                     <p className="text-sm text-muted-foreground">Work mode and workplace stay as listed because the worker applied based on these details.</p>
                     {hasUnsettledTerms && (
-                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                             One or more listing terms were marked <strong>To be discussed</strong>. Settle the exact final amount, schedule/hours, and payment timing clearly in this agreement before locking.
                         </div>
                     )}

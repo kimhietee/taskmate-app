@@ -9,6 +9,7 @@ export type ClassBlock = {
 
 export type TaskScheduleInput = {
     scheduleToBeDiscussed?: boolean;
+    scheduleFlexible?: boolean;
     scheduleDays?: string[];
     scheduleStartTime?: string | null;
     scheduleEndTime?: string | null;
@@ -56,6 +57,15 @@ export function evaluateScheduleFit(
     classBlocks: ClassBlock[],
     dayLabels: Record<string, string> = DEFAULT_DAY_LABELS,
 ): ScheduleFitResult {
+    if (task.scheduleFlexible) {
+        return {
+            status: 'fits',
+            reason: 'This task has flexible, self-paced hours before the deadline, so it does not clash with fixed class times.',
+            conflicts: [],
+            negotiabilityNote: 'Flexible / self-paced around your class schedule.',
+        };
+    }
+
     const negotiabilityNote =
         task.canHoursChange === true
             ? 'The poster indicated hours can adjust around classes.'

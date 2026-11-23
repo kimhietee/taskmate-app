@@ -12,11 +12,14 @@ type Listing = {
     title: string;
     descriptionPreview: string;
     category: string;
+    workType?: string;
+    workTypeLabel?: string;
     budget: string | null;
     budgetToBeDiscussed?: boolean;
     payTimingLabel?: string;
     payTimingToBeDiscussed?: boolean;
     scheduleSummary?: string | null;
+    scheduleFlexible?: boolean;
     scheduleToBeDiscussed?: boolean;
     canHoursChange?: boolean | null;
     workMode: string;
@@ -30,13 +33,13 @@ type Listing = {
 };
 type Props = {
     tasks: { data: Listing[]; links: { url: string | null; label: string; active: boolean }[] };
-    filters: { search?: string; category?: string; work_mode?: string; min_budget?: string; max_budget?: string; sort?: string };
-    options: { categories: Option[]; workModes: Option[]; sorts: Option[] };
+    filters: { search?: string; category?: string; work_type?: string; work_mode?: string; min_budget?: string; max_budget?: string; sort?: string };
+    options: { categories: Option[]; workTypes?: Option[]; workModes: Option[]; sorts: Option[] };
 };
 
 export default function BrowseTasks({ tasks, filters, options }: Props) {
-    const advancedFiltersActive = Boolean(filters.min_budget || filters.max_budget);
-    const [values, setValues] = useState({ search: filters.search ?? '', category: filters.category ?? '', work_mode: filters.work_mode ?? '', min_budget: filters.min_budget ?? '', max_budget: filters.max_budget ?? '', sort: filters.sort ?? 'newest' });
+    const advancedFiltersActive = Boolean(filters.min_budget || filters.max_budget || filters.work_type);
+    const [values, setValues] = useState({ search: filters.search ?? '', category: filters.category ?? '', work_type: filters.work_type ?? '', work_mode: filters.work_mode ?? '', min_budget: filters.min_budget ?? '', max_budget: filters.max_budget ?? '', sort: filters.sort ?? 'newest' });
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(advancedFiltersActive);
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
@@ -75,6 +78,15 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                     <details open={moreFiltersOpen} onToggle={(event) => setMoreFiltersOpen(event.currentTarget.open)} className="rounded-lg border px-4 py-3">
                         <summary className="cursor-pointer text-sm font-medium">More filters{advancedFiltersActive ? ' · filters active' : ''}</summary>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                            {(options.workTypes?.length ?? 0) > 0 && (
+                                <label className="grid gap-1.5 text-sm font-medium" htmlFor="filter-work-type">
+                                    Work type
+                                    <select id="filter-work-type" name="work_type" value={values.work_type} onChange={(event) => setValues({ ...values, work_type: event.target.value })} className="h-10 rounded-md border bg-background px-3 font-normal">
+                                        <option value="">All work types</option>
+                                        {options.workTypes!.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                    </select>
+                                </label>
+                            )}
                             <label className="grid gap-1.5 text-sm font-medium" htmlFor="min-budget">
                                 Minimum budget (PHP)
                                 <input id="min-budget" name="min_budget" type="number" min="0" max="1000000" step="0.01" value={values.min_budget} onChange={(event) => setValues({ ...values, min_budget: event.target.value })} className="h-10 rounded-md border bg-background px-3 font-normal" />
@@ -98,7 +110,9 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                             <article key={task.id} className="flex flex-col gap-3 rounded-xl border p-5">
                                 <div className="flex items-start justify-between gap-2">
                                     <div>
-                                        <p className="text-sm text-muted-foreground">{task.category}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {task.category}{task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}
+                                        </p>
                                         <h2 className="mt-1 text-lg font-semibold">{task.title}</h2>
                                     </div>
                                     {task.hasApplied && <ApplicationStatusBadge status="pending" label="Applied" />}

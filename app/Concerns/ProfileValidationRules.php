@@ -29,7 +29,16 @@ trait ProfileValidationRules
      */
     protected function nameRules(): array
     {
-        return ['required', 'string', 'max:255'];
+        return ['required', 'string', 'min:2', 'max:255', 'regex:/\p{L}/u', 'regex:/^[\p{L}\p{N}\s\'.-]+$/u'];
+    }
+
+    protected function cleanText(mixed $value): mixed
+    {
+        if (! is_string($value)) {
+            return $value;
+        }
+
+        return preg_replace('/\s+/u', ' ', trim($value)) ?? trim($value);
     }
 
     /**

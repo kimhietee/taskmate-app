@@ -21,6 +21,8 @@ type Task = {
     id: number;
     title: string;
     category: string;
+    workType?: string;
+    workTypeLabel?: string;
     description: string;
     requiredActivities: string | null;
     deliverables: string | null;
@@ -36,6 +38,7 @@ type Task = {
     scheduleStartTime?: string | null;
     scheduleEndTime?: string | null;
     scheduleNote?: string | null;
+    scheduleFlexible?: boolean;
     scheduleToBeDiscussed?: boolean;
     scheduleSummary?: string | null;
     canHoursChange?: boolean | null;
@@ -111,6 +114,7 @@ export default function BrowseTaskDetail({
     const [blockError, setBlockError] = useState<string | null>(null);
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [scheduleDirty, setScheduleDirty] = useState(false);
+    const [scheduleSavedNotice, setScheduleSavedNotice] = useState<string | null>(null);
 
     const [showConfirmSummary, setShowConfirmSummary] = useState(false);
     const [reviewNotice, setReviewNotice] = useState<string | null>(null);
@@ -129,7 +133,8 @@ export default function BrowseTaskDetail({
 
     const isBudgetTbd = Boolean(task.budgetToBeDiscussed || task.budget === null);
     const isPayTimingTbd = Boolean(task.payTimingToBeDiscussed || !task.payTimingLabel);
-    const isScheduleTbd = Boolean(task.scheduleToBeDiscussed || !task.scheduleSummary);
+    const isScheduleFlexible = Boolean(task.scheduleFlexible);
+    const isScheduleTbd = !isScheduleFlexible && Boolean(task.scheduleToBeDiscussed || !task.scheduleSummary);
 
     const missingTerms = useMemo(() => {
         const list: string[] = [];
@@ -172,22 +177,27 @@ export default function BrowseTaskDetail({
         ]);
         setNewBlockLabel('');
         setScheduleDirty(true);
+        setScheduleSavedNotice(null);
     };
 
     const handleRemoveClassBlock = (indexToRemove: number) => {
         setClassBlocks((prev) => prev.filter((_, idx) => idx !== indexToRemove));
         setScheduleDirty(true);
+        setScheduleSavedNotice(null);
     };
 
     const handleSaveClassSchedule = () => {
         setSavingSchedule(true);
+        setScheduleSavedNotice(null);
         router.put(
             '/my-class-schedule',
             { blocks: classBlocks },
             {
                 preserveScroll: true,
+                preserveState: true,
                 onSuccess: () => {
                     setScheduleDirty(false);
+                    setScheduleSavedNotice('Your class schedule was saved privately to your account.');
                 },
                 onFinish: () => {
                     setSavingSchedule(false);
@@ -252,7 +262,7 @@ export default function BrowseTaskDetail({
                 )}
 
                 <div>
-                    <p className="text-sm text-muted-foreground">{task.category}</p>
+                    <p className="text-sm text-muted-foreground">{task.category}{task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}</p>
                     <h1 className="mt-1 text-2xl font-semibold">{task.title}</h1>
                     <p className="mt-2 text-sm text-muted-foreground">
                         Review the offer terms, the poster, and your class schedule in order before you decide.
@@ -357,7 +367,7 @@ export default function BrowseTaskDetail({
                         </div>
 
                         {missingTerms.length > 0 && (
-                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                                 <p>
                                     <strong>Missing terms:</strong> {missingTerms.join(', ')} {missingTerms.length === 1 ? 'is' : 'are'} marked <em>To be discussed</em>. Ask the poster before locking an agreement.
                                 </p>
@@ -384,9 +394,9 @@ export default function BrowseTaskDetail({
                         <RatingSummary summary={poster.ratingSummary} />
                     </div>
 
-                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">{STUDENT_TASK_SAFETY_NOTICE}</div>
+                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">{STUDENT_TASK_SAFETY_NOTICE}</div>
                     {offPlatformWarning && (
-                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                        <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                             This post contains a request to move outside TaskMate or skip its steps. Be careful, keep agreements and communications on record, and report anything that makes you uncomfortable.
                         </div>
                     )}
@@ -481,7 +491,7 @@ export default function BrowseTaskDetail({
                     </div>
 
                     {scheduleFit.conflicts.length > 0 && (
-                        <div className="space-y-2 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950">
+                        <div className="space-y-2 rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950 dark:border-red-800 dark:bg-red-950/60 dark:text-red-100">
                             <p className="font-medium">Conflicting class block{scheduleFit.conflicts.length === 1 ? '' : 's'}:</p>
                             <ul className="list-disc space-y-1 pl-5">
                                 {scheduleFit.conflicts.map((conflict, idx) => (
@@ -492,7 +502,7 @@ export default function BrowseTaskDetail({
                                 ))}
                             </ul>
                             {canApply && !application && (
-                                <Button type="button" size="sm" variant="outline" onClick={handleAskPosterPrefill} className="mt-2 bg-white">
+                                <Button type="button" size="sm" variant="outline" onClick={handleAskPosterPrefill} className="mt-2">
                                     Ask poster to adjust hours
                                 </Button>
                             )}
@@ -576,6 +586,7 @@ export default function BrowseTaskDetail({
                                         {savingSchedule ? 'Saving...' : scheduleDirty ? 'Save my class schedule' : 'Save schedule to account'}
                                     </Button>
                                     {scheduleDirty && <span className="text-xs text-muted-foreground">Unsaved changes (fit check updates live above).</span>}
+                                    {scheduleSavedNotice && <span role="status" className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{scheduleSavedNotice}</span>}
                                 </div>
                             </div>
                         )}
@@ -651,7 +662,7 @@ export default function BrowseTaskDetail({
                                 </div>
 
                                 {reviewNotice && (
-                                    <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                                    <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                                         {reviewNotice}
                                     </div>
                                 )}
@@ -720,13 +731,13 @@ export default function BrowseTaskDetail({
                                         </dl>
 
                                         {missingTerms.length > 0 && (
-                                            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                                            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
                                                 <strong>Still to be discussed:</strong> {missingTerms.join(', ')}. Make sure you settle these clearly in chat and in the written agreement before starting work.
                                             </div>
                                         )}
 
                                         {scheduleFit.status === 'clashes' && (
-                                            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-950">
+                                            <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-950 dark:border-red-800 dark:bg-red-950/60 dark:text-red-100">
                                                 <strong>Class schedule clash detected:</strong> Confirm with the poster whether hours can change before accepting an agreement.
                                             </div>
                                         )}
