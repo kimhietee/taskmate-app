@@ -28,16 +28,18 @@ type Listing = {
     workplaceAddress: string | null;
     posterName: string;
     posterType: string;
-    posterVerificationStatus: 'pending' | 'verified' | 'rejected' | 'more_info_requested';
+    posterVerificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected' | 'more_info_requested';
     hasApplied: boolean;
 };
 type Props = {
     tasks: { data: Listing[]; links: { url: string | null; label: string; active: boolean }[] };
     filters: { search?: string; category?: string; work_type?: string; work_mode?: string; min_budget?: string; max_budget?: string; sort?: string };
     options: { categories: Option[]; workTypes?: Option[]; workModes: Option[]; sorts: Option[] };
+    isVerifiedStudent?: boolean;
+    studentVerificationUrl?: string | null;
 };
 
-export default function BrowseTasks({ tasks, filters, options }: Props) {
+export default function BrowseTasks({ tasks, filters, options, isVerifiedStudent = true, studentVerificationUrl = null }: Props) {
     const advancedFiltersActive = Boolean(filters.min_budget || filters.max_budget || filters.work_type);
     const [values, setValues] = useState({ search: filters.search ?? '', category: filters.category ?? '', work_type: filters.work_type ?? '', work_mode: filters.work_mode ?? '', min_budget: filters.min_budget ?? '', max_budget: filters.max_budget ?? '', sort: filters.sort ?? 'newest' });
     const [moreFiltersOpen, setMoreFiltersOpen] = useState(advancedFiltersActive);
@@ -54,6 +56,21 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                     <h1 className="text-2xl font-semibold">Browse tasks</h1>
                     <p className="mt-1 text-sm text-muted-foreground">Search approved tasks and review the work details before you apply.</p>
                 </div>
+
+                {!isVerifiedStudent && (
+                    <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100">
+                        <div>
+                            <p className="font-semibold">Preview mode — Not verified as a CMU student yet</p>
+                            <p className="mt-0.5 text-xs">You can browse approved tasks and check schedules right now. Verify your CMU student status to apply, message posters, or post tasks.</p>
+                        </div>
+                        <Link
+                            href={studentVerificationUrl ?? '/verification/student'}
+                            className="inline-flex min-h-9 items-center rounded-md bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground underline-offset-4 hover:underline"
+                        >
+                            Verify as CMU Student
+                        </Link>
+                    </div>
+                )}
 
                 <form onSubmit={submit} className="space-y-4 rounded-xl border p-4 sm:p-5">
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

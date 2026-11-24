@@ -46,30 +46,54 @@ class CreateNewUser implements CreatesNewUsers
             $input['email'] = trim($input['email']);
         }
 
+        $userType = $input['user_type'] ?? null;
+        $requireInstitutionalEmail = (bool) config('taskmate.require_institutional_email', false);
+        $allowedDomains = array_map(
+            fn (string $emailDomain) => Str::lower(trim($emailDomain)),
+            config('taskmate.institutional_email_domains', []),
+        );
+        $emailDomain = isset($input['email']) && is_string($input['email']) && str_contains($input['email'], '@')
+            ? Str::lower(Str::afterLast($input['email'], '@'))
+            : '';
+        $isInstitutionalEmail = in_array($emailDomain, $allowedDomains, true);
+
+        // Students registering with a personal email (when institutional email is not required) can
+        // defer their Student ID and college/program to the post-signup "Verify as CMU Student" flow.
+        $studentCanDeferDetails = $userType === UserType::Student->value
+            && ! $requireInstitutionalEmail
+            && ! $isInstitutionalEmail;
+
         $profileRules = $this->profileRules();
-        $profileRules['email'][] = function (string $attribute, mixed $value, \Closure $fail) use ($input): void {
-            if (! config('taskmate.require_institutional_email', true)) {
+        $profileRules['email'][] = function (string $attribute, mixed $value, \Closure $fail) use ($userType, $requireInstitutionalEmail, $allowedDomains): void {
+            if (! $requireInstitutionalEmail) {
                 return;
             }
 
-            if (! in_array($input['user_type'] ?? null, [UserType::Student->value, UserType::FacultyStaff->value], true)) {
+            if (! in_array($userType, [UserType::Student->value, UserType::FacultyStaff->value], true)) {
                 return;
             }
 
             $domain = Str::lower(Str::afterLast((string) $value, '@'));
-            $allowedDomains = array_map(fn (string $emailDomain) => Str::lower($emailDomain), config('taskmate.institutional_email_domains', []));
 
             if (! in_array($domain, $allowedDomains, true)) {
                 $fail('Use your CMU institutional email address.');
             }
         };
 
+        $idNumberRules = $studentCanDeferDetails
+            ? ['nullable', 'required_with:affiliation', 'string', 'min:2', 'max:255']
+            : ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'];
+
+        $affiliationRules = $studentCanDeferDetails
+            ? ['nullable', 'required_with:id_number', 'string', 'min:2', 'max:255']
+            : ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'];
+
         Validator::make($input, [
             ...$profileRules,
             'password' => $this->passwordRules(),
             'user_type' => ['required', Rule::in(array_keys(config('taskmate.user_types', [])))],
-            'id_number' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'],
-            'affiliation' => ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'],
+            'id_number' => $idNumberRules,
+            'affiliation' => $affiliationRules,
             'organization_name' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'min:2', 'max:255'],
             'position' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'min:2', 'max:255'],
             'supporting_info' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'max:1000'],
@@ -77,13 +101,18 @@ class CreateNewUser implements CreatesNewUsers
             'name.regex' => 'Enter a valid name using letters, spaces, periods, hyphens, or apostrophes.',
         ])->validate();
 
-        return DB::transaction(function () use ($input) {
+        return DB::transaction(function () use ($input, $studentCanDeferDetails) {
+            $hasStudentDetails = filled($input['id_number'] ?? null) && filled($input['affiliation'] ?? null);
+            $initialStatus = $studentCanDeferDetails && ! $hasStudentDetails
+                ? VerificationStatus::Unverified
+                : VerificationStatus::Pending;
+
             $user = new User;
             $user->name = $input['name'];
             $user->email = $input['email'];
             $user->password = $input['password'];
             $user->user_type = UserType::from($input['user_type']);
-            $user->verification_status = VerificationStatus::Pending;
+            $user->verification_status = $initialStatus;
             $user->is_admin = false;
             $user->affiliation = $input['affiliation'] ?? null;
             $user->id_number = $input['id_number'] ?? null;
@@ -92,7 +121,9 @@ class CreateNewUser implements CreatesNewUsers
             $user->supporting_info = $input['supporting_info'] ?? null;
             $user->save();
 
-            $this->alerts->admins('account.awaiting_review', route('admin.users.index', [], false), ['user_id' => $user->id], actorId: $user->id);
+            if ($initialStatus === VerificationStatus::Pending) {
+                $this->alerts->admins('account.awaiting_review', route('admin.users.index', [], false), ['user_id' => $user->id], actorId: $user->id);
+            }
 
             $this->createTeam->handle($user, $user->name."'s Team", isPersonal: true);
 

@@ -74,8 +74,29 @@ class BrowseApplicationsTest extends TestCase
 
     public function test_only_verified_students_can_browse_and_apply(): void
     {
+        $poster = $this->poster();
+        $approvedTask = $this->task($poster);
+
         $this->get(route('browse.index'))->assertRedirect(route('login'));
-        $this->actingAs(User::factory()->create())->get(route('browse.index'))->assertRedirect();
+
+        $unverifiedStudent = User::factory()->unverifiedStudent()->create();
+        $this->actingAs($unverifiedStudent)->get(route('browse.index'))->assertOk()
+            ->assertInertia(fn ($page) => $page->component('browse/index')->where('isVerifiedStudent', false));
+        $this->actingAs($unverifiedStudent)->get(route('browse.show', $approvedTask))->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('browse/show')
+                ->where('isVerifiedStudent', false)
+                ->where('canApply', false)
+                ->where('canSaveSchedule', false)
+                ->where('problemReport', null)
+                ->where('poster.profileUrl', null));
+        $this->actingAs($unverifiedStudent)->post(route('applications.store', $approvedTask), $this->applicationData())->assertRedirect();
+        $this->actingAs($unverifiedStudent)->put(route('class-schedule.update'), ['blocks' => []])->assertRedirect();
+
+        config(['taskmate.student_verification.unverified_students_can_browse' => false]);
+        $this->actingAs($unverifiedStudent)->get(route('browse.index'))->assertRedirect();
+        config(['taskmate.student_verification.unverified_students_can_browse' => true]);
+
         foreach ([
             User::factory()->facultyStaff()->verified()->create(),
             User::factory()->organization()->verified()->create(),

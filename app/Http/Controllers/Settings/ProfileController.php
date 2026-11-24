@@ -29,7 +29,11 @@ class ProfileController extends Controller
                     'position' => $user->position,
                     'supportingInfo' => $user->supporting_info,
                 ]
-                : ['affiliation' => $user->affiliation],
+                : [
+                    'affiliation' => $user->affiliation,
+                    'idNumber' => $user->id_number,
+                    'institutionalEmail' => $user->institutional_email,
+                ],
         ]);
     }
 

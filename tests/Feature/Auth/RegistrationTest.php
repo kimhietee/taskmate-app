@@ -97,6 +97,8 @@ class RegistrationTest extends TestCase
 
     public function test_student_and_faculty_staff_emails_must_use_configured_institutional_domains(): void
     {
+        config(['taskmate.require_institutional_email' => true]);
+
         foreach (['student', 'faculty_staff'] as $type) {
             $this->from(route('register'))->post(route('register.store'), [
                 ...$this->baseRegistration("{$type}@outside.example.test"),
@@ -250,6 +252,10 @@ class RegistrationTest extends TestCase
         $pendingWithoutTeam->teams()->detach();
         $pendingWithoutTeam->refresh();
 
+        $this->actingAs($pendingWithoutTeam)->get(route('tasks.create'))
+            ->assertRedirect(route('taskmate.dashboard'));
+
+        config(['taskmate.student_verification.unverified_students_can_browse' => false]);
         $this->actingAs($pendingWithoutTeam)->get(route('browse.index'))
             ->assertRedirect(route('taskmate.dashboard'));
 

@@ -21,6 +21,7 @@ type PendingTask = {
 
 type Props = {
     counts: {
+        unverified?: number;
         pending: number;
         moreInfoRequested: number;
         verified: number;

@@ -19,8 +19,21 @@ return [
     // The project team must confirm CMU's real institutional email domain(s).
     'institutional_email_domains' => ['cmu.edu.ph'],
 
-    // PROVISIONAL: keep true for CMU deployment; set TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL=false for open local testing.
-    'require_institutional_email' => env('TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL', true),
+    // PROVISIONAL: set true to restrict Student & Faculty/Staff signup to institutional domains only;
+    // keep false to allow personal email registration with progressive CMU student verification.
+    'require_institutional_email' => env('TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL', false),
+
+    // PROVISIONAL: progressive student onboarding and verification behavior.
+    'student_verification' => [
+        // Auto-verify CMU Student accounts once they confirm ownership of a configured institutional email
+        // and have both their Student ID number and college/program saved.
+        'auto_verify_institutional_email' => env('TASKMATE_AUTO_VERIFY_INSTITUTIONAL_STUDENT', true),
+        // Allow unverified/pending student accounts read-only access to Browse Tasks (applying/posting/messaging remain locked).
+        'unverified_students_can_browse' => env('TASKMATE_UNVERIFIED_STUDENTS_CAN_BROWSE', true),
+        // 6-digit email verification code lifetime and max attempts before a new code is required.
+        'code_expiry_minutes' => 15,
+        'code_max_attempts' => 5,
+    ],
 
     // PROVISIONAL: standardized affiliation suggestions (users may also choose "Other" to specify another program or office).
     'affiliations' => [

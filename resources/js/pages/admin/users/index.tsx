@@ -9,7 +9,7 @@ type UserRow = {
     name: string;
     userType: string;
     userTypeLabel: string;
-    verificationStatus: 'pending' | 'verified' | 'rejected' | 'more_info_requested';
+    verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected' | 'more_info_requested';
     registeredAt: string | null;
 };
 

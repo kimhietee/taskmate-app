@@ -52,6 +52,7 @@ class AdminDashboardController extends Controller
 
         return Inertia::render('admin/dashboard', [
             'counts' => [
+                'unverified' => User::query()->where('verification_status', VerificationStatus::Unverified->value)->count(),
                 'pending' => User::query()->where('verification_status', VerificationStatus::Pending->value)->count(),
                 'moreInfoRequested' => User::query()->where('verification_status', VerificationStatus::MoreInfoRequested->value)->count(),
                 'verified' => User::query()->where('verification_status', VerificationStatus::Verified->value)->count(),

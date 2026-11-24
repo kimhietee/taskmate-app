@@ -22,7 +22,7 @@ class AdminUsersController extends Controller
                 ->orWhere('email', 'like', "%{$search}%")))
             ->when($filters['user_type'] ?? null, fn ($query, string $type) => $query->where('user_type', $type))
             ->when($filters['verification_status'] ?? null, fn ($query, string $status) => $query->where('verification_status', $status))
-            ->orderByRaw("CASE verification_status WHEN 'pending' THEN 0 WHEN 'more_info_requested' THEN 1 WHEN 'rejected' THEN 2 ELSE 3 END")
+            ->orderByRaw("CASE verification_status WHEN 'pending' THEN 0 WHEN 'more_info_requested' THEN 1 WHEN 'rejected' THEN 2 WHEN 'unverified' THEN 3 ELSE 4 END")
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString()
@@ -58,6 +58,9 @@ class AdminUsersController extends Controller
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
+                'institutionalEmail' => $user->institutional_email,
+                'institutionalEmailVerifiedAt' => $user->institutional_email_verified_at?->toDateTimeString(),
+                'verificationMethod' => $user->verification_method,
                 'userType' => $user->user_type->value,
                 'userTypeLabel' => config('taskmate.user_types.'.$user->user_type->value),
                 'verificationStatus' => $user->verification_status->value,

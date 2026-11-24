@@ -25,7 +25,18 @@ function element(tag, { children, ...props } = {}) {
 }
 
 const modules = {
-    '@inertiajs/react': { Form: ({ resetOnSuccess, disableWhileProcessing, ...props }) => element('form', props), Head: () => null },
+    '@inertiajs/react': {
+        Head: () => null,
+        useForm: (initial) => ({
+            data: initial,
+            errors: {},
+            processing: false,
+            setData: () => {},
+            post: () => {},
+            reset: () => {},
+            transform: () => {},
+        }),
+    },
     '@/components/input-error': () => null,
     '@/components/password-input': (props) => element('input', props),
     '@/components/safety-notice': { SafetyNotice: () => element('p', { children: 'Safety notice' }) },
@@ -36,7 +47,7 @@ const modules = {
     '@/components/ui/spinner': { Spinner: () => null },
     '@/components/ui/textarea': { Textarea: (props) => element('textarea', props) },
     '@/routes': { login: () => '/login' },
-    '@/routes/register': { store: { form: () => ({ action: '/register', method: 'post' }) } },
+    '@/routes/register': { store: { url: () => '/register', form: () => ({ action: '/register', method: 'post' }) } },
 };
 
 const module = { exports: {} };
@@ -51,25 +62,26 @@ const mockRequire = (name) => {
 new Function('require', 'module', 'exports', compiled)(mockRequire, module, module.exports);
 const Register = module.exports.default;
 
-test('registration explains account review and why requested student details are collected', () => {
+test('progressive registration explains roles, 6-digit email verification, and no ID photo uploads', () => {
     const markup = renderToStaticMarkup(React.createElement(Register, {
         passwordRules: '',
         institutionalEmailDomains: ['cmu.edu.ph'],
-        requireInstitutionalEmail: true,
+        requireInstitutionalEmail: false,
+        autoVerifyInstitutionalStudent: true,
+        unverifiedStudentsCanBrowse: true,
         affiliationOptions: {
             student: ['College of Information Sciences and Computing — BSIT'],
             faculty_staff: ['College of Information Sciences and Computing'],
         },
     }));
 
-    assert.match(markup, /How account review works/);
-    assert.match(markup, /Email confirmation and TaskMate account review are separate steps/);
-    assert.match(markup, /Step 1 — Confirm your email/);
-    assert.match(markup, /Step 2 — Administrator approval/);
-    assert.match(markup, /browse, post, or apply/);
-    assert.match(markup, /Student ID number/);
-    assert.match(markup, /College of Information Sciences and Computing — BSIT/);
-    assert.match(markup, /Other \(specify below\)/);
-    assert.match(markup, /Your ID number is visible only to you and administrators/);
-    assert.match(markup, /may appear on your profile/);
+    assert.match(markup, /Step 1 of 2/);
+    assert.match(markup, /How will you use TaskMate\?/);
+    assert.match(markup, /CMU Student/);
+    assert.match(markup, /CMU Faculty \/ Staff/);
+    assert.match(markup, /Office or Organization Representative/);
+    assert.match(markup, /How verification works/);
+    assert.match(markup, /6-digit code/);
+    assert.match(markup, /TaskMate does not ask for ID photos or identity document uploads/);
+    assert.match(markup, /Continue as CMU Student/);
 });

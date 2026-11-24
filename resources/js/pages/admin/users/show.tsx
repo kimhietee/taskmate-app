@@ -10,9 +10,12 @@ type Account = {
     id: number;
     name: string;
     email: string;
+    institutionalEmail?: string | null;
+    institutionalEmailVerifiedAt?: string | null;
+    verificationMethod?: string | null;
     userType: string;
     userTypeLabel: string;
-    verificationStatus: 'pending' | 'verified' | 'rejected' | 'more_info_requested';
+    verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected' | 'more_info_requested';
     idNumber: string | null;
     affiliation: string | null;
     organizationName: string | null;
@@ -42,6 +45,7 @@ function DecisionForm({ userId, decision, label, needsNote = false }: { userId: 
                             <InputError message={errors.note} />
                         </>
                     )}
+                    <InputError message={errors.decision} />
                     <button disabled={processing} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50" type="submit">{label}</button>
                 </>
             )}
@@ -72,6 +76,22 @@ export default function AdminUserShow({ user, history, ratingsReceived = [], rat
                     <dl className="grid gap-4 rounded-lg border p-4 sm:grid-cols-2">
                         <Detail label="Account type" value={user.userTypeLabel} />
                         <Detail label="Email" value={user.email} />
+                        {user.userType === 'student' && (
+                            <Detail
+                                label="CMU institutional email"
+                                value={
+                                    user.institutionalEmail
+                                        ? `${user.institutionalEmail}${user.institutionalEmailVerifiedAt ? ` (confirmed ${user.institutionalEmailVerifiedAt})` : ''}`
+                                        : null
+                                }
+                            />
+                        )}
+                        {user.verificationMethod && (
+                            <Detail
+                                label="Verification method"
+                                value={user.verificationMethod === 'institutional_email' ? 'CMU institutional email code' : 'Administrator review'}
+                            />
+                        )}
                         {user.userType !== 'organization' && <Detail label={user.userType === 'student' ? 'Student ID number' : 'Employee ID number'} value={user.idNumber} />}
                         {user.userType !== 'organization' && <Detail label="Affiliation" value={user.affiliation} />}
                         {user.userType === 'organization' && <Detail label="Organization name" value={user.organizationName} />}

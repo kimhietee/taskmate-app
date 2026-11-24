@@ -51,9 +51,9 @@ type Poster = {
     displayName: string;
     accountType: string;
     affiliation: string | null;
-    verificationStatus: 'pending' | 'verified' | 'rejected' | 'more_info_requested';
+    verificationStatus: 'unverified' | 'pending' | 'verified' | 'rejected' | 'more_info_requested';
     memberSince: string | null;
-    profileUrl: string;
+    profileUrl: string | null;
     ratingSummary: import('@/components/rating-summary').RatingSummaryData;
 };
 type Application = { status: string; statusLabel: string; appliedAt: string | null };
@@ -62,12 +62,15 @@ type Props = {
     poster: Poster;
     application: Application | null;
     conversation?: { id: number; sendBlockedReason: string | null } | null;
+    isVerifiedStudent?: boolean;
+    studentVerificationUrl?: string | null;
+    canSaveSchedule?: boolean;
     canApply?: boolean;
     limitedView?: boolean;
     currentTaskStatus?: string;
     status?: string | null;
     messageMaxLength: number;
-    problemReport?: { action: string; types: Option[] };
+    problemReport?: { action: string; types: Option[] } | null;
     offPlatformWarning?: boolean;
     studentClassSchedule?: ClassBlock[];
     daysOfWeek?: Option[];
@@ -89,6 +92,9 @@ export default function BrowseTaskDetail({
     poster,
     application,
     conversation,
+    isVerifiedStudent = true,
+    studentVerificationUrl = null,
+    canSaveSchedule = true,
     canApply = false,
     limitedView = false,
     currentTaskStatus,
@@ -260,6 +266,20 @@ export default function BrowseTaskDetail({
                         This task is currently {currentTaskStatus?.toLowerCase()}. You can review the task details and your application status.
                     </div>
                 )}
+                {!isVerifiedStudent && (
+                    <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-100">
+                        <div>
+                            <p className="font-semibold">Preview mode — Verify your CMU student status to apply</p>
+                            <p className="mt-0.5 text-xs">You can inspect all offer terms and test your class schedule fit live. Applying and messaging unlock right after verification.</p>
+                        </div>
+                        <Link
+                            href={studentVerificationUrl ?? '/verification/student'}
+                            className="inline-flex min-h-9 items-center rounded-md bg-primary px-3.5 py-2 text-xs font-medium text-primary-foreground underline-offset-4 hover:underline"
+                        >
+                            Verify as CMU Student
+                        </Link>
+                    </div>
+                )}
 
                 <div>
                     <p className="text-sm text-muted-foreground">{task.category}{task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}</p>
@@ -360,7 +380,11 @@ export default function BrowseTaskDetail({
                             <div>
                                 <h3 className="text-sm font-medium text-muted-foreground">Contact person</h3>
                                 <p className="mt-1 font-medium">
-                                    <Link href={poster.profileUrl} className="underline underline-offset-4">{poster.displayName}</Link>
+                                    {poster.profileUrl ? (
+                                        <Link href={poster.profileUrl} className="underline underline-offset-4">{poster.displayName}</Link>
+                                    ) : (
+                                        <span>{poster.displayName}</span>
+                                    )}
                                 </p>
                                 <p className="mt-1 text-xs text-muted-foreground">Private in-app messaging opens once you submit your application.</p>
                             </div>
@@ -386,7 +410,11 @@ export default function BrowseTaskDetail({
                     <h2 id="section-the-poster" className="text-lg font-semibold">2. The poster</h2>
                     <div className="space-y-2">
                         <p className="font-medium">
-                            <Link href={poster.profileUrl} className="underline underline-offset-4">{poster.displayName}</Link>
+                            {poster.profileUrl ? (
+                                <Link href={poster.profileUrl} className="underline underline-offset-4">{poster.displayName}</Link>
+                            ) : (
+                                <span>{poster.displayName}</span>
+                            )}
                         </p>
                         <p className="text-sm">{poster.accountType}{poster.affiliation ? ` · ${poster.affiliation}` : ''}</p>
                         <VerificationStatusBadge status={poster.verificationStatus} />
@@ -582,11 +610,17 @@ export default function BrowseTaskDetail({
                                     <Button type="button" size="sm" variant="outline" onClick={handleAddClassBlock}>
                                         Add class block
                                     </Button>
-                                    <Button type="button" size="sm" onClick={handleSaveClassSchedule} disabled={savingSchedule}>
-                                        {savingSchedule ? 'Saving...' : scheduleDirty ? 'Save my class schedule' : 'Save schedule to account'}
-                                    </Button>
-                                    {scheduleDirty && <span className="text-xs text-muted-foreground">Unsaved changes (fit check updates live above).</span>}
-                                    {scheduleSavedNotice && <span role="status" className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{scheduleSavedNotice}</span>}
+                                    {canSaveSchedule ? (
+                                        <>
+                                            <Button type="button" size="sm" onClick={handleSaveClassSchedule} disabled={savingSchedule}>
+                                                {savingSchedule ? 'Saving...' : scheduleDirty ? 'Save my class schedule' : 'Save schedule to account'}
+                                            </Button>
+                                            {scheduleDirty && <span className="text-xs text-muted-foreground">Unsaved changes (fit check updates live above).</span>}
+                                            {scheduleSavedNotice && <span role="status" className="text-xs font-medium text-emerald-700 dark:text-emerald-300">{scheduleSavedNotice}</span>}
+                                        </>
+                                    ) : (
+                                        <span className="text-xs text-muted-foreground">Fit check updates live above. Verify your CMU student status to save your schedule.</span>
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -611,7 +645,7 @@ export default function BrowseTaskDetail({
                         {conversation?.sendBlockedReason && <p className="text-sm text-muted-foreground">{conversation.sendBlockedReason}</p>}
                     </section>
                 ) : (
-                    canApply && (
+                    canApply ? (
                         <section id="my-decision" aria-labelledby="section-my-decision" className="space-y-4 rounded-xl border p-5">
                             <div className="flex flex-wrap items-center justify-between gap-2">
                                 <div>
@@ -770,7 +804,22 @@ export default function BrowseTaskDetail({
                                 )}
                             </form>
                         </section>
-                    )
+                    ) : !isVerifiedStudent ? (
+                        <section id="my-decision" aria-labelledby="section-my-decision" className="space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-5">
+                            <h2 id="section-my-decision" className="text-lg font-semibold">4. My decision — Verify as a CMU Student to apply</h2>
+                            <p className="text-sm text-muted-foreground">
+                                Only verified CMU students can apply to tasks and start private task conversations. Verify instantly with a 6-digit code sent to your CMU email, or submit your Student ID number and college/program for administrator review.
+                            </p>
+                            <div className="flex flex-wrap items-center gap-3 pt-1">
+                                <Button asChild>
+                                    <Link href={studentVerificationUrl ?? '/verification/student'}>Verify as CMU Student</Link>
+                                </Button>
+                                <Button variant="ghost" asChild>
+                                    <Link href={browse.index()}>Back to Browse Tasks</Link>
+                                </Button>
+                            </div>
+                        </section>
+                    ) : null
                 )}
 
                 <Link href={browse.index()} className="inline-block text-sm underline underline-offset-4">

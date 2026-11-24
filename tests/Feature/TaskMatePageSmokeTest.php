@@ -167,5 +167,8 @@ class TaskMatePageSmokeTest extends TestCase
 
         $student->forceFill(['verification_status' => 'more_info_requested'])->save();
         $this->actingAs($student)->get(route('verification.details.edit'))->assertOk();
+
+        $unverifiedStudent = User::factory()->unverifiedStudent()->create();
+        $this->actingAs($unverifiedStudent)->get(route('verification.student.show'))->assertOk();
     }
 }

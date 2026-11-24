@@ -1,4 +1,4 @@
-import { Form, Head, usePage } from '@inertiajs/react';
+import { Form, Head, Link, usePage } from '@inertiajs/react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
@@ -13,6 +13,8 @@ type PageProps = {
     auth: Auth;
     accountDetails: {
         affiliation?: string | null;
+        idNumber?: string | null;
+        institutionalEmail?: string | null;
         organizationName?: string | null;
         position?: string | null;
         supportingInfo?: string | null;
@@ -22,6 +24,7 @@ type PageProps = {
 export default function Profile() {
     const { auth, accountDetails } = usePage<PageProps>().props;
     const isOrganization = auth.user.user_type === 'organization';
+    const isUnverifiedStudent = auth.user.user_type === 'student' && auth.user.verification_status === 'unverified';
 
     return (
         <>
@@ -89,11 +92,34 @@ export default function Profile() {
                                     </div>
                                 </>
                             ) : (
-                                <div className="grid gap-2">
-                                    <Label htmlFor="affiliation">{auth.user.user_type === 'student' ? 'College and program' : 'College or office'}</Label>
-                                    <Input id="affiliation" name="affiliation" defaultValue={accountDetails.affiliation ?? ''} required />
-                                    <InputError message={errors.affiliation} />
-                                </div>
+                                <>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="affiliation">{auth.user.user_type === 'student' ? 'College and program' : 'College or office'}</Label>
+                                        <Input
+                                            id="affiliation"
+                                            name="affiliation"
+                                            defaultValue={accountDetails.affiliation ?? ''}
+                                            required={!isUnverifiedStudent}
+                                            placeholder={isUnverifiedStudent ? 'Set during CMU student verification' : undefined}
+                                        />
+                                        <InputError message={errors.affiliation} />
+                                    </div>
+                                    {auth.user.user_type === 'student' && (
+                                        <div className="space-y-2 rounded-lg border bg-muted/30 p-3.5 text-xs text-muted-foreground">
+                                            <p><strong className="text-foreground">Student ID number (private):</strong> {accountDetails.idNumber || 'Not submitted yet'}</p>
+                                            {accountDetails.institutionalEmail && (
+                                                <p><strong className="text-foreground">Verified CMU email (private):</strong> {accountDetails.institutionalEmail}</p>
+                                            )}
+                                            {auth.user.verification_status !== 'verified' && (
+                                                <p>
+                                                    <Link href="/verification/student" className="font-medium text-foreground underline underline-offset-4">
+                                                        Verify as CMU Student
+                                                    </Link>
+                                                </p>
+                                            )}
+                                        </div>
+                                    )}
+                                </>
                             )}
 
 

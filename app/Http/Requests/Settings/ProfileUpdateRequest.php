@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Settings;
 
 use App\Concerns\ProfileValidationRules;
+use App\Enums\VerificationStatus;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -18,7 +19,11 @@ class ProfileUpdateRequest extends FormRequest
         $user = $this->user();
         $rules = $this->profileRules($user->id);
         $rules['email'] = ['sometimes', 'nullable', 'string', 'lowercase', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)];
-        $rules['affiliation'] = $user->isOrganization() ? ['prohibited'] : ['required', 'string', 'max:255'];
+        $rules['affiliation'] = $user->isOrganization()
+            ? ['prohibited']
+            : ($user->isStudent() && $user->verification_status === VerificationStatus::Unverified
+                ? ['nullable', 'string', 'max:255']
+                : ['required', 'string', 'max:255']);
         foreach (['organization_name', 'position', 'supporting_info'] as $field) {
             $rules[$field] = $user->isOrganization() ? ['required', 'string', 'max:'.($field === 'supporting_info' ? 1000 : 255)] : ['prohibited'];
         }

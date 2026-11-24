@@ -32,6 +32,13 @@ class DashboardController extends Controller
             'pendingInvitations' => $pendingInvitations,
             'status' => $request->session()->get('status'),
             'studentsCanPost' => (bool) config('taskmate.students_can_post', true),
+            'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),
+            'autoVerifyInstitutionalStudent' => (bool) config('taskmate.student_verification.auto_verify_institutional_email', true),
+            'hasStudentDetails' => $request->user()->hasCompleteStudentCredentials(),
+            'verificationMethod' => $request->user()->verification_method,
+            'studentVerificationUrl' => $request->user()->canRequestStudentVerification()
+                ? route('verification.student.show', [], false)
+                : null,
             'verificationNote' => in_array($request->user()->verification_status, [VerificationStatus::Rejected, VerificationStatus::MoreInfoRequested], true)
                 ? $request->user()->verification_note
                 : null,

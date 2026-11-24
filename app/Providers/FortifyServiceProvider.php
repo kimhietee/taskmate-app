@@ -37,7 +37,14 @@ use Laravel\Fortify\Contracts\VerifyEmailResponse as VerifyEmailResponseContract
 /* @end-chisel-email-verification */
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
+use App\Models\EmailVerificationCode;
 use App\Models\User;
+use App\Services\EmailVerificationCodeService;
+use App\Services\StudentVerificationService;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use App\Services\SanctionService;
@@ -85,6 +92,42 @@ class FortifyServiceProvider extends ServiceProvider
         $this->configureActions();
         $this->configureViews();
         $this->configureRateLimiting();
+        $this->configureEmailVerificationCodes();
+    }
+
+    private function configureEmailVerificationCodes(): void
+    {
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url): MailMessage {
+            $expiryMinutes = (int) config('taskmate.student_verification.code_expiry_minutes', 15);
+            $code = $notifiable instanceof User
+                ? app(EmailVerificationCodeService::class)->issue(
+                    $notifiable,
+                    EmailVerificationCode::PURPOSE_ACCOUNT_EMAIL,
+                    $notifiable->getEmailForVerification(),
+                )
+                : null;
+
+            $mail = (new MailMessage)
+                ->subject('Confirm your TaskMate email address')
+                ->line('Welcome to TaskMate! Confirm your email address to continue to your dashboard.');
+
+            if ($code !== null) {
+                $mail->line('Enter this 6-digit verification code on the email confirmation screen:')
+                    ->line("Verification code: {$code}")
+                    ->line("This code expires in {$expiryMinutes} minutes.")
+                    ->line('Or click the button below if you are opening this email in the same browser:');
+            }
+
+            return $mail
+                ->action('Verify Email Address', $url)
+                ->line('If you did not create a TaskMate account, no further action is required.');
+        });
+
+        Event::listen(Verified::class, function (Verified $event): void {
+            if ($event->user instanceof User) {
+                app(StudentVerificationService::class)->maybeAutoVerifyOnAccountEmailConfirmed($event->user);
+            }
+        });
     }
 
     /**
@@ -119,17 +162,34 @@ class FortifyServiceProvider extends ServiceProvider
         ]));
 
         /* @chisel-email-verification */
-        Fortify::verifyEmailView(fn (Request $request) => Inertia::render('auth/verify-email', [
-            'status' => $request->session()->get('status'),
-            'mailUsesLogDriver' => config('mail.default') === 'log',
-        ]));
+        Fortify::verifyEmailView(function (Request $request) {
+            /** @var User|null $user */
+            $user = $request->user();
+            $codes = app(EmailVerificationCodeService::class);
+
+            return Inertia::render('auth/verify-email', [
+                'status' => $request->session()->get('status'),
+                'mailUsesLogDriver' => config('mail.default') === 'log',
+                'maskedEmail' => $user ? $codes->maskEmail($user->email) : null,
+                'codeExpiryMinutes' => (int) config('taskmate.student_verification.code_expiry_minutes', 15),
+                'willAutoVerifyStudent' => $user !== null
+                    && $user->isStudent()
+                    && ! $user->isAdmin()
+                    && $user->hasInstitutionalEmailDomain($user->email)
+                    && $user->hasCompleteStudentCredentials()
+                    && (bool) config('taskmate.student_verification.auto_verify_institutional_email', true),
+                'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),
+            ]);
+        });
         /* @end-chisel-email-verification */
 
         /* @chisel-registration */
         Fortify::registerView(fn (Request $request) => Inertia::render('auth/register', [
             'teamInvitation' => $this->teamInvitation($request),
             'institutionalEmailDomains' => config('taskmate.institutional_email_domains', []),
-            'requireInstitutionalEmail' => (bool) config('taskmate.require_institutional_email', true),
+            'requireInstitutionalEmail' => (bool) config('taskmate.require_institutional_email', false),
+            'autoVerifyInstitutionalStudent' => (bool) config('taskmate.student_verification.auto_verify_institutional_email', true),
+            'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),
             'affiliationOptions' => config('taskmate.affiliations', ['student' => [], 'faculty_staff' => []]),
         ]));
         /* @end-chisel-registration */

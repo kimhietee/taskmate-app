@@ -72,7 +72,7 @@ class PrivacyAuditTest extends TestCase
 
     public function test_model_fillable_lists_do_not_include_protected_fields_or_unguarded_models(): void
     {
-        $forbidden = ['is_admin', 'verification_status', 'status', 'outcome', 'priority', 'reviewed_by', 'reviewed_at', 'locked_at', 'content_hash', 'is_hidden', 'hidden_by', 'removed_by', 'issued_by', 'lifted_by', 'risk_level', 'risk_score', 'decision_source'];
+        $forbidden = ['is_admin', 'verification_status', 'institutional_email', 'institutional_email_verified_at', 'verification_method', 'status', 'outcome', 'priority', 'reviewed_by', 'reviewed_at', 'locked_at', 'content_hash', 'is_hidden', 'hidden_by', 'removed_by', 'issued_by', 'lifted_by', 'risk_level', 'risk_score', 'decision_source'];
         foreach (glob(app_path('Models/*.php')) as $file) {
             $class = 'App\\Models\\'.basename($file, '.php');
             if (! class_exists($class) || ! is_subclass_of($class, Model::class)) continue;
@@ -110,6 +110,14 @@ class PrivacyAuditTest extends TestCase
             'name' => 'Synthetic Profile Owner', 'affiliation' => 'Synthetic College',
             'profile_photo' => UploadedFile::fake()->create('fake-photo.jpg', 2, 'image/jpeg'),
         ])->assertSessionHasErrors('profile');
+
+        $unverifiedStudent = User::factory()->unverifiedStudent()->create();
+        $this->actingAs($unverifiedStudent)->from(route('verification.student.show'))
+            ->post(route('verification.student.manual-request'), [
+                'id_number' => 'FAKE-STU-901',
+                'affiliation' => 'College of Engineering',
+                'student_id_photo' => UploadedFile::fake()->create('id.jpg', 2, 'image/jpeg'),
+            ])->assertSessionHasErrors('documents');
     }
 
     public function test_student_task_page_discloses_work_details_without_poster_private_fields_or_risk_data(): void
@@ -145,6 +153,7 @@ class PrivacyAuditTest extends TestCase
             $this->get($url)->assertInertia(fn (Assert $page) => $page
                 ->component($component)
                 ->missing('auth.user.email')
+                ->missing('auth.user.institutional_email')
                 ->missing('auth.user.id_number')
                 ->missing('auth.user.supporting_info')
                 ->missing('auth.user.verification_note')

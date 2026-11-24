@@ -9,8 +9,8 @@ class BrowseTasksRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        if (! $this->user()?->canApply()) {
-            abort(403, 'Only verified students can browse and apply to tasks.');
+        if (! $this->user()?->canBrowse()) {
+            abort(403, 'Only students can browse tasks.');
         }
 
         return true;

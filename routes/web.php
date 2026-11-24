@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\VerifyEmailCodeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\StudentVerificationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUsersController;
 use App\Http\Controllers\Admin\AdminTasksController;
@@ -47,6 +49,23 @@ Route::prefix('{current_team}')
 Route::middleware(['auth', 'verified'])
     ->get('/dashboard', DashboardController::class)
     ->name('taskmate.dashboard');
+
+Route::middleware(['auth:web', 'throttle:6,1'])
+    ->post('/email/verify-code', VerifyEmailCodeController::class)
+    ->name('verification.verify-code');
+
+Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
+    Route::get('/verification/student', [StudentVerificationController::class, 'show'])->name('verification.student.show');
+    Route::post('/verification/student/institutional-code', [StudentVerificationController::class, 'sendInstitutionalCode'])
+        ->middleware('throttle:6,1')
+        ->name('verification.student.send-code');
+    Route::post('/verification/student/institutional-verify', [StudentVerificationController::class, 'verifyInstitutionalCode'])
+        ->middleware('throttle:6,1')
+        ->name('verification.student.verify-code');
+    Route::post('/verification/student/manual-request', [StudentVerificationController::class, 'requestManualReview'])
+        ->middleware('throttle:6,1')
+        ->name('verification.student.manual-request');
+});
 
 Route::middleware(['auth', 'account.active'])->group(function () {
     Route::post('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
@@ -134,9 +153,12 @@ Route::middleware(['auth', 'account.active'])->group(function () {
     Route::post('/my-sanctions/{sanction}/acknowledge', [SanctionsController::class, 'acknowledge'])->name('sanctions.acknowledge');
 });
 
-Route::middleware(['auth', 'account.active', 'account.verified', 'can.apply'])->group(function () {
+Route::middleware(['auth', 'verified', 'account.active', 'can.browse'])->group(function () {
     Route::get('/browse', [BrowseController::class, 'index'])->name('browse.index');
     Route::get('/browse/{task}', [BrowseController::class, 'show'])->name('browse.show');
+});
+
+Route::middleware(['auth', 'account.active', 'account.verified', 'can.apply'])->group(function () {
     Route::post('/browse/{task}/apply', [ApplicationController::class, 'store'])->name('applications.store');
     Route::put('/my-class-schedule', [ClassScheduleController::class, 'update'])->name('class-schedule.update');
     Route::get('/my-applications', [ApplicationController::class, 'mine'])->name('applications.mine');

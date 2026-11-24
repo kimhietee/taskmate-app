@@ -34,7 +34,7 @@ class UserFactory extends Factory
             'user_type' => UserType::Student,
             'verification_status' => VerificationStatus::Pending,
             'affiliation' => 'Synthetic College and Program',
-            'id_number' => fake()->optional()->bothify('CMU-####'),
+            'id_number' => fake()->bothify('CMU-####'),
             'organization_name' => null,
             'position' => null,
             'supporting_info' => null,
@@ -81,6 +81,16 @@ class UserFactory extends Factory
     public function verified(): static
     {
         return $this->state(fn () => ['verification_status' => VerificationStatus::Verified]);
+    }
+
+    public function unverifiedStudent(): static
+    {
+        return $this->state(fn () => [
+            'user_type' => UserType::Student,
+            'verification_status' => VerificationStatus::Unverified,
+            'id_number' => null,
+            'affiliation' => null,
+        ]);
     }
 
     public function facultyStaff(): static

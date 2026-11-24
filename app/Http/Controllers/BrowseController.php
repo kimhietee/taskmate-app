@@ -45,6 +45,10 @@ class BrowseController extends Controller
         return Inertia::render('browse/index', [
             'tasks' => $tasks,
             'filters' => $filters,
+            'isVerifiedStudent' => $request->user()->isVerified(),
+            'studentVerificationUrl' => $request->user()->canRequestStudentVerification()
+                ? route('verification.student.show', [], false)
+                : null,
             'options' => [
                 'categories' => $this->options(config('taskmate.categories', [])),
                 'workTypes' => $this->options(config('taskmate.work_types', [])),
@@ -63,19 +67,34 @@ class BrowseController extends Controller
         $application = $task->applications()->where('applicant_id', $request->user()->id)->first();
         $conversation = $application ? $application->conversation()->first() : null;
 
+        $isVerifiedStudent = $request->user()->isVerified();
+
         return Inertia::render('browse/show', [
             'task' => $this->details($task),
-            'poster' => [...$this->poster($task), 'profileUrl' => route('users.show', $task->poster), 'ratingSummary' => $ratingSummaries->forUser($task->poster)],
+            'poster' => [
+                ...$this->poster($task),
+                'profileUrl' => $isVerifiedStudent ? route('users.show', $task->poster) : null,
+                'ratingSummary' => $ratingSummaries->forUser($task->poster),
+            ],
             'application' => $application ? [
                 'status' => $application->status->value,
                 'statusLabel' => $application->status->label(),
                 'appliedAt' => $application->created_at?->toDateTimeString(),
             ] : null,
             'conversation' => $conversation ? ['id' => $conversation->id, 'sendBlockedReason' => $conversation->sendingBlockedReason($request->user())] : null,
-            'canApply' => $application === null && $task->status === TaskStatus::Approved
+            'isVerifiedStudent' => $isVerifiedStudent,
+            'studentVerificationUrl' => $request->user()->canRequestStudentVerification()
+                ? route('verification.student.show', [], false)
+                : null,
+            'canSaveSchedule' => $request->user()->canApply(),
+            'canApply' => $request->user()->canApply()
+                && $application === null
+                && $task->status === TaskStatus::Approved
                 && ($task->deadline === null || $task->deadline->toDateString() >= today()->toDateString())
                 && $task->poster_id !== $request->user()->id,
-            'problemReport' => ['action' => route('tasks.problem-reports.store', $task), 'types' => $this->problemReportTypes()],
+            'problemReport' => $isVerifiedStudent
+                ? ['action' => route('tasks.problem-reports.store', $task), 'types' => $this->problemReportTypes()]
+                : null,
             'offPlatformWarning' => $task->contentFlags()->where('source_user_id', '!=', $request->user()->id)->where('status', 'open')->exists(),
             'status' => $request->session()->get('status'),
             'messageMaxLength' => (int) config('taskmate.applications.message_max_length', 1000),
