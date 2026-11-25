@@ -27,19 +27,19 @@ const items: NavItem[] = [
 export function AdminSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+            <SidebarHeader className="border-b border-sidebar-border/60 pb-2">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={admin.dashboard()} prefetch>
                                 <AppLogo />
-                                <span className="truncate text-sm font-medium">Administration</span>
+                                <span className="truncate text-sm font-semibold tracking-tight">Administration</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="pt-2">
                 <NavMain items={items} groupLabel="Administration" />
             </SidebarContent>
             <SidebarFooter>

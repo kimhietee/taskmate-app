@@ -1,7 +1,52 @@
 import { Head } from '@inertiajs/react';
+import { TriangleAlert } from 'lucide-react';
 import { AgreementDetails } from '@/components/agreement-details';
+import type { CompletionPaymentData } from '@/components/completion-payment-panel';
 import { ProblemReportForm } from '@/components/problem-report-form';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
-export default function ShowAgreement(props: { agreement: any; completionPayment: import('@/components/completion-payment-panel').CompletionPaymentData; viewerId: number; actionsAllowed: boolean; notice: string; termsMaxLength: number; status?: string | null; problemReport?: { action: string; types: { value: string; label: string }[] }; offPlatformWarning?: boolean }) {
-    return <><Head title={`Agreement: ${props.agreement.task.title}`} /><div className="print:hidden">{props.status && <p role="status" className="mx-auto mt-4 max-w-4xl rounded-lg border p-3 text-sm">{props.status}</p>}{props.offPlatformWarning && <p className="mx-auto mt-4 max-w-4xl rounded border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">This message contains a request to move outside TaskMate or skip its steps. Be careful, keep agreements and communications on record, and report anything that makes you uncomfortable.</p>}{props.problemReport && <div className="mx-auto mt-4 max-w-4xl px-4"><ProblemReportForm {...props.problemReport} /></div>}</div><AgreementDetails {...props} /></>;
+type ShowAgreementProps = {
+    agreement: any;
+    completionPayment: CompletionPaymentData;
+    viewerId: number;
+    actionsAllowed: boolean;
+    notice: string;
+    termsMaxLength: number;
+    status?: string | null;
+    problemReport?: { action: string; types: { value: string; label: string }[] };
+    offPlatformWarning?: boolean;
+};
+
+export default function ShowAgreement(props: ShowAgreementProps) {
+    const hasTopBar = Boolean(props.status || props.offPlatformWarning || props.problemReport);
+
+    return (
+        <>
+            <Head title={`Agreement: ${props.agreement.task.title}`} />
+            {hasTopBar && (
+                <div className="page space-y-4 pb-0 print:hidden">
+                    {props.status && (
+                        <div
+                            role="status"
+                            className="rounded-lg border border-info-border bg-info-bg px-4 py-3 text-sm text-info-fg"
+                        >
+                            {props.status}
+                        </div>
+                    )}
+                    {props.offPlatformWarning && (
+                        <Alert variant="warning">
+                            <TriangleAlert aria-hidden="true" />
+                            <AlertDescription>
+                                This message contains a request to move outside TaskMate or skip its steps. Be careful,
+                                keep agreements and communications on record, and report anything that makes you
+                                uncomfortable.
+                            </AlertDescription>
+                        </Alert>
+                    )}
+                    {props.problemReport && <ProblemReportForm {...props.problemReport} />}
+                </div>
+            )}
+            <AgreementDetails {...props} />
+        </>
+    );
 }
