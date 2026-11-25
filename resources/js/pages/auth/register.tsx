@@ -47,6 +47,9 @@ const ROLE_CARDS: { value: UserType; title: string; badge: string; summary: stri
     },
 ];
 
+const NATIVE_SELECT_CLASS =
+    'focus-ring h-11 w-full rounded-md border border-input bg-field px-3 text-sm text-foreground shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 md:h-9';
+
 export default function Register({
     passwordRules = '',
     institutionalEmailDomains = ['cmu.edu.ph'],
@@ -62,7 +65,9 @@ export default function Register({
 
     const form = useForm({
         user_type: 'student' as UserType,
-        name: '',
+        first_name: '',
+        middle_initial: '',
+        last_name: '',
         email: '',
         password: '',
         password_confirmation: '',
@@ -88,7 +93,16 @@ export default function Register({
     const isOtherAffiliation = selectedAffiliation === OTHER_VALUE;
 
     const domainListLabel = institutionalEmailDomains.map((d) => `@${d}`).join(', ');
-    const progressPercent = Math.round((Math.min(step, totalSteps) / totalSteps) * 100);
+    const progressWidthClass =
+        totalSteps === 2
+            ? step === 1
+                ? 'w-1/2'
+                : 'w-full'
+            : step === 1
+                ? 'w-1/3'
+                : step === 2
+                    ? 'w-2/3'
+                    : 'w-full';
 
     const handleRoleSelect = (nextType: UserType) => {
         form.setData((prev) => ({
@@ -103,6 +117,18 @@ export default function Register({
         setSelectedAffiliation('');
         setCustomAffiliation('');
         setStepError(null);
+    };
+
+    const handleRoleKeyDown = (event: React.KeyboardEvent, index: number) => {
+        if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+            event.preventDefault();
+            const nextIndex = (index + 1) % ROLE_CARDS.length;
+            handleRoleSelect(ROLE_CARDS[nextIndex].value);
+        } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+            event.preventDefault();
+            const prevIndex = (index - 1 + ROLE_CARDS.length) % ROLE_CARDS.length;
+            handleRoleSelect(ROLE_CARDS[prevIndex].value);
+        }
     };
 
     const handleAffiliationSelect = (value: string) => {
@@ -120,8 +146,12 @@ export default function Register({
     };
 
     const validateStepTwo = (): boolean => {
-        if (!form.data.name.trim()) {
-            setStepError('Enter your full name to continue.');
+        if (!form.data.first_name.trim()) {
+            setStepError('Enter your first name to continue.');
+            return false;
+        }
+        if (!form.data.last_name.trim()) {
+            setStepError('Enter your last name to continue.');
             return false;
         }
         if (!form.data.email.trim() || !form.data.email.includes('@')) {
@@ -168,13 +198,19 @@ export default function Register({
         }
 
         form.transform((data) => {
+            const basePayload = {
+                user_type: data.user_type,
+                first_name: data.first_name,
+                middle_initial: data.middle_initial,
+                last_name: data.last_name,
+                email: data.email,
+                password: data.password,
+                password_confirmation: data.password_confirmation,
+            };
+
             if (data.user_type === 'organization') {
                 return {
-                    user_type: data.user_type,
-                    name: data.name,
-                    email: data.email,
-                    password: data.password,
-                    password_confirmation: data.password_confirmation,
+                    ...basePayload,
                     organization_name: data.organization_name,
                     position: data.position,
                     supporting_info: data.supporting_info,
@@ -182,21 +218,11 @@ export default function Register({
             }
 
             if (isPersonalStudentSignup) {
-                return {
-                    user_type: data.user_type,
-                    name: data.name,
-                    email: data.email,
-                    password: data.password,
-                    password_confirmation: data.password_confirmation,
-                };
+                return basePayload;
             }
 
             return {
-                user_type: data.user_type,
-                name: data.name,
-                email: data.email,
-                password: data.password,
-                password_confirmation: data.password_confirmation,
+                ...basePayload,
                 id_number: data.id_number,
                 affiliation: data.affiliation,
             };
@@ -207,7 +233,14 @@ export default function Register({
             onError: (errors) => {
                 if (errors.user_type) {
                     setStep(1);
-                } else if (errors.name || errors.email || errors.password || errors.password_confirmation) {
+                } else if (
+                    errors.first_name ||
+                    errors.middle_initial ||
+                    errors.last_name ||
+                    errors.email ||
+                    errors.password ||
+                    errors.password_confirmation
+                ) {
                     setStep(2);
                 } else if (errors.id_number || errors.affiliation || errors.organization_name || errors.position || errors.supporting_info) {
                     setStep(3);
@@ -219,10 +252,9 @@ export default function Register({
     return (
         <>
             <Head title="Register" />
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-                {/* Progressive onboarding progress bar */}
+            <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="space-y-2" aria-label="Registration progress">
-                    <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+                    <div className="flex items-center justify-between text-xs font-semibold tabular-nums text-muted-foreground">
                         <span>Step {Math.min(step, totalSteps)} of {totalSteps}</span>
                         <span>
                             {step === 1
@@ -238,14 +270,16 @@ export default function Register({
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                            className="h-full rounded-full bg-primary transition-all duration-300"
-                            style={{ width: `${progressPercent}%` }}
+                            className={`h-full rounded-full bg-brand transition-all duration-300 ${progressWidthClass}`}
                         />
                     </div>
                 </div>
 
                 {stepError && (
-                    <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-700 dark:bg-amber-950/60 dark:text-amber-100">
+                    <div
+                        role="alert"
+                        className="rounded-lg border border-warning-border bg-warning-bg px-4 py-3 text-sm text-warning-fg"
+                    >
                         {stepError}
                     </div>
                 )}
@@ -254,11 +288,13 @@ export default function Register({
                     <div className="space-y-4">
                         <div className="space-y-1">
                             <h2 className="text-base font-semibold">How will you use TaskMate?</h2>
-                            <p className="text-sm text-muted-foreground">Pick one role to personalize your setup. You can confirm your email in under a minute.</p>
+                            <p className="text-sm text-muted-foreground">
+                                Pick one role to personalize your setup. You can confirm your email in under a minute.
+                            </p>
                         </div>
 
                         <div className="grid gap-3" role="radiogroup" aria-label="Choose your account type">
-                            {ROLE_CARDS.map((card) => {
+                            {ROLE_CARDS.map((card, index) => {
                                 const selected = userType === card.value;
                                 return (
                                     <button
@@ -267,29 +303,52 @@ export default function Register({
                                         role="radio"
                                         aria-checked={selected}
                                         onClick={() => handleRoleSelect(card.value)}
-                                        className={`w-full rounded-xl border p-4 text-left transition ${
+                                        onKeyDown={(event) => handleRoleKeyDown(event, index)}
+                                        className={
                                             selected
-                                                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                                                : 'border-input hover:border-primary/40 hover:bg-muted/30'
-                                        }`}
+                                                ? 'focus-ring w-full rounded-xl border-2 border-brand bg-info-bg/40 p-4 text-left shadow-xs transition-colors'
+                                                : 'focus-ring w-full rounded-xl border border-border bg-card p-4 text-left transition-colors hover:border-input hover:bg-muted/40'
+                                        }
                                     >
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="font-semibold">{card.title}</span>
-                                            <span className="rounded-full border bg-background px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-center gap-2.5">
+                                                {selected ? (
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-brand text-xs font-semibold text-brand-foreground"
+                                                    >
+                                                        ✓
+                                                    </span>
+                                                ) : (
+                                                    <span
+                                                        aria-hidden="true"
+                                                        className="inline-flex size-5 shrink-0 rounded-full border border-input"
+                                                    />
+                                                )}
+                                                <span className="font-semibold text-foreground">{card.title}</span>
+                                            </div>
+                                            <span className="shrink-0 rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
                                                 {card.badge}
                                             </span>
                                         </div>
-                                        <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{card.summary}</p>
+                                        <p className="mt-2 pl-7.5 text-xs leading-relaxed text-muted-foreground">
+                                            {card.summary}
+                                        </p>
                                     </button>
                                 );
                             })}
                         </div>
                         <InputError message={form.errors.user_type} />
 
-                        <section className="space-y-1.5 rounded-lg border bg-muted/30 p-3.5 text-xs text-muted-foreground" aria-label="How account verification works">
-                            <p className="font-medium text-foreground">How verification works</p>
+                        <section
+                            className="space-y-2 rounded-lg border border-border bg-muted/40 p-4 text-xs leading-relaxed text-muted-foreground"
+                            aria-label="How account verification works"
+                        >
+                            <p className="font-semibold text-foreground">How verification works</p>
                             <ol className="list-decimal space-y-1 pl-4">
-                                <li><strong>Confirm your email:</strong> Enter the 6-digit code sent to your inbox.</li>
+                                <li>
+                                    <strong>Confirm your email:</strong> Enter the 6-digit code sent to your inbox.
+                                </li>
                                 <li>
                                     <strong>Verify campus status:</strong>{' '}
                                     {userType === 'student'
@@ -310,26 +369,67 @@ export default function Register({
 
                 {step === 2 && (
                     <div className="space-y-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">{userType === 'organization' ? 'Representative name' : 'Full name'}</Label>
-                            <Input
-                                id="name"
-                                name="name"
-                                value={form.data.name}
-                                onChange={(event) => {
-                                    form.setData('name', event.target.value);
-                                    setStepError(null);
-                                }}
-                                required
-                                autoFocus
-                                autoComplete="name"
-                                placeholder="Full name"
-                            />
-                            <p className="text-xs text-muted-foreground">Use your real name (letters, spaces, periods, hyphens, or apostrophes). Extra spaces are cleaned automatically.</p>
-                            <InputError message={form.errors.name} />
+                        <div className="space-y-2">
+                            {userType === 'organization' && (
+                                <p className="text-xs font-medium text-muted-foreground">Representative&apos;s name</p>
+                            )}
+                            <div className="grid gap-3 sm:grid-cols-12">
+                                <div className="grid gap-1.5 sm:col-span-5">
+                                    <Label htmlFor="first_name">First name</Label>
+                                    <Input
+                                        id="first_name"
+                                        name="first_name"
+                                        value={form.data.first_name}
+                                        onChange={(event) => {
+                                            form.setData('first_name', event.target.value);
+                                            setStepError(null);
+                                        }}
+                                        required
+                                        autoFocus
+                                        autoComplete="given-name"
+                                        placeholder="e.g. Kim Hie"
+                                    />
+                                    <InputError message={form.errors.first_name} />
+                                </div>
+                                <div className="grid gap-1.5 sm:col-span-2">
+                                    <Label htmlFor="middle_initial">M.I.</Label>
+                                    <Input
+                                        id="middle_initial"
+                                        name="middle_initial"
+                                        value={form.data.middle_initial}
+                                        onChange={(event) => {
+                                            form.setData('middle_initial', event.target.value);
+                                            setStepError(null);
+                                        }}
+                                        maxLength={5}
+                                        autoComplete="additional-name"
+                                        placeholder="Opt."
+                                    />
+                                    <InputError message={form.errors.middle_initial} />
+                                </div>
+                                <div className="grid gap-1.5 sm:col-span-5">
+                                    <Label htmlFor="last_name">Last name</Label>
+                                    <Input
+                                        id="last_name"
+                                        name="last_name"
+                                        value={form.data.last_name}
+                                        onChange={(event) => {
+                                            form.setData('last_name', event.target.value);
+                                            setStepError(null);
+                                        }}
+                                        required
+                                        autoComplete="family-name"
+                                        placeholder="e.g. Tee"
+                                    />
+                                    <InputError message={form.errors.last_name} />
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                                Use your real name (multi-word first names and suffixes like Jr. are supported). M.I. is optional and extra spaces are cleaned automatically.
+                            </p>
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid gap-1.5">
                             <Label htmlFor="email">Email address</Label>
                             <Input
                                 id="email"
@@ -342,13 +442,17 @@ export default function Register({
                                 }}
                                 required
                                 autoComplete="email"
-                                placeholder={userType === 'student' && !requireInstitutionalEmail ? 'you@gmail.com or you@cmu.edu.ph' : 'email@example.com'}
+                                placeholder={
+                                    userType === 'student' && !requireInstitutionalEmail
+                                        ? 'you@gmail.com or you@cmu.edu.ph'
+                                        : 'email@example.com'
+                                }
                             />
                             <InputError message={form.errors.email} />
 
                             {userType === 'student' && !requireInstitutionalEmail ? (
                                 trimmedEmail !== '' && isInstitutionalEmail ? (
-                                    <p className="rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-900 dark:border-green-800 dark:bg-green-950/50 dark:text-green-200">
+                                    <p className="rounded-lg border border-success-border bg-success-bg px-3.5 py-2.5 text-xs text-success-fg">
                                         <strong>CMU institutional email detected:</strong>{' '}
                                         {autoVerifyInstitutionalStudent
                                             ? 'Add your Student ID number and program on the next step—confirming your 6-digit email code will automatically verify you as a CMU Student.'
@@ -356,7 +460,8 @@ export default function Register({
                                     </p>
                                 ) : (
                                     <p className="text-xs text-muted-foreground">
-                                        Use a personal email (like Gmail) for a quick signup—we will send a 6-digit code, let you into your dashboard{unverifiedStudentsCanBrowse ? ' to browse approved tasks' : ''}, and let you verify as a CMU student anytime. Or use your <code>{domainListLabel}</code> email for instant verification.
+                                        Use a personal email (like Gmail) for a quick signup—we will send a 6-digit code, let you into your dashboard
+                                        {unverifiedStudentsCanBrowse ? ' to browse approved tasks' : ''}, and let you verify as a CMU student anytime. Or use your <code>{domainListLabel}</code> email for instant verification.
                                     </p>
                                 )
                             ) : userType !== 'organization' && requireInstitutionalEmail ? (
@@ -370,7 +475,7 @@ export default function Register({
                             )}
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid gap-1.5">
                             <Label htmlFor="password">Password</Label>
                             <PasswordInput
                                 id="password"
@@ -388,7 +493,7 @@ export default function Register({
                             <InputError message={form.errors.password} />
                         </div>
 
-                        <div className="grid gap-2">
+                        <div className="grid gap-1.5">
                             <Label htmlFor="password_confirmation">Confirm password</Label>
                             <PasswordInput
                                 id="password_confirmation"
@@ -408,12 +513,17 @@ export default function Register({
 
                         <SafetyNotice />
 
-                        <div className="flex gap-2 pt-1">
+                        <div className="flex items-center gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setStep(1)}>
                                 Back
                             </Button>
                             {totalSteps === 2 ? (
-                                <Button type="submit" className="flex-1" disabled={form.processing} data-test="register-user-button">
+                                <Button
+                                    type="submit"
+                                    className="flex-1"
+                                    disabled={form.processing}
+                                    data-test="register-user-button"
+                                >
                                     {form.processing && <Spinner />}
                                     Create account & send code
                                 </Button>
@@ -430,7 +540,7 @@ export default function Register({
                     <div className="space-y-4">
                         {userType === 'organization' ? (
                             <>
-                                <div className="grid gap-2">
+                                <div className="grid gap-1.5">
                                     <Label htmlFor="organization_name">Organization name</Label>
                                     <Input
                                         id="organization_name"
@@ -441,10 +551,12 @@ export default function Register({
                                         autoFocus
                                         placeholder="Organization name"
                                     />
-                                    <p className="text-xs text-muted-foreground">This is the organization’s display name on TaskMate.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        This is the organization’s display name on TaskMate.
+                                    </p>
                                     <InputError message={form.errors.organization_name} />
                                 </div>
-                                <div className="grid gap-2">
+                                <div className="grid gap-1.5">
                                     <Label htmlFor="position">Your position</Label>
                                     <Input
                                         id="position"
@@ -454,10 +566,12 @@ export default function Register({
                                         required
                                         placeholder="Representative position"
                                     />
-                                    <p className="text-xs text-muted-foreground">Used by administrators to review this account.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Used by administrators to review this account.
+                                    </p>
                                     <InputError message={form.errors.position} />
                                 </div>
-                                <div className="grid gap-2">
+                                <div className="grid gap-1.5">
                                     <Label htmlFor="supporting_info">About the organization and why it posts tasks</Label>
                                     <Textarea
                                         id="supporting_info"
@@ -468,13 +582,15 @@ export default function Register({
                                         maxLength={1000}
                                         placeholder="Briefly describe your organization and why you want to post tasks."
                                     />
-                                    <p className="text-xs text-muted-foreground">For administrator review only—not shown on public profiles. No ID photo uploads required.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        For administrator review only—not shown on public profiles. No ID photo uploads required.
+                                    </p>
                                     <InputError message={form.errors.supporting_info} />
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="grid gap-2">
+                                <div className="grid gap-1.5">
                                     <Label htmlFor="id_number">{idLabel}</Label>
                                     <Input
                                         id="id_number"
@@ -485,11 +601,15 @@ export default function Register({
                                         autoFocus
                                         placeholder={idLabel}
                                     />
-                                    <p className="text-xs text-muted-foreground">Text only (no ID photo uploads). Your ID number is visible only to you and administrators.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Text only (no ID photo uploads). Your ID number is visible only to you and administrators.
+                                    </p>
                                     <InputError message={form.errors.id_number} />
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor={hasPresets ? 'affiliation_select' : 'affiliation'}>{affiliationLabel}</Label>
+                                <div className="grid gap-1.5">
+                                    <Label htmlFor={hasPresets ? 'affiliation_select' : 'affiliation'}>
+                                        {affiliationLabel}
+                                    </Label>
                                     {hasPresets ? (
                                         <>
                                             <select
@@ -497,11 +617,15 @@ export default function Register({
                                                 value={selectedAffiliation}
                                                 onChange={(event) => handleAffiliationSelect(event.target.value)}
                                                 required
-                                                className="border-input bg-background ring-offset-background focus-visible:ring-ring h-10 w-full rounded-md border px-3 py-2 text-sm focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                                                className={NATIVE_SELECT_CLASS}
                                             >
-                                                <option value="" disabled>Select {affiliationLabel.toLowerCase()}</option>
+                                                <option value="" disabled>
+                                                    Select {affiliationLabel.toLowerCase()}
+                                                </option>
                                                 {presetAffiliations.map((item) => (
-                                                    <option key={item} value={item}>{item}</option>
+                                                    <option key={item} value={item}>
+                                                        {item}
+                                                    </option>
                                                 ))}
                                                 <option value={OTHER_VALUE}>Other (specify below)</option>
                                             </select>
@@ -525,17 +649,24 @@ export default function Register({
                                             placeholder={affiliationLabel}
                                         />
                                     )}
-                                    <p className="text-xs text-muted-foreground">Helps other users understand your campus affiliation and may appear on your profile.</p>
+                                    <p className="text-xs text-muted-foreground">
+                                        Helps other users understand your campus affiliation and may appear on your profile.
+                                    </p>
                                     <InputError message={form.errors.affiliation} />
                                 </div>
                             </>
                         )}
 
-                        <div className="flex gap-2 pt-1">
+                        <div className="flex items-center gap-3 pt-2">
                             <Button type="button" variant="outline" onClick={() => setStep(2)}>
                                 Back
                             </Button>
-                            <Button type="submit" className="flex-1" disabled={form.processing} data-test="register-user-button">
+                            <Button
+                                type="submit"
+                                className="flex-1"
+                                disabled={form.processing}
+                                data-test="register-user-button"
+                            >
                                 {form.processing && <Spinner />}
                                 Create account & send code
                             </Button>

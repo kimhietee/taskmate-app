@@ -36,7 +36,7 @@ class CreateNewUser implements CreatesNewUsers
             throw ValidationException::withMessages(['documents' => 'Identity document and face photo uploads are not accepted.']);
         }
 
-        foreach (['name', 'id_number', 'affiliation', 'organization_name', 'position', 'supporting_info'] as $field) {
+        foreach (['name', 'first_name', 'middle_initial', 'last_name', 'id_number', 'affiliation', 'organization_name', 'position', 'supporting_info'] as $field) {
             if (array_key_exists($field, $input)) {
                 $cleaned = $this->cleanText($input[$field]);
                 $input[$field] = $cleaned === '' ? null : $cleaned;
@@ -44,6 +44,11 @@ class CreateNewUser implements CreatesNewUsers
         }
         if (isset($input['email']) && is_string($input['email'])) {
             $input['email'] = trim($input['email']);
+        }
+
+        $usesStructuredName = array_key_exists('first_name', $input) || array_key_exists('last_name', $input);
+        if ($usesStructuredName) {
+            $input['middle_initial'] = $this->normalizeMiddleInitial($input['middle_initial'] ?? null);
         }
 
         $userType = $input['user_type'] ?? null;
@@ -88,8 +93,17 @@ class CreateNewUser implements CreatesNewUsers
             ? ['nullable', 'required_with:id_number', 'string', 'min:2', 'max:255']
             : ['required_if:user_type,student,faculty_staff', 'prohibited_unless:user_type,student,faculty_staff', 'nullable', 'string', 'min:2', 'max:255'];
 
+        $nameValidation = $usesStructuredName
+            ? [
+                'first_name' => $this->firstNameRules(),
+                'middle_initial' => $this->middleInitialRules(),
+                'last_name' => $this->lastNameRules(),
+            ]
+            : ['name' => $profileRules['name']];
+
         Validator::make($input, [
-            ...$profileRules,
+            ...$nameValidation,
+            'email' => $profileRules['email'],
             'password' => $this->passwordRules(),
             'user_type' => ['required', Rule::in(array_keys(config('taskmate.user_types', [])))],
             'id_number' => $idNumberRules,
@@ -99,16 +113,26 @@ class CreateNewUser implements CreatesNewUsers
             'supporting_info' => ['required_if:user_type,organization', 'prohibited_unless:user_type,organization', 'nullable', 'string', 'max:1000'],
         ], [
             'name.regex' => 'Enter a valid name using letters, spaces, periods, hyphens, or apostrophes.',
+            'first_name.regex' => 'Enter a valid first name using letters, spaces, periods, hyphens, or apostrophes.',
+            'middle_initial.regex' => 'Enter letters only for middle initial (for example, F or F.).',
+            'last_name.regex' => 'Enter a valid last name using letters, spaces, periods, hyphens, or apostrophes.',
         ])->validate();
 
-        return DB::transaction(function () use ($input, $studentCanDeferDetails) {
+        $resolvedFullName = $usesStructuredName
+            ? $this->composeFullName((string) $input['first_name'], $input['middle_initial'] ?? null, (string) $input['last_name'])
+            : (string) $input['name'];
+
+        return DB::transaction(function () use ($input, $studentCanDeferDetails, $usesStructuredName, $resolvedFullName) {
             $hasStudentDetails = filled($input['id_number'] ?? null) && filled($input['affiliation'] ?? null);
             $initialStatus = $studentCanDeferDetails && ! $hasStudentDetails
                 ? VerificationStatus::Unverified
                 : VerificationStatus::Pending;
 
             $user = new User;
-            $user->name = $input['name'];
+            $user->name = $resolvedFullName;
+            $user->first_name = $usesStructuredName ? ($input['first_name'] ?? null) : null;
+            $user->middle_initial = $usesStructuredName ? ($input['middle_initial'] ?? null) : null;
+            $user->last_name = $usesStructuredName ? ($input['last_name'] ?? null) : null;
             $user->email = $input['email'];
             $user->password = $input['password'];
             $user->user_type = UserType::from($input['user_type']);

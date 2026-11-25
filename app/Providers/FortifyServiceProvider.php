@@ -40,9 +40,11 @@ use Laravel\Fortify\Fortify;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Services\EmailVerificationCodeService;
+use App\Services\PrototypeMailboxService;
 use App\Services\StudentVerificationService;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
@@ -127,6 +129,10 @@ class FortifyServiceProvider extends ServiceProvider
             if ($event->user instanceof User) {
                 app(StudentVerificationService::class)->maybeAutoVerifyOnAccountEmailConfirmed($event->user);
             }
+        });
+
+        Event::listen(MessageSent::class, function (MessageSent $event): void {
+            app(PrototypeMailboxService::class)->capture($event);
         });
     }
 

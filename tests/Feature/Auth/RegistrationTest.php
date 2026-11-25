@@ -276,6 +276,55 @@ class RegistrationTest extends TestCase
         $this->assertSame('College of Nursing', $moreInfoWithoutTeam->fresh()->affiliation);
     }
 
+    public function test_registration_accepts_first_name_optional_middle_initial_and_last_name_and_composes_full_name(): void
+    {
+        $this->post(route('register.store'), [
+            'user_type' => 'student',
+            'first_name' => '  Kim   Hie ',
+            'middle_initial' => ' f ',
+            'last_name' => '  Tee  ',
+            'email' => 'structured.name@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('dashboard'));
+
+        $withMi = User::query()->where('email', 'structured.name@gmail.com')->firstOrFail();
+        $this->assertSame('Kim Hie', $withMi->first_name);
+        $this->assertSame('F.', $withMi->middle_initial);
+        $this->assertSame('Tee', $withMi->last_name);
+        $this->assertSame('Kim Hie F. Tee', $withMi->name);
+
+        auth()->logout();
+
+        $this->post(route('register.store'), [
+            'user_type' => 'student',
+            'first_name' => 'Ma. Elena',
+            'middle_initial' => '',
+            'last_name' => 'Niño-Santos Jr.',
+            'email' => 'no.mi@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('dashboard'));
+
+        $withoutMi = User::query()->where('email', 'no.mi@gmail.com')->firstOrFail();
+        $this->assertSame('Ma. Elena', $withoutMi->first_name);
+        $this->assertNull($withoutMi->middle_initial);
+        $this->assertSame('Niño-Santos Jr.', $withoutMi->last_name);
+        $this->assertSame('Ma. Elena Niño-Santos Jr.', $withoutMi->name);
+
+        auth()->logout();
+
+        $this->from(route('register'))->post(route('register.store'), [
+            'user_type' => 'student',
+            'first_name' => '12345',
+            'middle_initial' => '9',
+            'last_name' => '',
+            'email' => 'bad.structured@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertSessionHasErrors(['first_name', 'middle_initial', 'last_name']);
+    }
+
     /** @return array<string, string> */
     private function validStudent(): array
     {

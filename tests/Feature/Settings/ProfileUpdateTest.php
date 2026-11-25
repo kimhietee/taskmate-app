@@ -44,6 +44,33 @@ class ProfileUpdateTest extends TestCase
         $this->assertNull($user->email_verified_at);
     }
 
+    public function test_profile_can_be_updated_using_structured_name_parts(): void
+    {
+        $user = User::factory()->create([
+            'first_name' => 'Old',
+            'middle_initial' => 'A.',
+            'last_name' => 'Name',
+            'name' => 'Old A. Name',
+        ]);
+
+        $this->actingAs($user)
+            ->patch(route('profile.update'), [
+                'first_name' => '  Ma. Elena ',
+                'middle_initial' => 'c',
+                'last_name' => 'Santos-Reyes',
+                'email' => $user->email,
+                'affiliation' => $user->affiliation,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('profile.edit'));
+
+        $user->refresh();
+        $this->assertSame('Ma. Elena', $user->first_name);
+        $this->assertSame('C.', $user->middle_initial);
+        $this->assertSame('Santos-Reyes', $user->last_name);
+        $this->assertSame('Ma. Elena C. Santos-Reyes', $user->name);
+    }
+
     public function test_email_is_stored_in_lowercase_so_the_user_can_still_log_in()
     {
         $user = User::factory()->create();

@@ -8,7 +8,7 @@ import SiteFooter from '@/components/site-footer';
 
 export default function AdminLayout({ children }: PropsWithChildren) {
     return (
-        <>
+        <div className="flex min-h-svh flex-col">
             <PrototypeBanner />
             <AppShell>
                 <AdminSidebar />
@@ -21,6 +21,6 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                     <SiteFooter />
                 </AppContent>
             </AppShell>
-        </>
+        </div>
     );
 }

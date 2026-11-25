@@ -18,6 +18,13 @@ class ProfileUpdateRequest extends FormRequest
     {
         $user = $this->user();
         $rules = $this->profileRules($user->id);
+        $usesStructuredName = $this->exists('first_name') || $this->exists('last_name');
+        if ($usesStructuredName) {
+            unset($rules['name']);
+            $rules['first_name'] = $this->firstNameRules();
+            $rules['middle_initial'] = $this->middleInitialRules();
+            $rules['last_name'] = $this->lastNameRules();
+        }
         $rules['email'] = ['sometimes', 'nullable', 'string', 'lowercase', 'email', 'max:255', \Illuminate\Validation\Rule::unique('users')->ignore($user->id)];
         $rules['affiliation'] = $user->isOrganization()
             ? ['prohibited']
@@ -32,6 +39,15 @@ class ProfileUpdateRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
+        foreach (['name', 'first_name', 'middle_initial', 'last_name'] as $field) {
+            if ($this->exists($field) && is_string($this->input($field))) {
+                $cleaned = $this->cleanText($this->input($field));
+                $this->merge([$field => $cleaned === '' ? null : $cleaned]);
+            }
+        }
+        if ($this->exists('middle_initial')) {
+            $this->merge(['middle_initial' => $this->normalizeMiddleInitial($this->input('middle_initial'))]);
+        }
         if ($this->input('email') === '') {
             $this->request->remove('email');
             return;
@@ -39,6 +55,23 @@ class ProfileUpdateRequest extends FormRequest
         if (config('fortify.lowercase_usernames') && is_string($this->input('email'))) {
             $this->merge(['email' => Str::lower($this->input('email'))]);
         }
+    }
+
+    /** @return array<string, mixed> */
+    public function validatedWithComposedName(): array
+    {
+        $validated = $this->validated();
+
+        if (isset($validated['first_name'], $validated['last_name'])) {
+            $validated['middle_initial'] = $this->normalizeMiddleInitial($validated['middle_initial'] ?? null);
+            $validated['name'] = $this->composeFullName(
+                $validated['first_name'],
+                $validated['middle_initial'],
+                $validated['last_name'],
+            );
+        }
+
+        return $validated;
     }
 
     protected function passedValidation(): void

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\VerifyEmailCodeController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PrototypeMailboxController;
 use App\Http\Controllers\StudentVerificationController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminUsersController;
@@ -53,6 +54,10 @@ Route::middleware(['auth', 'verified'])
 Route::middleware(['auth:web', 'throttle:6,1'])
     ->post('/email/verify-code', VerifyEmailCodeController::class)
     ->name('verification.verify-code');
+
+Route::middleware(['auth:web'])
+    ->get('/prototype/mailbox', PrototypeMailboxController::class)
+    ->name('prototype.mailbox');
 
 Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
     Route::get('/verification/student', [StudentVerificationController::class, 'show'])->name('verification.student.show');
