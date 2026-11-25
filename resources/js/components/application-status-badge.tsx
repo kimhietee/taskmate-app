@@ -1,13 +1,14 @@
-import { Badge } from '@/components/ui/badge';
+import { STATUS, StatusFromMap } from '@/components/status-badge';
+import type { StatusConfig } from '@/components/status-badge';
 
-const styles: Record<string, string> = {
-    pending: 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-100',
-    accepted: 'border-green-300 bg-green-50 text-green-900 dark:border-green-800 dark:bg-green-950 dark:text-green-100',
-    declined: 'border-red-300 bg-red-50 text-red-900 dark:border-red-800 dark:bg-red-950 dark:text-red-100',
-    withdrawn: 'border-muted-foreground/30 bg-muted text-muted-foreground',
-    cancelled: 'border-muted-foreground/30 bg-muted text-muted-foreground',
+const config: Record<string, StatusConfig> = {
+    pending: STATUS.pending,
+    accepted: STATUS.success,
+    declined: STATUS.danger,
+    withdrawn: STATUS.closed,
+    cancelled: STATUS.closed,
 };
 
 export function ApplicationStatusBadge({ status, label }: { status: string; label: string }) {
-    return <Badge variant="outline" className={styles[status] ?? ''}>{label}</Badge>;
+    return <StatusFromMap map={config} status={status}>{label}</StatusFromMap>;
 }

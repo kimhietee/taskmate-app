@@ -3,30 +3,31 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light dark">
+        <meta name="theme-color" content="#f8f8f6" media="(prefers-color-scheme: light)">
+        <meta name="theme-color" content="#16171a" media="(prefers-color-scheme: dark)">
 
-        {{-- Inline script to detect system dark mode preference and apply it immediately --}}
+        {{-- Runs before first paint: resolves Light / Dark / System so the page never flashes the wrong theme. --}}
         <script>
             (function() {
                 const appearance = '{{ $appearance ?? "system" }}';
+                const root = document.documentElement;
+                const dark = appearance === 'dark'
+                    || (appearance === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-                if (appearance === 'system') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-
-                    if (prefersDark) {
-                        document.documentElement.classList.add('dark');
-                    }
-                }
+                root.classList.toggle('dark', dark);
+                root.style.colorScheme = dark ? 'dark' : 'light';
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- Inline style so the page background is correct before app.css loads. Keep in sync with --background in app.css. --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: oklch(0.978 0.004 95);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(0.16 0.005 260);
             }
         </style>
 

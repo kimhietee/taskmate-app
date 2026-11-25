@@ -32,7 +32,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
-        <div className="px-4 py-6">
+        <div className="page">
             <Heading
                 title="Settings"
                 description="Manage your profile and account settings"
@@ -47,11 +47,10 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${toUrl(item.href)}-${index}`}
-                                size="sm"
                                 variant="ghost"
                                 asChild
                                 className={cn('w-full justify-start', {
-                                    'bg-muted': isCurrentOrParentUrl(item.href),
+                                    'bg-accent font-semibold': isCurrentOrParentUrl(item.href),
                                 })}
                             >
                                 <Link href={item.href}>

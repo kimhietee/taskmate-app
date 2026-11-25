@@ -13,7 +13,7 @@ export function AppSidebarHeader({
 }) {
     const pollSeconds = (usePage().props as { notificationPollSeconds?: number }).notificationPollSeconds ?? 10;
     return (
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b border-sidebar-border/50 px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
+        <header className="bg-background/90 supports-[backdrop-filter]:bg-background/75 sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b px-4 backdrop-blur transition-[width,height] ease-linear md:top-[var(--banner-h,0px)] md:h-16 md:px-4 md:group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 print:hidden">
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />

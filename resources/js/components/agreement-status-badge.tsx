@@ -1,11 +1,12 @@
-import { Badge } from '@/components/ui/badge';
+import { STATUS, StatusFromMap } from '@/components/status-badge';
+import type { StatusConfig } from '@/components/status-badge';
 
-const styles: Record<string, string> = {
-    negotiating: 'border-amber-300 bg-amber-50 text-amber-900',
-    agreed: 'border-green-300 bg-green-50 text-green-900',
-    cancelled: 'border-slate-300 bg-slate-100 text-slate-700',
+const config: Record<string, StatusConfig> = {
+    negotiating: STATUS.pending,
+    agreed: STATUS.success,
+    cancelled: STATUS.closed,
 };
 
 export function AgreementStatusBadge({ status, label }: { status: string; label: string }) {
-    return <Badge variant="outline" className={styles[status] ?? ''}>{label}</Badge>;
+    return <StatusFromMap map={config} status={status}>{label}</StatusFromMap>;
 }

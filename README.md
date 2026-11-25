@@ -4,7 +4,7 @@ TaskMate is a prototype campus task marketplace for the Central Mindanao Univers
 
 ## Account types
 
-Students may browse and apply, and may post tasks while `students_can_post` is enabled. Master's and doctoral students use the ordinary Student account type. Faculty/staff may post tasks. Approved office or organization representatives may post tasks. Only students may apply; faculty/staff and organizations cannot apply.
+Students may sign up with a CMU institutional email or (when progressive onboarding is enabled) a personal email with read-only Browse preview, then verify via a 6-digit `@cmu.edu.ph` code + Student ID & college/program or manual administrator review. Verified students may apply to tasks and may post tasks while `students_can_post` is enabled. Master's and doctoral students use the ordinary Student account type. Verified faculty/staff and approved office or organization representatives may post tasks. Only verified students may apply; faculty/staff and organizations cannot apply.
 
 **Prototype: use synthetic accounts and sample data only. Do not enter real identity or contact details.** TaskMate records agreements and payment status only. Payments move directly between users; TaskMate does not hold, process, recover, or guarantee payment. Verification, administrator review, and ratings do not guarantee safety.
 
@@ -73,7 +73,7 @@ The local and demo seeders can be run repeatedly: synthetic users use a fixed `@
 
 ## Configuration
 
-Edit `config/taskmate.php` for institutional email domains, role posting rules, task categories/guidelines, browse/applications, agreement terms, report types/evidence limits, moderation placeholders, off-platform sample patterns, sanctions, ratings, notifications, messages, prototype mode, and rate limits. Every new or resubmitted task waits for an administrator's decision. Automated risk scoring, auto-approval, and automatic blocking have been removed. Many other rules are explicitly provisional; see [open decisions](docs/open-decisions.md).
+Edit `config/taskmate.php` for institutional email domains, progressive student verification (`require_institutional_email`, `student_verification`), standardized affiliations, role posting rules, task categories/work types/pay timings/schedule days/guidelines, student class-schedule limits, browse/applications, agreement terms, report types/evidence limits, moderation placeholders, off-platform sample patterns, sanctions, ratings, notifications, messages, prototype mode, and rate limits. Every new or resubmitted task waits for an administrator's decision. Automated risk scoring, auto-approval, and automatic blocking have been removed. Many other rules are explicitly provisional; see [open decisions](docs/open-decisions.md).
 
 One private, text-only conversation is created for each application. Only the task poster and applicant can read it. Administrators see only a reported message snapshot or one message flagged by the scanner. Messages are permanent; retention is undecided (`messages.retention_days` defaults to `null`). See [open decisions](docs/open-decisions.md) before using real data.
 

@@ -17,7 +17,7 @@ export default function AdminLayout({ children }: PropsWithChildren) {
                         showMessages={false}
                         breadcrumbs={[{ title: 'Administration', href: '/admin' }]}
                     />
-                    <div className="mx-auto w-full max-w-6xl px-4 py-6">{children}</div>
+                    <div className="page-wide">{children}</div>
                     <SiteFooter />
                 </AppContent>
             </AppShell>

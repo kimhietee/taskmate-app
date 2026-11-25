@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BriefcaseBusiness, FolderGit2, LayoutGrid, Plus, Search, ShieldCheck } from 'lucide-react';
+import { BriefcaseBusiness, ClipboardList, Flag, LayoutGrid, Plus, Search, ShieldCheck } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -43,13 +43,13 @@ export function AppSidebar() {
         mainNavItems.push({ title: 'Browse Tasks', href: browse.index().url, icon: Search });
     }
     if (page.props.auth.user?.can_apply_tasks) {
-        mainNavItems.push({ title: 'My Applications', href: applications.mine().url, icon: BriefcaseBusiness });
+        mainNavItems.push({ title: 'My Applications', href: applications.mine().url, icon: ClipboardList });
     }
     if (page.props.auth.user?.can_request_student_verification) {
         mainNavItems.push({ title: 'Verify Student Status', href: '/verification/student', icon: ShieldCheck });
     }
     if (page.props.auth.user?.verification_status === 'verified') {
-        mainNavItems.push({ title: 'My Reports', href: reports.mine().url, icon: FolderGit2 });
+        mainNavItems.push({ title: 'My Reports', href: reports.mine().url, icon: Flag });
     }
 
 

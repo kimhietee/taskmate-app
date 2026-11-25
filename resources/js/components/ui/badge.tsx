@@ -4,8 +4,11 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// The five status variants (success, warning, danger, info, neutral) read the
+// status tokens in app.css. Always render them with an icon and a text label;
+// the StatusBadge component in components/status-badge.tsx does that for you.
 const badgeVariants = cva(
-  "inline-flex items-center justify-center rounded-md border px-2 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3 gap-1 [&>svg]:pointer-events-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive transition-[color,box-shadow] overflow-hidden",
+  "focus-ring inline-flex items-center justify-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium w-fit whitespace-nowrap shrink-0 [&>svg]:size-3.5 [&>svg]:shrink-0 [&>svg]:pointer-events-none aria-invalid:border-destructive transition-[color,background-color] overflow-hidden",
   {
     variants: {
       variant: {
@@ -14,9 +17,14 @@ const badgeVariants = cva(
         secondary:
           "border-transparent bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90",
         destructive:
-          "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+          "border-transparent bg-destructive text-on-destructive [a&]:hover:bg-destructive/90",
         outline:
-          "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+          "border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
+        success: "border-success-border bg-success-bg text-success-fg",
+        warning: "border-warning-border bg-warning-bg text-warning-fg",
+        danger: "border-danger-border bg-danger-bg text-danger-fg",
+        info: "border-info-border bg-info-bg text-info-fg",
+        neutral: "border-neutral-border bg-neutral-bg text-neutral-fg",
       },
     },
     defaultVariants: {

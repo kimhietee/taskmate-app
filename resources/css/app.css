@@ -7,15 +7,59 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme {
+/*
+ * TaskMate design tokens (Tailwind v4, CSS-first).
+ *
+ * 1. Raw values live in :root (Light) and .dark (Dark) further down.
+ * 2. @theme inline maps each value to a utility (bg-card, text-success-fg, ...).
+ *    "inline" makes utilities read the live CSS variable, so the .dark overrides
+ *    work without re-declaring anything.
+ * 3. Raw status variables are named --status-<tone>-<part> on purpose: Sonner
+ *    defines its own --success-bg / --error-bg variables, and reusing those
+ *    names would create a circular reference.
+ */
+@theme inline {
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
+    /* Only weights 400 and 600 render: font-medium is remapped to 600. */
+    --font-weight-medium: 600;
+
+    /* Type scale. Every body size keeps a line-height of at least 1.5. */
+    --text-xs: 0.75rem;
+    --text-xs--line-height: 1.5;
+    --text-sm: 0.875rem;
+    --text-sm--line-height: 1.5714;
+    --text-base: 1rem;
+    --text-base--line-height: 1.625;
+    --text-lg: 1.125rem;
+    --text-lg--line-height: 1.5556;
+    --text-xl: 1.25rem;
+    --text-xl--line-height: 1.4;
+    --text-2xl: 1.375rem;
+    --text-2xl--line-height: 1.3636;
+    --text-3xl: 1.75rem;
+    --text-3xl--line-height: 1.2857;
+    --text-4xl: 2rem;
+    --text-4xl--line-height: 1.25;
+
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
     --radius-sm: calc(var(--radius) - 4px);
+
+    /* Elevation: L1 cards use xs, L2 menus use md, L3 dialogs use lg. */
+    --shadow-xs: 0 1px 2px 0 oklch(0.2 0.01 95 / 0.06);
+    --shadow-sm:
+        0 1px 3px 0 oklch(0.2 0.01 95 / 0.08),
+        0 1px 2px -1px oklch(0.2 0.01 95 / 0.06);
+    --shadow-md:
+        0 4px 10px -2px oklch(0.2 0.01 95 / 0.1),
+        0 2px 4px -2px oklch(0.2 0.01 95 / 0.06);
+    --shadow-lg:
+        0 12px 28px -6px oklch(0.2 0.01 95 / 0.18),
+        0 4px 10px -4px oklch(0.2 0.01 95 / 0.08);
 
     --color-background: var(--background);
     --color-foreground: var(--foreground);
@@ -38,12 +82,34 @@
     --color-accent: var(--accent);
     --color-accent-foreground: var(--accent-foreground);
 
+    --color-brand: var(--brand);
+    --color-brand-foreground: var(--brand-foreground);
+
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-on-destructive: var(--on-destructive);
 
     --color-border: var(--border);
     --color-input: var(--input);
+    --color-field: var(--field);
     --color-ring: var(--ring);
+    --color-scrim: var(--scrim);
+
+    --color-success-bg: var(--status-success-bg);
+    --color-success-fg: var(--status-success-fg);
+    --color-success-border: var(--status-success-border);
+    --color-warning-bg: var(--status-warning-bg);
+    --color-warning-fg: var(--status-warning-fg);
+    --color-warning-border: var(--status-warning-border);
+    --color-danger-bg: var(--status-danger-bg);
+    --color-danger-fg: var(--status-danger-fg);
+    --color-danger-border: var(--status-danger-border);
+    --color-info-bg: var(--status-info-bg);
+    --color-info-fg: var(--status-info-fg);
+    --color-info-border: var(--status-info-border);
+    --color-neutral-bg: var(--status-neutral-bg);
+    --color-neutral-fg: var(--status-neutral-fg);
+    --color-neutral-border: var(--status-neutral-border);
 
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);
@@ -62,74 +128,195 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
+    --radius: 0.625rem;
+
+    /* Surfaces: warm off-white page, white cards. */
+    --background: oklch(0.978 0.004 95);
+    --foreground: oklch(0.19 0.01 95);
     --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
+    --card-foreground: oklch(0.19 0.01 95);
     --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
+    --popover-foreground: oklch(0.19 0.01 95);
+    --field: oklch(1 0 0);
+    --scrim: oklch(0 0 0 / 0.5);
+
+    --primary: oklch(0.21 0.01 95);
+    --primary-foreground: oklch(0.985 0.003 95);
+    --secondary: oklch(0.955 0.004 95);
+    --secondary-foreground: oklch(0.21 0.01 95);
+    --muted: oklch(0.955 0.004 95);
+    --muted-foreground: oklch(0.45 0.01 95);
+    --accent: oklch(0.94 0.005 95);
+    --accent-foreground: oklch(0.21 0.01 95);
+
+    /* The single accent: focus ring, links, active navigation. */
+    --brand: oklch(0.52 0.19 262);
+    --brand-foreground: oklch(0.985 0 0);
+    --ring: oklch(0.52 0.19 262);
+
+    --destructive: oklch(0.54 0.21 27);
+    --destructive-foreground: oklch(0.5 0.2 27);
+    --on-destructive: oklch(0.985 0 0);
+
+    /* border = decorative hairlines. input = control boundary (3:1 or better). */
+    --border: oklch(0.915 0.004 95);
+    --input: oklch(0.64 0.006 95);
+
+    /* Status tokens: always paired with an icon and a text label. */
+    --status-success-bg: oklch(0.96 0.05 155);
+    --status-success-fg: oklch(0.38 0.1 155);
+    --status-success-border: color-mix(in oklab, var(--status-success-fg) 30%, transparent);
+    --status-warning-bg: oklch(0.965 0.06 90);
+    --status-warning-fg: oklch(0.42 0.1 65);
+    --status-warning-border: color-mix(in oklab, var(--status-warning-fg) 30%, transparent);
+    --status-danger-bg: oklch(0.96 0.03 25);
+    --status-danger-fg: oklch(0.46 0.18 27);
+    --status-danger-border: color-mix(in oklab, var(--status-danger-fg) 30%, transparent);
+    --status-info-bg: oklch(0.96 0.025 255);
+    --status-info-fg: oklch(0.43 0.15 262);
+    --status-info-border: color-mix(in oklab, var(--status-info-fg) 30%, transparent);
+    --status-neutral-bg: oklch(0.955 0.004 95);
+    --status-neutral-fg: oklch(0.4 0.01 95);
+    --status-neutral-border: color-mix(in oklab, var(--status-neutral-fg) 25%, transparent);
+
     --chart-1: oklch(0.646 0.222 41.116);
     --chart-2: oklch(0.6 0.118 184.704);
     --chart-3: oklch(0.398 0.07 227.392);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+
+    --sidebar: oklch(0.965 0.004 95);
+    --sidebar-foreground: oklch(0.19 0.01 95);
+    --sidebar-primary: oklch(0.21 0.01 95);
+    --sidebar-primary-foreground: oklch(0.985 0.003 95);
+    --sidebar-accent: oklch(0.93 0.006 95);
+    --sidebar-accent-foreground: oklch(0.19 0.01 95);
+    --sidebar-border: oklch(0.9 0.004 95);
+    --sidebar-ring: oklch(0.52 0.19 262);
 }
 
+/*
+ * Dark mode elevation comes from lighter surfaces, not shadows:
+ * page (0.16) < sidebar (0.19) < card (0.205) < popover (0.235).
+ */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.723);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.269 0 0);
-    --input: oklch(0.269 0 0);
-    --ring: oklch(0.439 0 0);
+    --background: oklch(0.16 0.005 260);
+    --foreground: oklch(0.965 0.004 260);
+    --card: oklch(0.205 0.006 260);
+    --card-foreground: oklch(0.965 0.004 260);
+    --popover: oklch(0.235 0.007 260);
+    --popover-foreground: oklch(0.965 0.004 260);
+    --field: oklch(0.235 0.007 260);
+    --scrim: oklch(0 0 0 / 0.65);
+
+    --primary: oklch(0.965 0.004 260);
+    --primary-foreground: oklch(0.21 0.01 260);
+    --secondary: oklch(0.25 0.006 260);
+    --secondary-foreground: oklch(0.965 0.004 260);
+    --muted: oklch(0.25 0.006 260);
+    --muted-foreground: oklch(0.74 0.01 260);
+    --accent: oklch(0.29 0.008 260);
+    --accent-foreground: oklch(0.965 0.004 260);
+
+    --brand: oklch(0.74 0.13 262);
+    --brand-foreground: oklch(0.16 0.005 260);
+    --ring: oklch(0.74 0.13 262);
+
+    /* Dark enough that white button text keeps 4.5:1. */
+    --destructive: oklch(0.56 0.2 27);
+    --destructive-foreground: oklch(0.78 0.14 25);
+
+    --border: oklch(0.3 0.007 260);
+    --input: oklch(0.54 0.01 260);
+
+    --status-success-bg: oklch(0.27 0.05 155);
+    --status-success-fg: oklch(0.85 0.15 155);
+    --status-warning-bg: oklch(0.29 0.06 80);
+    --status-warning-fg: oklch(0.88 0.13 85);
+    --status-danger-bg: oklch(0.27 0.07 25);
+    --status-danger-fg: oklch(0.83 0.12 25);
+    --status-info-bg: oklch(0.27 0.06 262);
+    --status-info-fg: oklch(0.83 0.1 255);
+    --status-neutral-bg: oklch(0.25 0.006 260);
+    --status-neutral-fg: oklch(0.78 0.01 260);
+
     --chart-1: oklch(0.488 0.243 264.376);
     --chart-2: oklch(0.696 0.17 162.48);
     --chart-3: oklch(0.769 0.188 70.08);
     --chart-4: oklch(0.627 0.265 303.9);
     --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.985 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.269 0 0);
-    --sidebar-ring: oklch(0.439 0 0);
+
+    --sidebar: oklch(0.19 0.006 260);
+    --sidebar-foreground: oklch(0.965 0.004 260);
+    --sidebar-primary: oklch(0.965 0.004 260);
+    --sidebar-primary-foreground: oklch(0.21 0.01 260);
+    --sidebar-accent: oklch(0.26 0.007 260);
+    --sidebar-accent-foreground: oklch(0.965 0.004 260);
+    --sidebar-border: oklch(0.28 0.007 260);
+    --sidebar-ring: oklch(0.74 0.13 262);
+}
+
+/*
+ * Page width utilities (horizontal gutters 16 / 24 / 32px).
+ * Use one per page: page-wide (72rem), page (64rem), page-narrow (44rem), prose-width (42rem).
+ */
+@utility page-wide {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 72rem;
+    padding-inline: 1rem;
+    padding-block: 1.5rem;
+    @media (min-width: 48rem) {
+        padding-inline: 1.5rem;
+        padding-block: 2rem;
+    }
+    @media (min-width: 64rem) {
+        padding-inline: 2rem;
+    }
+}
+
+@utility page {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 64rem;
+    padding-inline: 1rem;
+    padding-block: 1.5rem;
+    @media (min-width: 48rem) {
+        padding-inline: 1.5rem;
+        padding-block: 2rem;
+    }
+    @media (min-width: 64rem) {
+        padding-inline: 2rem;
+    }
+}
+
+@utility page-narrow {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 44rem;
+    padding-inline: 1rem;
+    padding-block: 1.5rem;
+    @media (min-width: 48rem) {
+        padding-inline: 1.5rem;
+        padding-block: 2rem;
+    }
+}
+
+@utility prose-width {
+    max-width: 42rem;
+}
+
+/*
+ * One focus style for every interactive primitive: a 2px brand outline with a
+ * 2px offset. The transparent base outline keeps focus visible in Windows
+ * forced-colors mode.
+ */
+@utility focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    &:focus-visible {
+        outline-color: var(--ring);
+    }
 }
 
 @layer base {
@@ -137,7 +324,107 @@
         @apply border-border outline-ring/50;
     }
 
+    html {
+        color-scheme: light;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    html.dark {
+        color-scheme: dark;
+    }
+
     body {
         @apply bg-background text-foreground;
+        font-size: var(--text-base);
+        line-height: var(--text-base--line-height);
+        text-rendering: optimizeLegibility;
+    }
+
+    h1,
+    h2,
+    h3 {
+        letter-spacing: -0.015em;
+        text-wrap: balance;
+    }
+
+    ::selection {
+        background: color-mix(in oklab, var(--brand) 25%, transparent);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/*
+ * Print: always white paper with black text, even when the app is in Dark mode.
+ * Layout chrome (sidebar, header, banner, footer) carries Tailwind's print:hidden.
+ */
+@media print {
+    @page {
+        margin: 18mm;
+    }
+
+    :root,
+    .dark {
+        color-scheme: light;
+        --background: oklch(1 0 0);
+        --foreground: oklch(0 0 0);
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0 0 0);
+        --popover: oklch(1 0 0);
+        --popover-foreground: oklch(0 0 0);
+        --field: oklch(1 0 0);
+        --muted: oklch(0.97 0 0);
+        --muted-foreground: oklch(0.3 0 0);
+        --border: oklch(0.7 0 0);
+        --input: oklch(0.5 0 0);
+        --brand: oklch(0 0 0);
+        --status-success-bg: oklch(1 0 0);
+        --status-success-fg: oklch(0.2 0 0);
+        --status-success-border: oklch(0.4 0 0);
+        --status-warning-bg: oklch(1 0 0);
+        --status-warning-fg: oklch(0.2 0 0);
+        --status-warning-border: oklch(0.4 0 0);
+        --status-danger-bg: oklch(1 0 0);
+        --status-danger-fg: oklch(0.2 0 0);
+        --status-danger-border: oklch(0.4 0 0);
+        --status-info-bg: oklch(1 0 0);
+        --status-info-fg: oklch(0.2 0 0);
+        --status-info-border: oklch(0.4 0 0);
+        --status-neutral-bg: oklch(1 0 0);
+        --status-neutral-fg: oklch(0.2 0 0);
+        --status-neutral-border: oklch(0.4 0 0);
+    }
+
+    html,
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        font-size: 11pt;
+    }
+
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    [data-slot='sidebar-inset'] {
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: 0 !important;
+    }
+
+    section,
+    article,
+    tr {
+        break-inside: avoid;
     }
 }
