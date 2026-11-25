@@ -1,0 +1,42 @@
+[1mdiff --git a/resources/js/pages/dashboard.tsx b/resources/js/pages/dashboard.tsx[m
+[1mindex f153a95..dca037a 100644[m
+[1m--- a/resources/js/pages/dashboard.tsx[m
+[1m+++ b/resources/js/pages/dashboard.tsx[m
+[36m@@ -178,9 +178,8 @@[m [mexport default function Dashboard({[m
+                                     </div>[m
+                                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">[m
+                                         <div[m
+[31m-                                            className={`h-full rounded-full bg-brand transition-all ${[m
+[31m-                                                user.verification_status === 'pending' ? 'w-5/6' : 'w-2/3'[m
+[31m-                                            }`}[m
+[32m+[m[32m                                            className={`h-full rounded-full bg-brand transition-all ${user.verification_status === 'pending' ? 'w-5/6' : 'w-2/3'[m
+[32m+[m[32m                                                }`}[m
+                                         />[m
+                                     </div>[m
+                                     <ol className="grid gap-2 pt-2 text-xs sm:grid-cols-3">[m
+[36m@@ -202,11 +201,10 @@[m [mexport default function Dashboard({[m
+                                         </li>[m
+                                         <li className="rounded-lg border border-brand/50 bg-info-bg/30 p-3">[m
+                                             <p[m
+[31m-                                                className={`flex items-center gap-1.5 font-semibold ${[m
+[31m-                                                    user.verification_status === 'rejected'[m
+[32m+[m[32m                                                className={`flex items-center gap-1.5 font-semibold ${user.verification_status === 'rejected'[m
+                                                         ? 'text-danger-fg'[m
+                                                         : 'text-warning-fg'[m
+[31m-                                                }`}[m
+[32m+[m[32m                                                    }`}[m
+                                             >[m
+                                                 {user.verification_status === 'pending' ? ([m
+                                                     <Clock className="size-4 shrink-0" aria-hidden="true" />[m
+[36m@@ -361,9 +359,8 @@[m [mexport default function Dashboard({[m
+                                             >[m
+                                                 <span[m
+                                                     aria-hidden="true"[m
+[31m-                                                    className={`mt-2 size-2 shrink-0 rounded-full ${[m
+[31m-                                                        alert.readAt ? 'bg-transparent' : 'bg-brand'[m
+[31m-                                                    }`}[m
+[32m+[m[32m                                                    className={`mt-2 size-2 shrink-0 rounded-full ${alert.readAt ? 'bg-transparent' : 'bg-brand'[m
+[32m+[m[32m                                                        }`}[m
+                                                 />[m
+                                                 <Bell[m
+                                                     className="mt-0.5 size-4 shrink-0 text-muted-foreground"[m

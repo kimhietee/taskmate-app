@@ -178,9 +178,8 @@ export default function Dashboard({
                                     </div>
                                     <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
                                         <div
-                                            className={`h-full rounded-full bg-brand transition-all ${
-                                                user.verification_status === 'pending' ? 'w-5/6' : 'w-2/3'
-                                            }`}
+                                            className={`h-full rounded-full bg-brand transition-all ${user.verification_status === 'pending' ? 'w-5/6' : 'w-2/3'
+                                                }`}
                                         />
                                     </div>
                                     <ol className="grid gap-2 pt-2 text-xs sm:grid-cols-3">
@@ -202,11 +201,10 @@ export default function Dashboard({
                                         </li>
                                         <li className="rounded-lg border border-brand/50 bg-info-bg/30 p-3">
                                             <p
-                                                className={`flex items-center gap-1.5 font-semibold ${
-                                                    user.verification_status === 'rejected'
+                                                className={`flex items-center gap-1.5 font-semibold ${user.verification_status === 'rejected'
                                                         ? 'text-danger-fg'
                                                         : 'text-warning-fg'
-                                                }`}
+                                                    }`}
                                             >
                                                 {user.verification_status === 'pending' ? (
                                                     <Clock className="size-4 shrink-0" aria-hidden="true" />
@@ -361,9 +359,8 @@ export default function Dashboard({
                                             >
                                                 <span
                                                     aria-hidden="true"
-                                                    className={`mt-2 size-2 shrink-0 rounded-full ${
-                                                        alert.readAt ? 'bg-transparent' : 'bg-brand'
-                                                    }`}
+                                                    className={`mt-2 size-2 shrink-0 rounded-full ${alert.readAt ? 'bg-transparent' : 'bg-brand'
+                                                        }`}
                                                 />
                                                 <Bell
                                                     className="mt-0.5 size-4 shrink-0 text-muted-foreground"
