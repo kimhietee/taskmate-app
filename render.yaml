@@ -16,9 +16,8 @@ services:
       - key: APP_KEY
         sync: false
       - key: APP_URL
-        value: https://taskmate-sc9u.onrender.com
-      - key: ASSET_URL
-        value: https://taskmate-sc9u.onrender.com
+        value: https://taskmate-sq9u.onrender.com
+      # Leave ASSET_URL unset so Vite assets always load from the active service domain.
       - key: LOG_CHANNEL
         value: stderr
       - key: LOG_LEVEL
