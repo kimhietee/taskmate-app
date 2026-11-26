@@ -121,7 +121,17 @@ export default function MyTasks({ tasks, status }: Props) {
     return (
         <>
             <Head title="My tasks" />
-            <div className="page-wide space-y-6">
+            <div className="relative isolate w-full">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: "url('/images/cmu-campus-background.jpg')" }}
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-[#F7F8F2]/70 dark:bg-[#101B15]/65"
+                />
+                <div className="page-wide relative z-10 space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">My tasks</h1>
@@ -428,6 +438,7 @@ export default function MyTasks({ tasks, status }: Props) {
                         )}
                     </DialogContent>
                 </Dialog>
+                </div>
             </div>
         </>
     );
