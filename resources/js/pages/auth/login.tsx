@@ -1,6 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+/* @chisel-registration */
 import { register } from '@/routes';
+/* @end-chisel-registration */
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+/* @chisel-passkeys */
+import PasskeyVerify from '@/components/passkey-verify';
+/* @end-chisel-passkeys */
 
 type Props = {
     status?: string;
@@ -23,25 +27,29 @@ export default function Login({ status, canResetPassword }: Props) {
             <Head title="Log in" />
 
             {status && (
-                <div
+                <p
                     role="status"
-                    className="rounded-lg border border-success-border bg-success-bg px-4 py-3 text-center text-sm text-success-fg"
+                    className="text-sm leading-snug text-foreground"
                 >
                     {status}
-                </div>
+                </p>
             )}
 
-            <PasskeyVerify />
+            {/* @chisel-passkeys */}
+            <div className="mb-5 flex flex-col gap-5 empty:hidden [&_button]:h-11 [&_button]:border-primary/40 [&_button]:bg-secondary/40 [&_button]:font-semibold [&_button]:text-foreground [&_button:hover]:bg-secondary">
+                <PasskeyVerify />
+            </div>
+            {/* @end-chisel-passkeys */}
 
             <Form
                 {...store.form()}
                 resetOnSuccess={['password']}
-                className="space-y-5"
+                className="flex flex-col gap-3"
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="space-y-4">
-                            <div className="grid gap-1.5">
+                        <div className="grid gap-4">
+                            <div className="grid content-start gap-1.5">
                                 <Label htmlFor="email">Email address</Label>
                                 <Input
                                     id="email"
@@ -50,40 +58,41 @@ export default function Login({ status, canResetPassword }: Props) {
                                     required
                                     autoFocus
                                     autoComplete="email"
-                                    placeholder="email@example.com"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
-                            <div className="grid gap-1.5">
-                                <div className="flex items-center justify-between gap-2">
-                                    <Label htmlFor="password">Password</Label>
-                                    {canResetPassword && (
-                                        <TextLink href={request()} className="text-sm">
-                                            Forgot password?
-                                        </TextLink>
-                                    )}
-                                </div>
+                            <div className="grid content-start gap-1.5">
+                                <Label htmlFor="password">Password</Label>
                                 <PasswordInput
                                     id="password"
                                     name="password"
                                     required
                                     autoComplete="current-password"
-                                    placeholder="Password"
                                 />
                                 <InputError message={errors.password} />
                             </div>
 
-                            <div className="flex min-h-11 items-center gap-3">
-                                <Checkbox id="remember" name="remember" />
-                                <Label htmlFor="remember" className="cursor-pointer font-normal">
-                                    Remember me
-                                </Label>
+                            <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                                <div className="flex items-center gap-2">
+                                    <Checkbox id="remember" name="remember" />
+                                    <Label htmlFor="remember">
+                                        Remember me
+                                    </Label>
+                                </div>
+                                {canResetPassword && (
+                                    <TextLink
+                                        href={request()}
+                                        className="text-sm"
+                                    >
+                                        Forgot password?
+                                    </TextLink>
+                                )}
                             </div>
 
                             <Button
                                 type="submit"
-                                className="w-full"
+                                className="h-11 w-full font-semibold"
                                 disabled={processing}
                                 data-test="login-button"
                             >
@@ -92,12 +101,17 @@ export default function Login({ status, canResetPassword }: Props) {
                             </Button>
                         </div>
 
+                        {/* @chisel-registration */}
                         <div className="text-center text-sm text-muted-foreground">
-                            Don&apos;t have an account?{' '}
-                            <TextLink href={register()} data-test="register-link">
-                                Sign up
+                            Don't have an account?{' '}
+                            <TextLink
+                                href={register()}
+                                data-test="register-link"
+                            >
+                                Create an account
                             </TextLink>
                         </div>
+                        {/* @end-chisel-registration */}
                     </>
                 )}
             </Form>
@@ -106,6 +120,5 @@ export default function Login({ status, canResetPassword }: Props) {
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Log in',
 };

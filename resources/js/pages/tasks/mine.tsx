@@ -1,5 +1,12 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { TriangleAlert } from 'lucide-react';
+import {
+    ArrowRight,
+    Banknote,
+    BriefcaseBusiness,
+    CalendarDays,
+    TriangleAlert,
+    UsersRound,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PaymentStatusBadge } from '@/components/payment-status-badge';
 import { TaskStatusBadge } from '@/components/task-status-badge';
@@ -114,7 +121,17 @@ export default function MyTasks({ tasks, status }: Props) {
     return (
         <>
             <Head title="My tasks" />
-            <div className="page-wide space-y-6">
+            <div className="relative isolate w-full">
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                    style={{ backgroundImage: "url('/images/cmu-campus-background.avif')" }}
+                />
+                <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-0 bg-[#F7F8F2]/70 dark:bg-[#101B15]/65"
+                />
+                <div className="page-wide relative z-10 space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">My tasks</h1>
@@ -194,21 +211,36 @@ export default function MyTasks({ tasks, status }: Props) {
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2">
                                 {filteredTasks.map((task) => (
-                                    <Card key={task.id} className="justify-between gap-4 p-5 md:gap-4 md:py-5">
-                                        <div className="space-y-3">
-                                            <div className="flex flex-wrap items-start justify-between gap-2">
-                                                <div className="min-w-0 flex-1">
-                                                    <h2 className="text-lg font-semibold text-foreground">
-                                                        <Link
-                                                            href={show(task.id)}
-                                                            className="focus-ring rounded-sm hover:text-brand"
-                                                        >
-                                                            {task.title}
-                                                        </Link>
-                                                    </h2>
-                                                    <p className="mt-0.5 text-xs text-muted-foreground">
-                                                        {task.category} · {task.workMode}
-                                                    </p>
+                                    <Card
+                                        key={task.id}
+                                        className="group relative justify-between gap-0 overflow-hidden rounded-2xl border-[#D8E5D9] bg-white p-0 text-[#183324] shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-[#065F46]/35 hover:shadow-md dark:border-[#32473A] dark:bg-[#17251C] dark:text-[#EDF4EC]"
+                                    >
+                                        <div
+                                            aria-hidden="true"
+                                            className="h-1 w-full bg-gradient-to-r from-[#065F46] via-[#0C7A55] to-[#FCD34D]"
+                                        />
+                                        <div className="flex h-full flex-col gap-4 p-4 sm:p-5">
+                                            <div className="flex flex-wrap items-start justify-between gap-3">
+                                                <div className="flex min-w-0 items-start gap-3">
+                                                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#065F46] text-[#FCD34D] shadow-sm dark:bg-[#064E3B]">
+                                                        <BriefcaseBusiness aria-hidden="true" className="size-5" />
+                                                    </span>
+                                                    <div className="min-w-0">
+                                                        <p className="text-xs font-semibold tracking-[0.08em] text-[#065F46] uppercase dark:text-[#FCD34D]">
+                                                            {task.category}
+                                                        </p>
+                                                        <h2 className="mt-1 text-lg leading-snug font-semibold tracking-tight text-[#183324] dark:text-[#EDF4EC]">
+                                                            <Link
+                                                                href={show(task.id)}
+                                                                className="focus-ring rounded-sm hover:text-[#065F46] dark:hover:text-[#FCD34D]"
+                                                            >
+                                                                {task.title}
+                                                            </Link>
+                                                        </h2>
+                                                        <p className="mt-1 text-sm text-[#526458] dark:text-[#B6C7B9]">
+                                                            {task.workMode}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                                 <div className="flex flex-wrap items-center gap-1.5">
                                                     <TaskStatusBadge status={task.status} label={task.statusLabel} />
@@ -221,36 +253,61 @@ export default function MyTasks({ tasks, status }: Props) {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-border bg-muted/40 p-3">
-                                                {task.budgetToBeDiscussed || task.budget === null ? (
-                                                    <ToBeDiscussedBadge label="Pay: To be discussed" />
-                                                ) : (
-                                                    <span className="text-lg font-semibold tabular-nums text-foreground">
-                                                        ₱{formatAmount(task.budget)}
-                                                    </span>
-                                                )}
+                                            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#D8E5D9] bg-[#F5F8F2] p-3.5 dark:border-[#32473A] dark:bg-[#101B15]">
+                                                <div>
+                                                    <p className="flex items-center gap-1.5 text-xs font-medium text-[#526458] dark:text-[#B6C7B9]">
+                                                        <Banknote aria-hidden="true" className="size-4 text-[#065F46] dark:text-[#FCD34D]" />
+                                                        Budget
+                                                    </p>
+                                                    <div className="mt-1">
+                                                        {task.budgetToBeDiscussed || task.budget === null ? (
+                                                            <ToBeDiscussedBadge label="To be discussed" />
+                                                        ) : (
+                                                            <span className="text-xl font-bold tabular-nums tracking-tight text-[#183324] dark:text-[#EDF4EC]">
+                                                                ₱{formatAmount(task.budget)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
 
                                                 {task.payTimingToBeDiscussed ? (
                                                     <ToBeDiscussedBadge label="Pay timing: To be discussed" />
                                                 ) : task.payTimingLabel ? (
-                                                    <Badge variant="neutral">{task.payTimingLabel}</Badge>
+                                                    <Badge
+                                                        variant="outline"
+                                                        className="border-[#D8E5D9] bg-[#F5F8F2] text-[#065F46] dark:border-[#536B5A] dark:bg-[#20382B] dark:text-[#DCE8DD]"
+                                                    >
+                                                        {task.payTimingLabel}
+                                                    </Badge>
                                                 ) : null}
                                             </div>
 
-                                            <div className="space-y-1 text-xs text-muted-foreground">
-                                                <p className="tabular-nums">
-                                                    Hours:{' '}
-                                                    <span className="text-foreground">
+                                            <dl className="grid grid-cols-2 gap-3 text-sm">
+                                                <div className="min-w-0 rounded-lg border border-[#E5ECE5] bg-white/70 p-3 dark:border-[#2D4235] dark:bg-[#17251C]/75">
+                                                    <dt className="flex items-center gap-1.5 text-xs font-medium text-[#526458] dark:text-[#B6C7B9]">
+                                                        <CalendarDays aria-hidden="true" className="size-3.5 text-[#065F46] dark:text-[#FCD34D]" />
+                                                        Schedule
+                                                    </dt>
+                                                    <dd className="mt-1 line-clamp-2 font-medium text-[#183324] dark:text-[#EDF4EC]">
                                                         {task.scheduleToBeDiscussed || !task.scheduleSummary
                                                             ? 'To be discussed'
                                                             : task.scheduleSummary}
-                                                    </span>
-                                                </p>
-                                                <p className="tabular-nums">
-                                                    Posted {task.createdAt ? formatDate(task.createdAt) : 'recently'} ·{' '}
-                                                    {task.applicantsCount} applicants
-                                                </p>
-                                            </div>
+                                                    </dd>
+                                                </div>
+                                                <div className="rounded-lg border border-[#E5ECE5] bg-white/70 p-3 dark:border-[#2D4235] dark:bg-[#17251C]/75">
+                                                    <dt className="flex items-center gap-1.5 text-xs font-medium text-[#526458] dark:text-[#B6C7B9]">
+                                                        <UsersRound aria-hidden="true" className="size-3.5 text-[#065F46] dark:text-[#FCD34D]" />
+                                                        Applicants
+                                                    </dt>
+                                                    <dd className="mt-1 font-semibold tabular-nums text-[#183324] dark:text-[#EDF4EC]">
+                                                        {task.applicantsCount}
+                                                    </dd>
+                                                </div>
+                                            </dl>
+
+                                            <p className="text-xs tabular-nums text-[#617166] dark:text-[#B6C7B9]">
+                                                Posted {task.createdAt ? formatDate(task.createdAt) : 'recently'}
+                                            </p>
 
                                             {task.reviewNote && (
                                                 <Alert variant="warning">
@@ -261,42 +318,48 @@ export default function MyTasks({ tasks, status }: Props) {
                                                     </AlertDescription>
                                                 </Alert>
                                             )}
-                                        </div>
 
-                                        <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                                            <Button variant="outline" size="sm" asChild>
-                                                <Link href={show(task.id)}>View</Link>
-                                            </Button>
+                                            <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-[#D8E5D9] pt-4 dark:border-[#32473A]">
+                                                <Button
+                                                    className="min-h-11 gap-2 bg-[#065F46] text-white shadow-sm hover:bg-[#064E3B] dark:bg-[#FCD34D] dark:text-[#183324] dark:hover:bg-[#FDE68A]"
+                                                    asChild
+                                                >
+                                                    <Link href={show(task.id)} aria-label={`View task: ${task.title}`}>
+                                                        View task
+                                                        <ArrowRight aria-hidden="true" className="size-4" />
+                                                    </Link>
+                                                </Button>
 
-                                            {task.canEdit &&
-                                                !task.hasActiveApplications &&
-                                                ['pending_review', 'changes_requested', 'approved'].includes(
-                                                    task.status,
-                                                ) && (
+                                                {task.canEdit &&
+                                                    !task.hasActiveApplications &&
+                                                    ['pending_review', 'changes_requested', 'approved'].includes(
+                                                        task.status,
+                                                    ) && (
+                                                        <Button variant="outline" size="sm" asChild>
+                                                            <Link href={edit(task.id)}>Edit</Link>
+                                                        </Button>
+                                                    )}
+
+                                                {task.needsRating && task.agreementId && (
                                                     <Button variant="outline" size="sm" asChild>
-                                                        <Link href={edit(task.id)}>Edit</Link>
+                                                        <Link href={agreements.rate(task.agreementId)}>
+                                                            Rate your experience
+                                                        </Link>
                                                     </Button>
                                                 )}
 
-                                            {task.needsRating && task.agreementId && (
-                                                <Button variant="outline" size="sm" asChild>
-                                                    <Link href={agreements.rate(task.agreementId)}>
-                                                        Rate your experience
-                                                    </Link>
-                                                </Button>
-                                            )}
-
-                                            {task.canCancel && (
-                                                <Button
-                                                    type="button"
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="ml-auto text-destructive-foreground hover:bg-danger-bg hover:text-danger-fg"
-                                                    onClick={() => setCancellingTask(task)}
-                                                >
-                                                    Cancel
-                                                </Button>
-                                            )}
+                                                {task.canCancel && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="ml-auto text-destructive-foreground hover:bg-danger-bg hover:text-danger-fg"
+                                                        onClick={() => setCancellingTask(task)}
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                )}
+                                            </div>
                                         </div>
                                     </Card>
                                 ))}
@@ -380,6 +443,7 @@ export default function MyTasks({ tasks, status }: Props) {
                         )}
                     </DialogContent>
                 </Dialog>
+                </div>
             </div>
         </>
     );

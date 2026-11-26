@@ -2,11 +2,11 @@ import { Form, Head } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
-import { PasswordRequirementsChecklist } from '@/components/password-requirements-checklist';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { PasswordRequirementsChecklist } from '@/components/password-requirements-checklist';
 import {
     DEFAULT_PASSWORD_REQUIREMENTS,
     type PasswordRequirements,
@@ -44,8 +44,8 @@ export default function ResetPassword({
                 className="space-y-4"
             >
                 {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-1.5">
+                    <div className="grid gap-6">
+                        <div className="grid gap-2">
                             <Label htmlFor="email">Email</Label>
                             <Input
                                 id="email"
@@ -53,13 +53,16 @@ export default function ResetPassword({
                                 name="email"
                                 autoComplete="email"
                                 value={email}
-                                className="bg-muted/50 text-muted-foreground"
+                                className="mt-1 block w-full"
                                 readOnly
                             />
-                            <InputError message={errors.email} />
+                            <InputError
+                                message={errors.email}
+                                className="mt-2"
+                            />
                         </div>
 
-                        <div className="grid gap-1.5">
+                        <div className="grid gap-2">
                             <Label htmlFor="password">Password</Label>
                             <PasswordInput
                                 id="password"
@@ -67,6 +70,7 @@ export default function ResetPassword({
                                 value={password}
                                 onChange={(event) => setPassword(event.target.value)}
                                 autoComplete="new-password"
+                                className="mt-1 block w-full"
                                 autoFocus
                                 placeholder="Password"
                                 passwordrules={passwordRules}
@@ -74,18 +78,24 @@ export default function ResetPassword({
                             <InputError message={errors.password} />
                         </div>
 
-                        <div className="grid gap-1.5">
-                            <Label htmlFor="password_confirmation">Confirm password</Label>
+                        <div className="grid gap-2">
+                            <Label htmlFor="password_confirmation">
+                                Confirm password
+                            </Label>
                             <PasswordInput
                                 id="password_confirmation"
                                 name="password_confirmation"
                                 value={passwordConfirmation}
                                 onChange={(event) => setPasswordConfirmation(event.target.value)}
                                 autoComplete="new-password"
+                                className="mt-1 block w-full"
                                 placeholder="Confirm password"
                                 passwordrules={passwordRules}
                             />
-                            <InputError message={errors.password_confirmation} />
+                            <InputError
+                                message={errors.password_confirmation}
+                                className="mt-2"
+                            />
                         </div>
 
                         <PasswordRequirementsChecklist
@@ -96,14 +106,14 @@ export default function ResetPassword({
 
                         <Button
                             type="submit"
-                            className="w-full"
+                            className="mt-4 w-full"
                             disabled={processing}
                             data-test="reset-password-button"
                         >
                             {processing && <Spinner />}
                             Reset password
                         </Button>
-                    </>
+                    </div>
                 )}
             </Form>
         </>

@@ -191,7 +191,7 @@ export default function StudentVerification({
                     >
                         <div className="flex items-center justify-between gap-2">
                             <span className="font-semibold text-foreground">CMU Email Code</span>
-                            <Badge variant="success">
+                            <Badge variant="outline" className="border-success-border bg-success-bg text-success-fg">
                                 {autoVerifyInstitutionalStudent ? 'Instant approval' : 'Recommended'}
                             </Badge>
                         </div>
@@ -214,7 +214,9 @@ export default function StudentVerification({
                     >
                         <div className="flex items-center justify-between gap-2">
                             <span className="font-semibold text-foreground">Administrator Review</span>
-                            <Badge variant="neutral">No CMU email needed</Badge>
+                            <Badge variant="outline" className="border-neutral-border bg-neutral-bg text-neutral-fg">
+                                No CMU email needed
+                            </Badge>
                         </div>
                         <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                             Don&apos;t have access to your CMU email right now? Submit your Student ID number and college/program for admin review.

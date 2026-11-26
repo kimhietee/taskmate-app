@@ -1,6 +1,6 @@
 import { Head } from '@inertiajs/react';
 import AppearanceTabs from '@/components/appearance-tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Heading from '@/components/heading';
 import { edit as editAppearance } from '@/routes/appearance';
 
 export default function Appearance() {
@@ -8,17 +8,16 @@ export default function Appearance() {
         <>
             <Head title="Appearance settings" />
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
-                    <CardDescription>
-                        Choose how TaskMate looks on this device.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <AppearanceTabs />
-                </CardContent>
-            </Card>
+            <h1 className="sr-only">Appearance settings</h1>
+
+            <div className="space-y-6">
+                <Heading
+                    variant="small"
+                    title="Appearance settings"
+                    description="Update the appearance settings for your account"
+                />
+                <AppearanceTabs />
+            </div>
         </>
     );
 }

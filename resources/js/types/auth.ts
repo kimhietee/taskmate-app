@@ -6,9 +6,12 @@ export type User = {
     is_admin: boolean;
     can_post_tasks: boolean;
     can_apply_tasks: boolean;
-    can_browse_tasks?: boolean;
-    can_request_student_verification?: boolean;
-    verification_status: 'unverified' | 'pending' | 'verified' | 'rejected' | 'more_info_requested';
+    can_browse_tasks: boolean;
+    verification_status:
+        | 'pending'
+        | 'verified'
+        | 'rejected'
+        | 'more_info_requested';
     /* @chisel-2fa */
     two_factor_enabled?: boolean;
     /* @end-chisel-2fa */

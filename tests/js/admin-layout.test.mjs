@@ -92,7 +92,7 @@ test('admin pages use the sidebar shell and show admin alerts in the header', ()
     assert.match(markup, /Admin sidebar/);
     assert.match(markup, /Admin alerts only/);
     assert.match(markup, /Admin page/);
-    assert.match(markup, /Footer/);
+    assert.doesNotMatch(markup, /Footer/);
 });
 
 test('admin dashboard highlights the latest pending task and links to the review queue', () => {

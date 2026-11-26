@@ -22,6 +22,11 @@ function loadPage(path, modules, exportName = 'default') {
         if (name === 'react/jsx-runtime') return require('react/jsx-runtime');
         if (name === 'react') return React;
         if (!(name in modules)) throw new Error(`Unexpected module in first-version scope render test: ${name}`);
+        if (name === 'lucide-react') {
+            return new Proxy({ __esModule: true }, {
+                get: (target, key) => key in target ? target[key] : () => null,
+            });
+        }
         const value = modules[name];
         return typeof value === 'function' ? value : { __esModule: true, ...value };
     };
@@ -37,6 +42,7 @@ const routes = {
 };
 const Welcome = loadPage('resources/js/pages/welcome.tsx', {
     ...routes,
+    'lucide-react': {},
     '@inertiajs/react': { Head: () => null, Link, usePage: () => ({ props: pageProps }) },
     '@/constants/notices': { PAYMENT_BOUNDARY_NOTICE: 'Payment boundary notice.', SAFETY_NOTICE: 'Safety notice.' },
 });
@@ -47,15 +53,15 @@ const Information = loadPage('resources/js/pages/public/info.tsx', {
 });
 
 test('landing page only shows actions available for the signed-in role', () => {
-    pageProps = { auth: { user: { is_admin: false, can_apply_tasks: true, can_post_tasks: true } } };
+    pageProps = { auth: { user: { is_admin: false, can_browse_tasks: true, can_apply_tasks: true, can_post_tasks: true } } };
     const student = renderToStaticMarkup(React.createElement(Welcome));
     assert.match(student, /href="\/browse"[^>]*>Browse tasks/);
     assert.match(student, /href="\/tasks\/create"[^>]*>Post a task/);
 
-    pageProps = { auth: { user: { is_admin: false, can_apply_tasks: false, can_post_tasks: false } } };
+    pageProps = { auth: { user: { is_admin: false, can_browse_tasks: true, can_apply_tasks: false, can_post_tasks: false } } };
     const unverified = renderToStaticMarkup(React.createElement(Welcome));
-    assert.match(unverified, /href="\/dashboard"[^>]*>Open dashboard/);
-    assert.doesNotMatch(unverified, /href="\/browse"|href="\/tasks\/create"/);
+    assert.match(unverified, /href="\/browse"[^>]*>Browse tasks/);
+    assert.doesNotMatch(unverified, /href="\/tasks\/create"/);
 });
 
 test('how-it-works page describes the main task flow and role limits', () => {
@@ -63,10 +69,10 @@ test('how-it-works page describes the main task flow and role limits', () => {
         page: 'how-it-works', title: 'How TaskMate works', guidelines: [], privacyDraft: null,
     }));
 
-    assert.match(markup, /Create an account and verify it/);
-    assert.match(markup, /confirm the same version before work begins/);
-    assert.match(markup, /Only students can apply/);
-    assert.match(markup, /Payment is made directly between them/);
+    assert.match(markup, /Create your account and get verified/);
+    assert.match(markup, /both confirm the same version before it locks/);
+    assert.match(markup, /Verified students can apply; faculty, staff, and organization accounts cannot apply/);
+    assert.match(markup, /Payment is made directly between the two people/);
 });
 
 test('task detail pages omit uncollected work-condition fields but keep workplace information', () => {

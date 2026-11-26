@@ -19,15 +19,15 @@ export function Breadcrumbs({
         <>
             {breadcrumbs.length > 0 && (
                 <Breadcrumb>
-                    <BreadcrumbList className="flex-nowrap overflow-hidden">
+                    <BreadcrumbList>
                         {breadcrumbs.map((item, index) => {
                             const isLast = index === breadcrumbs.length - 1;
 
                             return (
                                 <Fragment key={index}>
-                                    <BreadcrumbItem className={isLast ? 'min-w-0' : 'shrink-0'}>
+                                    <BreadcrumbItem>
                                         {isLast ? (
-                                            <BreadcrumbPage className="truncate">
+                                            <BreadcrumbPage>
                                                 {item.title}
                                             </BreadcrumbPage>
                                         ) : (
@@ -38,7 +38,7 @@ export function Breadcrumbs({
                                             </BreadcrumbLink>
                                         )}
                                     </BreadcrumbItem>
-                                    {!isLast && <BreadcrumbSeparator className="shrink-0" />}
+                                    {!isLast && <BreadcrumbSeparator />}
                                 </Fragment>
                             );
                         })}

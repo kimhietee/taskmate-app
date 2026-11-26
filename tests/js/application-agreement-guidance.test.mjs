@@ -25,6 +25,11 @@ function loadPage(path, modules, label, exportName = 'default') {
         if (name === 'react/jsx-runtime') return require('react/jsx-runtime');
         if (name === 'react') return React;
         if (!(name in modules)) throw new Error(`Unexpected module in ${label} render test: ${name}`);
+        if (name === 'lucide-react') {
+            return new Proxy({ __esModule: true }, {
+                get: (target, key) => key in target ? target[key] : () => null,
+            });
+        }
         const value = modules[name];
         return typeof value === 'function' ? value : { __esModule: true, ...value };
     };
@@ -38,6 +43,7 @@ const Form = ({ onSubmit, ...props }) => element('form', props);
 
 const MyApplications = loadPage('resources/js/pages/applications/index.tsx', {
     '@inertiajs/react': { Form, Head: () => null, Link },
+    'lucide-react': {},
     '@/lib/format': { formatDate: (value) => value ?? '—', formatAmount: (value) => String(value) },
     '@/components/ui/button': { Button },
     '@/components/application-status-badge': { ApplicationStatusBadge: ({ label }) => element('span', { children: label }) },

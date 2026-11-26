@@ -1,5 +1,6 @@
 import { PAYMENT_BOUNDARY_NOTICE } from '@/constants/notices';
 import { Head, Link } from '@inertiajs/react';
+import { register, login } from '@/routes';
 
 type Props = {
     page: string;
@@ -8,122 +9,174 @@ type Props = {
     privacyDraft: string | null;
 };
 
-export default function Information({ page, title, guidelines, privacyDraft }: Props) {
+const taskSteps = [
+    {
+        label: 'ACCOUNT',
+        title: 'Create your account and get verified',
+        description:
+            'Submit your account details for administrator review. Students can browse approved tasks while verification is pending, but need a verified account to apply.',
+    },
+    {
+        label: 'POST A TASK',
+        title: 'Describe the work clearly',
+        description:
+            'Verified faculty and staff, approved organizations, and students when posting is enabled can provide the work details, duration, budget, and work mode. On-campus and off-campus tasks include a location. Every new or edited task goes to an administrator for review.',
+    },
+    {
+        label: 'FIND WORK',
+        title: 'Browse approved tasks and apply',
+        description:
+            'Students can browse approved tasks. Verified students can apply; faculty, staff, and organization accounts cannot apply. Students may also post when student posting is enabled.',
+    },
+    {
+        label: 'AGREE',
+        title: 'Confirm the agreement before work begins',
+        description:
+            'When a poster accepts an applicant, TaskMate prepares an agreement draft. The poster sends it, the applicant can agree or request a change, and both confirm the same version before it locks.',
+    },
+    {
+        label: 'COMPLETE AND RECORD',
+        title: 'Record completion and payment status',
+        description:
+            'The poster records when the task is complete and may record a payment. The student separately confirms whether the agreed amount was received. Payment is made directly between the two people.',
+    },
+    {
+        label: 'FEEDBACK',
+        title: 'Rate the experience or report a problem',
+        description:
+            'After completion, both people can leave feedback about that task. Use the report tools for serious concerns; ratings are not a substitute for reporting.',
+    },
+] as const;
+
+export default function Information({
+    page,
+    title,
+    guidelines,
+    privacyDraft,
+}: Props) {
     return (
         <>
             <Head title={title} />
-            <div className="page-narrow space-y-6">
-                <div className="space-y-2">
-                    <Link
-                        href="/"
-                        className="focus-ring inline-block rounded-sm text-sm text-brand underline-offset-4 hover:underline"
-                    >
-                        Back to home
+            <header className="mx-auto flex max-w-4xl flex-wrap items-center justify-between gap-3 px-4 py-6">
+                <Link
+                    href="/"
+                    className="flex items-center gap-2 text-2xl font-bold tracking-tight"
+                >
+                    <img src="/favicon.svg" width="36" height="36" alt="" />
+                    TaskMate
+                </Link>
+                <nav
+                    aria-label="Main navigation"
+                    className="flex items-center gap-4 text-sm font-semibold"
+                >
+                    <Link href={login()}>Log in</Link>
+                    <Link href={register()} className="brand-nav-action">
+                        Register
                     </Link>
-                    <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{title}</h1>
-                </div>
-
+                </nav>
+            </header>
+            <article className="mx-auto max-w-4xl px-4 pt-6 pb-16">
+                <h1
+                    className={
+                        page === 'how-it-works'
+                            ? 'workflow-title'
+                            : 'text-3xl font-bold'
+                    }
+                >
+                    {title}
+                </h1>
                 {page === 'how-it-works' && (
-                    <div className="space-y-6">
-                        <p className="prose-width text-base text-muted-foreground">
-                            TaskMate&apos;s main purpose is to help CMU students find individual side jobs with clear work, budget, and workplace details.
+                    <div className="how-it-works-content mt-5">
+                        <p className="how-it-works-lead">
+                            TaskMate helps the CMU community find and post side
+                            jobs with clear work details and agreed terms. Here’s
+                            how a task moves from posting to feedback.
                         </p>
-                        <ol className="space-y-3">
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">1. Create an account and verify it</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    An administrator reviews the information you submit. Students and faculty/staff use CMU institutional email addresses. Task access begins after account approval.
-                                </p>
-                            </li>
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">2. Post a task for review</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Eligible verified posters describe the work, budget, and work mode. Onsite and hybrid tasks include the place of work. New tasks are reviewed before students can see them.
-                                </p>
-                            </li>
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">3. Students review and apply</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    Verified students can browse approved tasks, check the disclosed conditions, and send one application message. Only students can apply.
-                                </p>
-                            </li>
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">4. Agree before work begins</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    The poster proposes deliverables, terms, dates, and an amount. Both people review and confirm the same version before work begins.
-                                </p>
-                            </li>
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">5. Record completion and payment status</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    The parties record completion and payment status in TaskMate. Payment is made directly between them.
-                                </p>
-                            </li>
-                            <li className="rounded-xl border border-border bg-card p-4 shadow-xs md:p-5">
-                                <h2 className="text-base font-semibold">6. Share feedback or report a concern</h2>
-                                <p className="mt-1 text-sm text-muted-foreground">
-                                    After a completed task, the parties may leave contextual ratings. Use the report tools for serious problems; ratings are not a substitute for reports.
-                                </p>
-                            </li>
+                        <ol className="how-it-works-steps">
+                            {taskSteps.map((step, index) => (
+                                <li key={step.title}>
+                                    <span
+                                        className="how-it-works-step-number"
+                                        aria-hidden="true"
+                                    >
+                                        {String(index + 1).padStart(2, '0')}
+                                    </span>
+                                    <div>
+                                        <p className="how-it-works-step-label">
+                                            {step.label}
+                                        </p>
+                                        <h2>{step.title}</h2>
+                                        <p className="how-it-works-step-description">
+                                            {step.description}
+                                        </p>
+                                    </div>
+                                </li>
+                            ))}
                         </ol>
-                        <div className="rounded-lg border border-info-border bg-info-bg p-4 text-sm text-info-fg">
-                            Students may post when student posting is enabled. Faculty/staff and approved organization representatives may post. Faculty/staff and organizations cannot apply.
-                        </div>
-                    </div>
-                )}
-
-                {page === 'task-guidelines' && (
-                    <div className="space-y-4">
-                        <div
-                            role="status"
-                            className="rounded-lg border border-warning-border bg-warning-bg p-4 text-sm text-warning-fg"
-                        >
-                            These guidelines are provisional and must be reviewed by the team and university.
-                        </div>
-                        <div className="rounded-xl border border-border bg-card p-5 shadow-xs">
-                            {guidelines.length > 0 ? (
-                                <ul className="prose-width list-disc space-y-2.5 pl-5 text-sm text-foreground">
-                                    {guidelines.map((rule) => (
-                                        <li key={rule}>{rule}</li>
-                                    ))}
-                                </ul>
-                            ) : (
-                                <p className="text-sm text-muted-foreground">No guidelines are published yet.</p>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {page === 'safety-and-limits' && (
-                    <div className="prose-width space-y-4">
-                        <div className="rounded-xl border border-border bg-card p-5 text-sm text-foreground shadow-xs">
-                            Verification, administrator review, and ratings help inform decisions but do not guarantee a person’s future behavior or the safety of a task.
-                        </div>
-                        <div className="rounded-xl border border-border bg-card p-5 text-sm text-foreground shadow-xs">
-                            Review the disclosed work location and conditions. Do not agree to anything that makes you uncomfortable. Use the report tools to raise concerns.
-                        </div>
-                        <div className="rounded-xl border border-border bg-card p-5 text-sm text-foreground shadow-xs">
+                        <p className="how-it-works-payment-note">
                             {PAYMENT_BOUNDARY_NOTICE}
-                        </div>
+                        </p>
                     </div>
                 )}
-
+                {page === 'task-guidelines' && (
+                    <>
+                        <p className="mt-4 rounded border border-amber-500 bg-amber-50 p-4 text-amber-950">
+                            These guidelines are provisional and must be
+                            reviewed by the team and university.
+                        </p>
+                        <p className="mt-5 max-w-3xl text-muted-foreground">
+                            Use these guidelines to describe tasks clearly and
+                            help people decide whether the work suits them.
+                        </p>
+                        <ol className="mt-6 space-y-3">
+                            {guidelines.map((rule, index) => (
+                                <li
+                                    key={rule}
+                                    className="flex gap-4 rounded-xl border bg-card p-4"
+                                >
+                                    <span
+                                        aria-hidden="true"
+                                        className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground"
+                                    >
+                                        {index + 1}
+                                    </span>
+                                    <p className="pt-1 text-sm leading-relaxed">
+                                        {rule}
+                                    </p>
+                                </li>
+                            ))}
+                        </ol>
+                    </>
+                )}
+                {page === 'safety-and-limits' && (
+                    <div className="mt-6 space-y-4">
+                        <p>
+                            Verification, administrator review, and ratings help
+                            inform decisions but do not guarantee a person’s
+                            future behavior or the safety of a task.
+                        </p>
+                        <p>
+                            Review the disclosed work location and conditions.
+                            Do not agree to anything that makes you
+                            uncomfortable. Use the report tools to raise
+                            concerns.
+                        </p>
+                        <p>{PAYMENT_BOUNDARY_NOTICE}</p>
+                    </div>
+                )}
                 {page === 'privacy' && (
-                    <div className="space-y-4">
-                        <div
-                            role="status"
-                            className="rounded-lg border border-warning-border bg-warning-bg p-4 text-sm text-warning-fg"
-                        >
-                            DRAFT PRIVACY NOTICE — not approved. Retention, deletion, consent, and protected-storage rules are still to be decided.
-                        </div>
-                        <div className="rounded-xl border border-border bg-card p-5 shadow-xs md:p-6">
-                            <div className="prose-width whitespace-pre-wrap break-words font-sans text-sm leading-relaxed text-foreground">
-                                {privacyDraft ?? 'Privacy notice draft is not available.'}
-                            </div>
-                        </div>
-                    </div>
+                    <>
+                        <p className="mt-4 rounded border border-amber-500 bg-amber-50 p-4 text-amber-950">
+                            DRAFT PRIVACY NOTICE — not approved. Retention,
+                            deletion, consent, and protected-storage rules are
+                            still to be decided.
+                        </p>
+                        <pre className="mt-5 rounded border p-4 text-sm break-words whitespace-pre-wrap">
+                            {privacyDraft}
+                        </pre>
+                    </>
                 )}
-            </div>
+            </article>
         </>
     );
 }
