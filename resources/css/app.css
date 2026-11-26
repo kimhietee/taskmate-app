@@ -150,9 +150,9 @@
     --accent-foreground: oklch(0.21 0.01 95);
 
     /* The single accent: focus ring, links, active navigation. */
-    --brand: oklch(0.52 0.19 262);
+    --brand: oklch(0.49 0.12 145);
     --brand-foreground: oklch(0.985 0 0);
-    --ring: oklch(0.52 0.19 262);
+    --ring: oklch(0.49 0.12 145);
 
     --destructive: oklch(0.54 0.21 27);
     --destructive-foreground: oklch(0.5 0.2 27);
@@ -192,7 +192,7 @@
     --sidebar-accent: oklch(0.895 0.006 95);
     --sidebar-accent-foreground: oklch(0.19 0.01 95);
     --sidebar-border: oklch(0.875 0.005 95);
-    --sidebar-ring: oklch(0.52 0.19 262);
+    --sidebar-ring: oklch(0.49 0.12 145);
 }
 
 /*
@@ -218,9 +218,9 @@
     --accent: oklch(0.29 0.008 260);
     --accent-foreground: oklch(0.965 0.004 260);
 
-    --brand: oklch(0.74 0.13 262);
+    --brand: oklch(0.76 0.10 142);
     --brand-foreground: oklch(0.16 0.005 260);
-    --ring: oklch(0.74 0.13 262);
+    --ring: oklch(0.76 0.10 142);
 
     /* Dark enough that white button text keeps 4.5:1. */
     --destructive: oklch(0.56 0.2 27);
@@ -253,7 +253,7 @@
     --sidebar-accent: oklch(0.26 0.007 260);
     --sidebar-accent-foreground: oklch(0.965 0.004 260);
     --sidebar-border: oklch(0.28 0.007 260);
-    --sidebar-ring: oklch(0.74 0.13 262);
+    --sidebar-ring: oklch(0.76 0.10 142);
 }
 
 /*

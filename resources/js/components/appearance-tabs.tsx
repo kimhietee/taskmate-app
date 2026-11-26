@@ -52,7 +52,7 @@ function ThemeSwatch({ value }: { value: Appearance }) {
                     />
                     <span
                         className="h-2 w-1/2 rounded-full"
-                        style={{ backgroundColor: 'oklch(0.52 0.19 262)' }}
+                        style={{ backgroundColor: 'oklch(0.49 0.12 145)' }}
                     />
                 </div>
             </div>
@@ -77,7 +77,7 @@ function ThemeSwatch({ value }: { value: Appearance }) {
                     />
                     <span
                         className="h-2 w-1/2 rounded-full"
-                        style={{ backgroundColor: 'oklch(0.74 0.13 262)' }}
+                        style={{ backgroundColor: 'oklch(0.76 0.10 142)' }}
                     />
                 </div>
             </div>
@@ -99,7 +99,7 @@ function ThemeSwatch({ value }: { value: Appearance }) {
                 />
                 <span
                     className="h-2 w-1/2 rounded-full"
-                    style={{ backgroundColor: 'oklch(0.52 0.19 262)' }}
+                    style={{ backgroundColor: 'oklch(0.49 0.12 145)' }}
                 />
             </div>
             <div
@@ -112,7 +112,7 @@ function ThemeSwatch({ value }: { value: Appearance }) {
                 />
                 <span
                     className="h-2 w-1/2 rounded-full"
-                    style={{ backgroundColor: 'oklch(0.74 0.13 262)' }}
+                    style={{ backgroundColor: 'oklch(0.76 0.10 142)' }}
                 />
             </div>
         </div>
