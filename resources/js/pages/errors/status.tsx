@@ -13,7 +13,7 @@ export default function ErrorStatus({ status }: { status: number }) {
     const user = auth?.user;
     const dashboardHref = currentTeam?.slug
         ? `/${currentTeam.slug}/dashboard`
-        : '/';
+        : '/dashboard';
     return (
         <>
             <Head title={`${status} — TaskMate`} />

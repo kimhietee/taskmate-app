@@ -7,6 +7,36 @@ export type ClassBlock = {
     label?: string | null;
 };
 
+export type TimeOption = {
+    value: string;
+    label: string;
+};
+
+export function buildScheduleTimeOptions(extraValues: Array<string | null | undefined> = []): TimeOption[] {
+    const values = new Set<string>();
+
+    for (let minutes = 6 * 60; minutes <= 22 * 60; minutes += 15) {
+        const hoursPart = String(Math.floor(minutes / 60)).padStart(2, '0');
+        const minutesPart = String(minutes % 60).padStart(2, '0');
+        values.add(`${hoursPart}:${minutesPart}`);
+    }
+
+    for (const rawValue of extraValues) {
+        if (!rawValue) continue;
+        const normalized = rawValue.trim().slice(0, 5);
+        if (/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(normalized)) {
+            values.add(normalized);
+        }
+    }
+
+    return Array.from(values)
+        .sort()
+        .map((value) => ({
+            value,
+            label: formatTime12Hour(value),
+        }));
+}
+
 export type TaskScheduleInput = {
     scheduleToBeDiscussed?: boolean;
     scheduleFlexible?: boolean;

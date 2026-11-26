@@ -86,7 +86,7 @@ class TaskController extends Controller
                     'type' => config('taskmate.user_types.'.$application->applicant->user_type->value),
                     'affiliation' => $application->applicant->affiliation,
                     'verificationStatus' => $application->applicant->verification_status->value,
-                    'profileUrl' => route('users.show', $application->applicant),
+                    'profileUrl' => route('users.show', $application->applicant, false),
                     'ratingSummary' => $ratingSummaries->forUser($application->applicant),
                 ],
                 'message' => $application->message,
@@ -120,9 +120,9 @@ class TaskController extends Controller
                 && $task->applications()->where('status', ApplicationStatus::Accepted->value)->count() === 1
                 && ! $task->hasActiveAgreement(),
             'problemReport' => [
-                'taskAction' => $task->poster_id === $request->user()->id ? null : route('tasks.problem-reports.store', $task),
+                'taskAction' => $task->poster_id === $request->user()->id ? null : route('tasks.problem-reports.store', $task, false),
                 'types' => collect(config('taskmate.reports.types', []))->except(['non_payment', 'incomplete_work'])->map(fn ($settings, $value) => ['value' => $value, 'label' => $settings['label']])->values(),
-                'applicantActions' => $applicants->map(fn ($application) => ['applicationId' => $application['id'], 'action' => route('applications.problem-reports.store', [$task, $application['id']])])->values(),
+                'applicantActions' => $applicants->map(fn ($application) => ['applicationId' => $application['id'], 'action' => route('applications.problem-reports.store', [$task, $application['id']], false)])->values(),
                 'flaggedApplicants' => $task->applications()->whereHas('contentFlags', fn ($q) => $q->where('source_user_id', '!=', $request->user()->id)->where('status', 'open'))->pluck('id')->all(),
                 'offPlatformWarning' => $task->contentFlags()->where('source_user_id', '!=', $request->user()->id)->where('status', 'open')->exists(),
             ],

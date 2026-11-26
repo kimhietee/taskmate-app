@@ -1,5 +1,5 @@
-import { Link } from "@inertiajs/react";
-import { Info, ShieldCheck, Sun, UserRound } from "lucide-react";
+import { Link, usePage } from "@inertiajs/react";
+import { CalendarClock, Info, ShieldCheck, Sun, UserRound } from "lucide-react";
 import type { PropsWithChildren } from "react";
 import Heading from "@/components/heading";
 import { Button } from "@/components/ui/button";
@@ -11,32 +11,52 @@ import { edit } from "@/routes/profile";
 import { edit as editSecurity } from "@/routes/security";
 import type { NavItem } from "@/types";
 
-const sidebarNavItems: NavItem[] = [
-    {
-        title: "Profile",
-        href: edit(),
-        icon: UserRound,
-    },
-    {
-        title: "Security",
-        href: editSecurity(),
-        icon: ShieldCheck,
-    },
-    {
-        title: "Appearance",
-        href: editAppearance(),
-        icon: Sun,
-    },
-    {
-        title: "About TaskMate",
-        href: "/how-it-works",
-        icon: Info,
-    },
-];
-
 export default function SettingsLayout({ children }: PropsWithChildren) {
     const { isCurrentOrParentUrl } = useCurrentUrl();
     const isAboutPage = isCurrentOrParentUrl("/how-it-works");
+    const authUser = (
+        usePage().props as {
+            auth?: {
+                user?: {
+                    user_type?: string;
+                    is_admin?: boolean;
+                } | null;
+            };
+        }
+    ).auth?.user;
+    const isStudent = Boolean(authUser && !authUser.is_admin && authUser.user_type === "student");
+
+    const sidebarNavItems: NavItem[] = [
+        {
+            title: "Profile",
+            href: edit(),
+            icon: UserRound,
+        },
+        ...(isStudent
+            ? [
+                  {
+                      title: "My Class Schedule",
+                      href: "/settings/schedule",
+                      icon: CalendarClock,
+                  },
+              ]
+            : []),
+        {
+            title: "Security",
+            href: editSecurity(),
+            icon: ShieldCheck,
+        },
+        {
+            title: "Appearance",
+            href: editAppearance(),
+            icon: Sun,
+        },
+        {
+            title: "About TaskMate",
+            href: "/how-it-works",
+            icon: Info,
+        },
+    ];
 
     return (
         <div className="settings-layout px-4 py-6">

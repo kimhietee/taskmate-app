@@ -74,7 +74,7 @@ class ConversationController extends Controller
     public function send(StoreConversationMessageRequest $request, Conversation $conversation, ConversationWorkflow $workflow): RedirectResponse
     {
         $workflow->send($conversation, $request->user(), $request->validated('body'));
-        return back();
+        return to_route('messages.show', $conversation);
     }
 
     public function updates(Request $request, Conversation $conversation, ConversationWorkflow $workflow): JsonResponse
@@ -92,14 +92,14 @@ class ConversationController extends Controller
     {
         Gate::authorize('close', $conversation);
         $workflow->close($conversation, $request->user());
-        return back()->with('status', 'The conversation is now read-only. You can reopen it later.');
+        return to_route('messages.show', $conversation)->with('status', 'The conversation is now read-only. You can reopen it later.');
     }
 
     public function reopen(Request $request, Conversation $conversation, ConversationWorkflow $workflow): RedirectResponse
     {
         Gate::authorize('reopen', $conversation);
         $workflow->reopen($conversation, $request->user());
-        return back()->with('status', 'The conversation was reopened.');
+        return to_route('messages.show', $conversation)->with('status', 'The conversation was reopened.');
     }
 
     private function inboxItem(Conversation $conversation, User $user): array
@@ -130,7 +130,7 @@ class ConversationController extends Controller
             'body' => $message->body,
             'createdAt' => $message->created_at?->toDateTimeString(),
             'flaggedForRecipient' => ! $message->contentFlags->where('source_user_id', '!=', $viewer->id)->where('status.value', 'open')->isEmpty(),
-            'reportUrl' => $sender->id === $viewer->id ? null : route('messages.report', [$message->conversation_id, $message->id]),
+            'reportUrl' => $sender->id === $viewer->id ? null : route('messages.report', [$message->conversation_id, $message->id], false),
         ];
     }
 }

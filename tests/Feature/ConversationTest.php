@@ -39,17 +39,25 @@ class ConversationTest extends TestCase
         $this->get(route('messages.show', $conversation))->assertRedirect(route('login'));
         $this->actingAs($outsider)->get(route('messages.show', $conversation))->assertForbidden();
         $this->actingAs($admin)->get(route('messages.show', $conversation))->assertForbidden();
-        $this->actingAs($applicant)->post(route('messages.send', $conversation), ['body' => 'Please message me on Telegram'])->assertRedirect();
-        $this->post(route('messages.send', $conversation), ['body' => 'Please message me on Telegram again'])->assertRedirect();
+        $this->actingAs($applicant)->post(route('messages.send', $conversation), ['body' => 'Please message me on Telegram'])
+            ->assertRedirect(route('messages.show', $conversation));
+        $this->post(route('messages.send', $conversation), ['body' => 'Please message me on Telegram again'])
+            ->assertRedirect(route('messages.show', $conversation));
         $this->assertDatabaseHas('conversation_messages', ['conversation_id' => $conversation->id, 'sender_id' => $applicant->id, 'body' => 'Please message me on Telegram']);
         $this->assertDatabaseHas('content_flags', ['flaggable_type' => (new ConversationMessage)->getMorphClass(), 'category' => 'move_chat_outside']);
 
-        $this->actingAs($poster)->post(route('messages.send', $conversation), ['body' => 'Paid via GCash after completion'])->assertRedirect();
+        $this->actingAs($poster)->post(route('messages.send', $conversation), ['body' => 'Paid via GCash after completion'])
+            ->assertRedirect(route('messages.show', $conversation));
         $this->assertDatabaseMissing('content_flags', ['flaggable_type' => (new ConversationMessage)->getMorphClass(), 'category' => 'external_payment']);
         $this->assertSame(1, $poster->notifications()->where('data->event', 'conversation.message')->count());
-        $notificationData = $poster->notifications()->where('data->event', 'conversation.message')->firstOrFail()->data;
+        $notification = $poster->notifications()->get()->first(fn ($item) => ($item->data['event'] ?? null) === 'conversation.message');
+        $this->assertNotNull($notification);
+        $notificationData = $notification->data;
         $this->assertSame('conversation.message', $notificationData['event']);
         $this->assertSame(2, $notificationData['count']);
+        $this->assertSame(route('messages.show', $conversation, false), $notificationData['url']);
+        $this->assertStringContainsString($applicant->name, $notificationData['body']);
+        $this->assertStringContainsString($task->title, $notificationData['title']);
         $this->assertStringNotContainsString('Telegram', json_encode($notificationData));
         $this->assertStringNotContainsString('GCash', json_encode($notificationData));
 

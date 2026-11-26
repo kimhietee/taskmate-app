@@ -89,7 +89,11 @@ function ConversationThread(props: Props) {
             [
                 ...[
                     ...props.messages,
-                    ...polledMessages.filter((message) => message.id > conversation.lastMessageId),
+                    ...polledMessages.filter(
+                        (message) =>
+                            message.id > conversation.lastMessageId &&
+                            !props.messages.some((existing) => existing.id === message.id),
+                    ),
                 ].map((message) => ({
                     kind: "message" as const,
                     at: message.createdAt,
@@ -435,7 +439,11 @@ function ConversationThread(props: Props) {
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {conversation.canReopen && (
-                            <Form action={`/messages/${conversation.id}/reopen`} method="post">
+                            <Form
+                                action={`/messages/${conversation.id}/reopen`}
+                                method="post"
+                                options={{ preserveScroll: true }}
+                            >
                                 <Button
                                     type="submit"
                                     variant="outline"
@@ -460,6 +468,7 @@ function ConversationThread(props: Props) {
                             action={`/messages/${conversation.id}/send`}
                             method="post"
                             resetOnSuccess={["body"]}
+                            options={{ preserveScroll: true }}
                             className="messages-composer"
                         >
                             {({ errors, processing }) => (
@@ -504,6 +513,7 @@ function ConversationThread(props: Props) {
                             <Form
                                 action={`/messages/${conversation.id}/close`}
                                 method="post"
+                                options={{ preserveScroll: true }}
                                 className="messages-close-form"
                                 onBefore={() =>
                                     window.confirm("Close this conversation for both participants?")

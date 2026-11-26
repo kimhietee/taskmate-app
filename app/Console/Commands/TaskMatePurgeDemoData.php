@@ -99,7 +99,19 @@ class TaskMatePurgeDemoData extends Command
             }
             if (Schema::hasTable('notifications')) {
                 DB::table('notifications')->where('notifiable_type', 'App\\Models\\User')->whereIn('notifiable_id', $userIds)->delete();
-                foreach ($taskIds as $taskId) DB::table('notifications')->where('data->related_ids->task_id', $taskId)->delete();
+                if ($taskIds !== []) {
+                    $taskNotificationIds = [];
+                    foreach (DB::table('notifications')->select(['id', 'data'])->cursor() as $row) {
+                        $decoded = json_decode((string) $row->data, true);
+                        $relatedTaskId = is_array($decoded) ? (int) ($decoded['related_ids']['task_id'] ?? 0) : 0;
+                        if ($relatedTaskId > 0 && in_array($relatedTaskId, $taskIds, true)) {
+                            $taskNotificationIds[] = $row->id;
+                        }
+                    }
+                    if ($taskNotificationIds !== []) {
+                        DB::table('notifications')->whereIn('id', $taskNotificationIds)->delete();
+                    }
+                }
             }
             $this->delete('reports', 'id', $reportIds);
             $this->delete('agreements', 'id', $agreementIds);

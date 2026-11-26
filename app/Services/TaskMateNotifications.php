@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Conversation;
 use App\Notifications\TaskMateAlert;
 use App\Notifications\TaskMateAlertCatalog;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Facades\DB;
 
 class TaskMateNotifications
@@ -43,10 +44,13 @@ class TaskMateNotifications
         $this->send(User::query()->where('is_admin', true)->get(), $event, $url, $relatedIds, $values, $actorId);
     }
 
-    public function conversationMessage(User $recipient, Conversation $conversation, string $taskTitle, int $actorId): void
+    public function conversationMessage(User $recipient, Conversation $conversation, string $taskTitle, int $actorId, ?string $senderName = null): void
     {
         if ($recipient->id === $actorId) return;
-        $copy = TaskMateAlertCatalog::get('conversation.message', ['task_title' => $taskTitle]);
+        $copy = TaskMateAlertCatalog::get('conversation.message', [
+            'task_title' => $taskTitle,
+            'sender_name' => $senderName ?: 'Someone',
+        ]);
         $payload = [
             'event' => 'conversation.message',
             ...$copy,
@@ -60,12 +64,15 @@ class TaskMateNotifications
             $user = User::query()->find($recipientId);
             if (! $user) return;
             $existing = $user->unreadNotifications()
-                ->where('data->event', 'conversation.message')
-                ->where('data->conversation_id', $payload['conversation_id'])
-                ->first();
+                ->latest('created_at')
+                ->get()
+                ->first(fn (DatabaseNotification $notification): bool => ($notification->data['event'] ?? null) === 'conversation.message'
+                    && (int) ($notification->data['conversation_id'] ?? 0) === (int) $payload['conversation_id']);
             if ($existing) {
                 $data = $existing->data;
                 $data['count'] = ((int) ($data['count'] ?? 1)) + 1;
+                $data['title'] = $payload['title'];
+                $data['body'] = $payload['body'];
                 $existing->data = $data;
                 $existing->created_at = now();
                 $existing->save();

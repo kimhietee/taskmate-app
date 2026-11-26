@@ -38,7 +38,7 @@ class UserProfileController extends Controller
                 'raterName' => $rating->rater->isOrganization() ? $rating->rater->organization_name : $rating->rater->name,
             ])->values(),
             'notice' => 'Ratings are one person\'s view of one completed task. They are contextual information and do not guarantee a person\'s future behavior. Serious problems should be reported, not rated.',
-            'problemReport' => ! $request->user()->isAdmin() && $request->user()->id !== $user->id ? ['action' => route('users.problem-reports.store', $user), 'types' => collect(config('taskmate.reports.types', []))->except($hasAgreement ? ['non_payment'] : ['non_payment', 'incomplete_work'])->map(fn ($settings, $value) => ['value' => $value, 'label' => $settings['label']])->values()] : null,
+            'problemReport' => ! $request->user()->isAdmin() && $request->user()->id !== $user->id ? ['action' => route('users.problem-reports.store', $user, false), 'types' => collect(config('taskmate.reports.types', []))->except($hasAgreement ? ['non_payment'] : ['non_payment', 'incomplete_work'])->map(fn ($settings, $value) => ['value' => $value, 'label' => $settings['label']])->values()] : null,
         ]);
     }
 }

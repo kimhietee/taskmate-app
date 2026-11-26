@@ -87,7 +87,7 @@ class AgreementController extends Controller
             'termsMaxLength' => config('taskmate.agreement.terms_max_length', 3000),
             'notice' => 'This agreement records what the poster and worker agreed. It is not a legal contract. TaskMate does not process, hold, or guarantee payment. Payment is made directly between the two of you.',
             'status' => $request->session()->get('status'),
-            'problemReport' => ['action' => route('agreements.problem-reports.store', $agreement), 'types' => collect(config('taskmate.reports.types', []))->except('non_payment')->map(fn ($settings, $value) => ['value' => $value, 'label' => $settings['label']])->values()],
+            'problemReport' => ['action' => route('agreements.problem-reports.store', $agreement, false), 'types' => collect(config('taskmate.reports.types', []))->except('non_payment')->map(fn ($settings, $value) => ['value' => $value, 'label' => $settings['label']])->values()],
             'offPlatformWarning' => $agreement->versions()->whereHas('contentFlags', fn ($q) => $q->where('source_user_id', '!=', $request->user()->id)->where('status', 'open'))->exists()
                 || $agreement->messages()->whereHas('contentFlags', fn ($q) => $q->where('source_user_id', '!=', $request->user()->id)->where('status', 'open'))->exists(),
         ]);
@@ -201,7 +201,7 @@ class AgreementController extends Controller
         $until = $agreement->task->completion?->completed_at?->copy()->addDays((int) config('taskmate.ratings.window_days', 30));
         return [
             'canRate' => auth()->user()->can('rate', $agreement),
-            'rateUrl' => route('agreements.rate', $agreement),
+            'rateUrl' => route('agreements.rate', $agreement, false),
             'windowDate' => $until?->toDateTimeString(),
             'own' => $own ? [
                 'overall' => $own->overall_experience,

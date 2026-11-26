@@ -87,6 +87,23 @@ test('evaluateScheduleFit detects fits, clashes, boundary non-overlap, and to-be
     });
     assert.match(msg, /Pay amount, When paid \(pay timing\)/);
     assert.match(msg, /Mon 8:00 AM–12:00 PM \(IT57\)/);
+
+    const { buildScheduleTimeOptions } = scheduleFitMod;
+    const standardTimes = buildScheduleTimeOptions();
+    assert.equal(standardTimes.length, 65);
+    assert.deepEqual(standardTimes[0], { value: '06:00', label: '6:00 AM' });
+    assert.deepEqual(standardTimes[8], { value: '08:00', label: '8:00 AM' });
+    assert.deepEqual(standardTimes[26], { value: '12:30', label: '12:30 PM' });
+    assert.deepEqual(standardTimes[30], { value: '13:30', label: '1:30 PM' });
+    assert.deepEqual(standardTimes[33], { value: '14:15', label: '2:15 PM' });
+    assert.deepEqual(standardTimes.at(-1), { value: '22:00', label: '10:00 PM' });
+
+    const withCustomTime = buildScheduleTimeOptions(['14:10', '14:15', 'invalid']);
+    assert.equal(withCustomTime.length, 66);
+    const customIndex = withCustomTime.findIndex((item) => item.value === '14:10');
+    assert.ok(customIndex > -1);
+    assert.deepEqual(withCustomTime[customIndex], { value: '14:10', label: '2:10 PM' });
+    assert.equal(withCustomTime[customIndex + 1].value, '14:15');
 });
 
 test('browse task detail renders Alternative A four-group order, checklist, and schedule clash', () => {
@@ -175,4 +192,52 @@ test('browse task detail renders Alternative A four-group order, checklist, and 
     assert.match(markup, /Ask poster/);
     assert.match(markup, /Review &amp; apply/);
     assert.match(markup, /Decline \(back to tasks\)/);
+
+    const openEditorMarkup = renderToStaticMarkup(React.createElement(BrowseTaskDetail, {
+        task: {
+            id: 2,
+            title: 'Synthetic Shop Helper',
+            category: 'Other',
+            description: 'Assist with synthetic inventory checks.',
+            requiredActivities: null,
+            deliverables: null,
+            estimatedDurationHours: null,
+            skillRequirements: null,
+            budget: null,
+            budgetToBeDiscussed: true,
+            payTiming: 'bi_weekly',
+            payTimingLabel: 'Bi-weekly (every 2 weeks)',
+            payTimingToBeDiscussed: false,
+            payTimingNote: 'Paid every other Saturday.',
+            scheduleDays: ['mon'],
+            scheduleStartTime: '09:00',
+            scheduleEndTime: '11:00',
+            scheduleNote: null,
+            scheduleToBeDiscussed: false,
+            scheduleSummary: 'Mon · 9:00 AM–11:00 AM',
+            canHoursChange: true,
+            workMode: 'Onsite',
+            workplaceName: 'Synthetic Campus Shop',
+            workplaceAddress: 'Synthetic Street',
+            deadline: null,
+        },
+        poster: {
+            displayName: 'Synthetic Poster',
+            accountType: 'Organization',
+            affiliation: 'Synthetic Org',
+            verificationStatus: 'verified',
+            memberSince: '2026-10-01',
+            profileUrl: '/users/2',
+            ratingSummary: { average: null, count: 0 },
+        },
+        application: null,
+        canApply: true,
+        messageMaxLength: 1000,
+        studentClassSchedule: [],
+    }));
+
+    assert.match(openEditorMarkup, /<select[^>]+id="class_start_time"/);
+    assert.match(openEditorMarkup, /<select[^>]+id="class_end_time"/);
+    assert.match(openEditorMarkup, /8:00 AM/);
+    assert.match(openEditorMarkup, /1:30 PM/);
 });

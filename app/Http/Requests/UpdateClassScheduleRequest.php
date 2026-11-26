@@ -16,6 +16,33 @@ class UpdateClassScheduleRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $blocks = $this->input('blocks');
+        if (! is_array($blocks)) {
+            return;
+        }
+
+        $normalized = array_map(function ($block) {
+            if (! is_array($block)) {
+                return $block;
+            }
+
+            foreach (['start_time', 'end_time'] as $field) {
+                if (isset($block[$field]) && is_string($block[$field])) {
+                    $trimmed = trim($block[$field]);
+                    $block[$field] = preg_match('/^\d{2}:\d{2}:\d{2}$/', $trimmed) === 1
+                        ? substr($trimmed, 0, 5)
+                        : $trimmed;
+                }
+            }
+
+            return $block;
+        }, $blocks);
+
+        $this->merge(['blocks' => $normalized]);
+    }
+
     public function rules(): array
     {
         $maxBlocks = (int) config('taskmate.class_schedule.max_blocks', 25);

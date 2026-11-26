@@ -1,7 +1,7 @@
 import { formatDate, formatAmount, formatHoursFlexibility, formatTime12Hour } from '@/lib/format';
-import { buildAskPosterMessage, evaluateScheduleFit, type ClassBlock } from '@/lib/schedule-fit';
+import { buildAskPosterMessage, buildScheduleTimeOptions, evaluateScheduleFit, type ClassBlock } from '@/lib/schedule-fit';
 import { PAYMENT_BOUNDARY_NOTICE, STUDENT_TASK_SAFETY_NOTICE } from '@/constants/notices';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +87,9 @@ const FALLBACK_DAYS: Option[] = [
     { value: 'sun', label: 'Sun' },
 ];
 
+const NATIVE_SELECT_CLASS =
+    'focus-ring h-11 w-full rounded-md border border-input bg-field px-3 text-sm tabular-nums text-foreground shadow-xs transition-colors disabled:cursor-not-allowed disabled:opacity-50 md:h-9';
+
 export default function BrowseTaskDetail({
     task,
     poster,
@@ -121,6 +124,20 @@ export default function BrowseTaskDetail({
     const [savingSchedule, setSavingSchedule] = useState(false);
     const [scheduleDirty, setScheduleDirty] = useState(false);
     const [scheduleSavedNotice, setScheduleSavedNotice] = useState<string | null>(null);
+
+    useEffect(() => {
+        setClassBlocks(studentClassSchedule);
+    }, [studentClassSchedule]);
+
+    const timeOptions = useMemo(
+        () =>
+            buildScheduleTimeOptions([
+                newBlockStart,
+                newBlockEnd,
+                ...classBlocks.flatMap((block) => [block.start_time, block.end_time]),
+            ]),
+        [newBlockStart, newBlockEnd, classBlocks],
+    );
 
     const [showConfirmSummary, setShowConfirmSummary] = useState(false);
     const [reviewNotice, setReviewNotice] = useState<string | null>(null);
@@ -195,6 +212,7 @@ export default function BrowseTaskDetail({
 
     const handleSaveClassSchedule = () => {
         setSavingSchedule(true);
+        setBlockError(null);
         setScheduleSavedNotice(null);
         router.put(
             '/my-class-schedule',
@@ -205,6 +223,12 @@ export default function BrowseTaskDetail({
                 onSuccess: () => {
                     setScheduleDirty(false);
                     setScheduleSavedNotice('Your class schedule was saved privately to your account.');
+                },
+                onError: (errors) => {
+                    const firstError = Object.values(errors).find(
+                        (value) => typeof value === 'string' && value.trim() !== '',
+                    );
+                    setBlockError(firstError ?? 'Check your class blocks and try saving again.');
                 },
                 onFinish: () => {
                     setSavingSchedule(false);
@@ -730,7 +754,15 @@ export default function BrowseTaskDetail({
                                     </h3>
                                     <p className="text-xs text-muted-foreground">
                                         Saved privately to your account only—posters and other users never see your
-                                        class schedule.
+                                        class schedule.{' '}
+                                        {canSaveSchedule && (
+                                            <Link
+                                                href="/settings/schedule"
+                                                className="font-semibold text-brand underline-offset-4 hover:underline"
+                                            >
+                                                Manage in Settings
+                                            </Link>
+                                        )}
                                     </p>
                                 </div>
                                 <Button
@@ -799,23 +831,39 @@ export default function BrowseTaskDetail({
                                     <div className="grid gap-3 sm:grid-cols-3">
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="class_start_time">Start time</Label>
-                                            <Input
+                                            <select
                                                 id="class_start_time"
-                                                type="time"
                                                 value={newBlockStart}
-                                                onChange={(event) => setNewBlockStart(event.target.value)}
-                                                className="tabular-nums"
-                                            />
+                                                onChange={(event) => {
+                                                    setNewBlockStart(event.target.value);
+                                                    setBlockError(null);
+                                                }}
+                                                className={NATIVE_SELECT_CLASS}
+                                            >
+                                                {timeOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="class_end_time">End time</Label>
-                                            <Input
+                                            <select
                                                 id="class_end_time"
-                                                type="time"
                                                 value={newBlockEnd}
-                                                onChange={(event) => setNewBlockEnd(event.target.value)}
-                                                className="tabular-nums"
-                                            />
+                                                onChange={(event) => {
+                                                    setNewBlockEnd(event.target.value);
+                                                    setBlockError(null);
+                                                }}
+                                                className={NATIVE_SELECT_CLASS}
+                                            >
+                                                {timeOptions.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="grid gap-1.5">
                                             <Label htmlFor="class_label">Label (optional)</Label>

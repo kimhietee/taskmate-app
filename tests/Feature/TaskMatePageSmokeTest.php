@@ -147,13 +147,14 @@ class TaskMatePageSmokeTest extends TestCase
             'users.show' => route('users.show', $poster),
             'appearance.edit' => route('appearance.edit'),
             'profile.edit' => route('profile.edit'),
+            'class-schedule.edit' => route('class-schedule.edit'),
             'security.edit' => route('security.edit'),
         ];
 
         foreach ($urls as $name => $url) {
             $actor = match (true) {
                 str_starts_with($name, 'admin.') => $admin,
-                in_array($name, ['browse.index', 'browse.show', 'applications.mine', 'applications.task', 'agreements.show', 'agreements.rate', 'reports.mine', 'reports.show', 'users.show'], true) => $student,
+                in_array($name, ['browse.index', 'browse.show', 'applications.mine', 'applications.task', 'agreements.show', 'agreements.rate', 'reports.mine', 'reports.show', 'users.show', 'class-schedule.edit'], true) => $student,
                 default => $poster,
             };
             if (in_array($name, ['home', 'static.how-it-works', 'static.task-guidelines', 'static.safety', 'static.privacy', 'login', 'register', 'password.request'], true)) {

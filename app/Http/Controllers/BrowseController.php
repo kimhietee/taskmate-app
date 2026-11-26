@@ -73,7 +73,7 @@ class BrowseController extends Controller
             'task' => $this->details($task),
             'poster' => [
                 ...$this->poster($task),
-                'profileUrl' => $isVerifiedStudent ? route('users.show', $task->poster) : null,
+                'profileUrl' => $isVerifiedStudent ? route('users.show', $task->poster, false) : null,
                 'ratingSummary' => $ratingSummaries->forUser($task->poster),
             ],
             'application' => $application ? [
@@ -93,7 +93,7 @@ class BrowseController extends Controller
                 && ($task->deadline === null || $task->deadline->toDateString() >= today()->toDateString())
                 && $task->poster_id !== $request->user()->id,
             'problemReport' => $isVerifiedStudent
-                ? ['action' => route('tasks.problem-reports.store', $task), 'types' => $this->problemReportTypes()]
+                ? ['action' => route('tasks.problem-reports.store', $task, false), 'types' => $this->problemReportTypes()]
                 : null,
             'offPlatformWarning' => $task->contentFlags()->where('source_user_id', '!=', $request->user()->id)->where('status', 'open')->exists(),
             'status' => $request->session()->get('status'),
@@ -113,7 +113,7 @@ class BrowseController extends Controller
 
         return Inertia::render('browse/show', [
             'task' => $this->details($task),
-            'poster' => [...$this->poster($task), 'profileUrl' => route('users.show', $task->poster), 'ratingSummary' => $ratingSummaries->forUser($task->poster)],
+            'poster' => [...$this->poster($task), 'profileUrl' => route('users.show', $task->poster, false), 'ratingSummary' => $ratingSummaries->forUser($task->poster)],
             'application' => [
                 'status' => $application->status->value,
                 'statusLabel' => $application->status->label(),

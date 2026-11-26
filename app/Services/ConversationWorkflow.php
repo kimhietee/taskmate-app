@@ -55,7 +55,7 @@ class ConversationWorkflow
             $recipientId = $sender->id === $conversation->poster_id ? $conversation->applicant_id : $conversation->poster_id;
             $recipient = User::query()->findOrFail($recipientId);
             $task = Task::query()->findOrFail($conversation->task_id);
-            $this->alerts->conversationMessage($recipient, $conversation, $task->title, $sender->id);
+            $this->alerts->conversationMessage($recipient, $conversation, $task->title, $sender->id, Conversation::displayName($sender));
 
             return $message;
         });

@@ -48,15 +48,17 @@ class TaskMateAlertCatalog
             'sanction.suspension' => ['Account suspended', 'Your account was suspended. Review your account actions.'],
             'sanction.lifted' => ['Account action lifted', 'An account action was lifted. You can review your account actions.'],
             'flag.new' => ['New content flag', 'A new content flag is awaiting administrator review.'],
-            'conversation.message' => ['New message about {task_title}', 'Open TaskMate to read the message.'],
+            'conversation.message' => ['New message about {task_title}', '{sender_name} sent a message. Open TaskMate to read it.'],
         ];
 
         abort_unless(isset($catalog[$event]), 500, 'Unknown TaskMate notification event.');
         [$title, $body] = $catalog[$event];
+        $values = ['sender_name' => 'Someone', ...$values];
         foreach ($values as $key => $value) {
             $replacement = match ($key) {
                 'outcome' => in_array($value, ['supported', 'not_supported', 'inconclusive'], true) ? str_replace('_', ' ', $value) : 'completed',
-                'task_title' => mb_substr(preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i', '[contact removed]', preg_replace('/[\x00-\x1F\x7F]/u', ' ', strip_tags((string) $value)) ?? '') ?? '', 0, 120),
+                'task_title' => self::sanitizeText((string) $value, 120),
+                'sender_name' => self::sanitizeText((string) $value, 80) ?: 'Someone',
                 default => '',
             };
             $title = str_replace('{'.$key.'}', $replacement, $title);
@@ -64,6 +66,14 @@ class TaskMateAlertCatalog
         }
 
         return ['title' => $title, 'body' => $body];
+    }
+
+    private static function sanitizeText(string $value, int $maxLength): string
+    {
+        $stripped = preg_replace('/[\x00-\x1F\x7F]/u', ' ', strip_tags($value)) ?? '';
+        $redacted = preg_replace('/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i', '[contact removed]', $stripped) ?? '';
+
+        return mb_substr(trim($redacted), 0, $maxLength);
     }
 
     /** @return array<string, array{title: string, body: string}> */
@@ -78,6 +88,10 @@ class TaskMateAlertCatalog
             'rating.waiting', 'rating.visible', 'report.under_review', 'report.resolved', 'report.dismissed', 'report.reply', 'report.filed', 'report.new', 'report.priority',
             'sanction.warning', 'sanction.suspension', 'sanction.lifted', 'flag.new', 'conversation.message',
         ];
-        return collect($events)->mapWithKeys(fn (string $event) => [$event => self::get($event, ['outcome' => 'supported'])])->all();
+        return collect($events)->mapWithKeys(fn (string $event) => [$event => self::get($event, [
+            'outcome' => 'supported',
+            'task_title' => 'Sample task',
+            'sender_name' => 'A participant',
+        ])])->all();
     }
 }

@@ -74,7 +74,7 @@ return [
 
     // PROVISIONAL: in-app alerts are not yet part of a finalized notification-retention policy.
     'notifications' => [
-        'poll_seconds' => 10,
+        'poll_seconds' => 6,
         'per_page' => 20,
         'retention_days' => null,
         // Supports several visible tabs polling every 10 seconds without limiting normal use.

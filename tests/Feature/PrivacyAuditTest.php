@@ -148,6 +148,7 @@ class PrivacyAuditTest extends TestCase
             ['/notifications', 'notifications/index'],
             ['/messages', 'messages/index'],
             ['/settings/profile', 'settings/profile'],
+            ['/settings/schedule', 'settings/schedule'],
         ];
         foreach ($checks as [$url, $component]) {
             $this->get($url)->assertInertia(fn (Assert $page) => $page

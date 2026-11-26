@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClassScheduleController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Teams\TeamController;
@@ -20,6 +21,8 @@ Route::middleware(['auth', 'account.active'])->group(function () {
 
 Route::middleware(['auth', 'account.active', 'verified'])->group(function () {
     Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('settings/schedule', [ClassScheduleController::class, 'edit'])->name('class-schedule.edit');
 
     Route::get('settings/security', [SecurityController::class, 'edit'])
         /* @chisel-password-confirmation */
