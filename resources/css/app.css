@@ -145,11 +145,13 @@
 }
 
 .welcome-header {
-    position: relative;
-    z-index: 2;
+    position: sticky;
+    top: 0;
+    z-index: 50;
     border-bottom: 1px solid #d8e5d4;
     background: linear-gradient(90deg, #fffefa, #f0f7ed);
     box-shadow: 0 6px 22px rgb(25 69 45 / 8%);
+    backdrop-filter: blur(14px);
 }
 
 .welcome-header::after {
