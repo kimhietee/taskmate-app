@@ -30,14 +30,20 @@ class TaskMatePurgeDemoData extends Command
             'Scenario: Please message me on Telegram', 'Scenario: Payment unpaid', 'Scenario: Payment marked-paid',
             'Scenario: Payment received', 'Scenario: Payment not-received',
         ];
+        $demoTitles = \Database\Seeders\LocalTaskMateSeeder::demoTaskTitles();
         $taskIds = Schema::hasTable('tasks') ? DB::table('tasks')->whereIn('poster_id', $userIds)
-            ->where(fn ($query) => $query->where('title', 'like', 'Synthetic approved demo task %')->orWhere('title', 'like', 'Synthetic scenario: %')->orWhereIn('title', $legacyScenarioTitles))
-            ->where(fn ($query) => $query->where('description', 'like', 'Synthetic demonstration task for local testing only.%')
+            ->where(fn ($query) => $query
+                ->where('title', 'like', 'Synthetic approved demo task %')
+                ->orWhere('title', 'like', 'Synthetic scenario: %')
+                ->orWhereIn('title', $legacyScenarioTitles)
+                ->orWhereIn('title', $demoTitles))
+            ->where(fn ($query) => $query
+                ->where('description', 'like', 'Synthetic demonstration task for local testing only.%')
+                ->orWhere('description', 'like', '%'.\Database\Seeders\LocalTaskMateSeeder::DEMO_DESCRIPTION_MARKER.'%')
                 ->orWhere('description', 'Synthetic scenario record for local testing only.')
                 ->orWhere('description', 'Synthetic payment-status scenario.'))
             ->pluck('id')->all() : [];
         $applicationIds = Schema::hasTable('applications') ? DB::table('applications')->whereIn('task_id', $taskIds)
-            ->where(fn ($query) => $query->where('message', 'like', 'Synthetic application%')->orWhere('message', 'like', 'Synthetic accepted application%'))
             ->pluck('id')->all() : [];
         $agreementIds = Schema::hasTable('agreements') ? DB::table('agreements')->whereIn('application_id', $applicationIds)->pluck('id')->all() : [];
         $conversationIds = Schema::hasTable('conversations') ? DB::table('conversations')->whereIn('application_id', $applicationIds)->pluck('id')->all() : [];

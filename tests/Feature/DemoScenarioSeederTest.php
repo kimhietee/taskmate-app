@@ -106,10 +106,12 @@ class DemoScenarioSeederTest extends TestCase
     /** @return array<string, int> */
     private function syntheticCounts(): array
     {
+        $demoTitles = \Database\Seeders\LocalTaskMateSeeder::demoTaskTitles();
+
         return [
             'users' => User::query()->where('email', 'like', '%@example.test')->count(),
-            'tasks' => Task::query()->where('title', 'like', 'Synthetic approved demo task %')->orWhere('title', 'like', 'Synthetic scenario: %')->count(),
-            'applications' => Application::query()->whereHas('task', fn ($query) => $query->where('title', 'like', 'Synthetic approved demo task %')->orWhere('title', 'like', 'Synthetic scenario: %'))->count(),
+            'tasks' => Task::query()->whereIn('title', $demoTitles)->orWhere('title', 'like', 'Synthetic scenario: %')->count(),
+            'applications' => Application::query()->whereHas('task', fn ($query) => $query->whereIn('title', $demoTitles)->orWhere('title', 'like', 'Synthetic scenario: %'))->count(),
             'agreements' => Agreement::query()->whereHas('task', fn ($query) => $query->where('title', 'like', 'Synthetic scenario: %'))->count(),
             'agreement_versions' => AgreementVersion::query()->whereHas('agreement.task', fn ($query) => $query->where('title', 'like', 'Synthetic scenario: %'))->count(),
             'completions' => TaskCompletion::query()->whereHas('agreement.task', fn ($query) => $query->where('title', 'like', 'Synthetic scenario: %'))->count(),
