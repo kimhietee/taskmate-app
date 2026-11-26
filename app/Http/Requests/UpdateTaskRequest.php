@@ -76,12 +76,7 @@ class UpdateTaskRequest extends FormRequest
 
     public function rules(): array
     {
-        $task = $this->route('task');
-        $allowedWorkModes = array_keys(config('taskmate.work_modes', []));
-        if ($task instanceof Task && $task->work_mode === 'hybrid') {
-            $allowedWorkModes[] = 'hybrid';
-        }
-        $requiresWorkplace = in_array($this->input('work_mode'), config('taskmate.work_modes_with_location', []), true);
+        $requiresWorkplace = in_array($this->input('work_mode'), ['onsite', 'hybrid'], true);
         $budgetToBeDiscussed = $this->boolean('budget_to_be_discussed');
         $physicalDemand = config('taskmate.risk_questions.physical_demand', []);
         $academicInvolvement = config('taskmate.risk_questions.academic_involvement', []);
@@ -101,7 +96,7 @@ class UpdateTaskRequest extends FormRequest
             'budget' => [$budgetToBeDiscussed ? 'nullable' : 'required', 'numeric', 'min:1', 'max:1000000'],
             'pay_timing' => ['nullable', 'string', Rule::in(array_keys(config('taskmate.pay_timings', [])))],
             'pay_timing_note' => ['nullable', 'string', 'max:255'],
-            'work_mode' => ['required', 'string', Rule::in($allowedWorkModes)],
+            'work_mode' => ['required', 'string', Rule::in(array_keys(config('taskmate.work_modes', [])))],
             'workplace_name' => [$requiresWorkplace ? 'required' : 'nullable', 'string', 'max:255'],
             'workplace_address' => [$requiresWorkplace ? 'required' : 'nullable', 'string', 'max:255'],
             'deadline' => ['nullable', 'date', 'after:today'],

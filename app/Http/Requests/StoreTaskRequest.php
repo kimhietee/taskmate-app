@@ -102,7 +102,7 @@ class StoreTaskRequest extends FormRequest
 
     protected function taskRules(): array
     {
-        $requiresWorkplace = in_array($this->input('work_mode'), config('taskmate.work_modes_with_location', []), true);
+        $requiresWorkplace = in_array($this->input('work_mode'), ['onsite', 'hybrid'], true);
         $budgetToBeDiscussed = $this->boolean('budget_to_be_discussed');
         $physicalDemand = config('taskmate.risk_questions.physical_demand', []);
         $academicInvolvement = config('taskmate.risk_questions.academic_involvement', []);

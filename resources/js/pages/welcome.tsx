@@ -38,7 +38,7 @@ const sampleTasks: SampleTask[] = [
         title: 'Design a campus event poster',
         description:
             'Create a poster for a campus event and deliver a print-ready file.',
-        workMode: 'Online',
+        workMode: 'Remote',
         poster: 'CMU Student Affairs',
         posterMark: 'SA',
         posterType: 'Organization',
@@ -53,7 +53,7 @@ const sampleTasks: SampleTask[] = [
         title: 'Help organize a reading event',
         description:
             'Arrange event materials and help guests find their seats.',
-        workMode: 'On-campus',
+        workMode: 'Onsite',
         location: 'CMU Main Library',
         poster: 'CMU Library Services',
         posterMark: 'LB',
@@ -68,9 +68,9 @@ const sampleTasks: SampleTask[] = [
         workType: 'One-time task',
         title: 'Deliver printed event materials',
         description:
-            'Pick up and deliver prepared event materials to the activity venue.',
-        workMode: 'Outside-campus',
-        location: 'Valencia City · sample location',
+            'Pick up and deliver prepared event materials to the campus activity venue.',
+        workMode: 'Onsite',
+        location: 'CMU Activities Center',
         poster: 'CMU Events Office',
         posterMark: 'EO',
         posterType: 'Organization',
@@ -85,7 +85,7 @@ const sampleTasks: SampleTask[] = [
         title: 'Update the student club event calendar',
         description:
             'Keep event listings organized and check submitted updates twice a week.',
-        workMode: 'Online',
+        workMode: 'Remote',
         poster: 'Student Media Club',
         posterMark: 'SM',
         posterType: 'Student',

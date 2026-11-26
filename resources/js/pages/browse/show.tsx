@@ -737,9 +737,10 @@ export default function BrowseTaskDetail({
                                     type="button"
                                     size="sm"
                                     variant="outline"
+                                    aria-expanded={scheduleEditorOpen}
                                     onClick={() => setScheduleEditorOpen((open) => !open)}
                                 >
-                                    {scheduleEditorOpen ? 'Hide schedule editor' : 'Edit my classes'}
+                                    {scheduleEditorOpen ? 'Done editing' : 'Edit / save schedule'}
                                 </Button>
                             </div>
 
@@ -844,15 +845,15 @@ export default function BrowseTaskDetail({
                                                 <Button
                                                     type="button"
                                                     size="sm"
-                                                    variant="outline"
+                                                    variant="default"
                                                     onClick={handleSaveClassSchedule}
                                                     disabled={savingSchedule}
                                                 >
                                                     {savingSchedule
                                                         ? 'Saving...'
                                                         : scheduleDirty
-                                                          ? 'Save my class schedule'
-                                                          : 'Save schedule to account'}
+                                                          ? 'Save class schedule'
+                                                          : 'Save schedule'}
                                                 </Button>
                                                 {scheduleDirty && (
                                                     <span className="text-xs text-muted-foreground">
@@ -869,9 +870,11 @@ export default function BrowseTaskDetail({
                                                 )}
                                             </>
                                         ) : (
-                                            <span className="text-xs text-muted-foreground">
-                                                Fit check updates live above. Verify your CMU student status to save
-                                                your schedule.
+                                            <span className="text-sm text-muted-foreground">
+                                                Your schedule stays private. Verify your student account to save it.
+                                                {studentVerificationUrl && (
+                                                    <> <Link className="font-semibold text-primary underline underline-offset-4" href={studentVerificationUrl}>Verify account</Link></>
+                                                )}
                                             </span>
                                         )}
                                     </div>

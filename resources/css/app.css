@@ -6275,6 +6275,34 @@ details[open] > .notification-trigger {
     gap: 0.85rem;
 }
 
+.browse-verification-notice {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid #e8cb74;
+    border-left: 4px solid #d6aa1c;
+    border-radius: 0.9rem;
+    background: #fff9e6;
+    color: #594715;
+}
+
+.browse-verification-notice > svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex: 0 0 auto;
+}
+
+.browse-verification-notice > div {
+    flex: 1;
+}
+
+.browse-verification-notice p {
+    margin-top: 0.2rem;
+    color: #6e6040;
+    font-size: 0.9rem;
+}
+
 .browse-filter-field,
 .browse-sort-field {
     display: grid;
@@ -6319,8 +6347,8 @@ details[open] > .notification-trigger {
 
 .browse-budget-fields {
     display: grid;
-    max-width: 38rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 52rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.85rem;
     margin-top: 0.9rem;
 }
@@ -6382,6 +6410,15 @@ details[open] > .notification-trigger {
     text-decoration: underline;
     text-decoration-color: #adc8b1;
     text-underline-offset: 4px;
+    border: 0;
+    background: transparent;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.browse-result-count {
+    color: #68786a;
+    font-size: 0.85rem;
 }
 
 .browse-sort-field {
@@ -6923,11 +6960,44 @@ details[open] > .notification-trigger {
 }
 
 .dark .browse-budget-filters,
+.dark .my-tasks-tab,
+.dark .my-tasks-page-link,
+.dark .my-tasks-facts p,
+.dark .task-detail-facts p,
 .dark .browse-task-fact,
 .dark .my-application-summary > div {
     border-color: #3b5543;
     background: #203428;
     color: #c1d0c2;
+}
+
+.dark .browse-verification-notice {
+    border-color: #6a6034;
+    background: #2a2a1d;
+    color: #e6dba8;
+}
+
+.dark .browse-verification-notice p,
+.dark .browse-result-count,
+.dark .my-tasks-pagination > p {
+    color: #c3c6a8;
+}
+
+.dark .my-tasks-facts span,
+.dark .task-detail-facts span {
+    color: #b7c8b8;
+}
+
+.dark .my-tasks-facts strong,
+.dark .task-detail-facts strong {
+    color: #e4eee4;
+}
+
+.dark .my-tasks-tab.is-active,
+.dark .my-tasks-page-link.is-active {
+    border-color: #2c7954;
+    background: #246342;
+    color: #fff;
 }
 
 .dark .browse-task-description,
@@ -6980,7 +7050,9 @@ details[open] > .notification-trigger {
     }
 
     .browse-budget-fields,
-    .my-application-summary {
+    .my-application-summary,
+    .my-tasks-facts,
+    .task-detail-facts {
         grid-template-columns: minmax(0, 1fr);
     }
 }
@@ -6990,6 +7062,20 @@ details[open] > .notification-trigger {
     .my-applications-hero {
         align-items: flex-start;
         flex-wrap: wrap;
+    }
+
+    .browse-verification-notice {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .browse-verification-notice > div {
+        flex-basis: calc(100% - 2.3rem);
+    }
+
+    .browse-verification-notice > a,
+    .browse-verification-notice > button {
+        width: 100%;
     }
 
     .browse-count,
@@ -7395,6 +7481,121 @@ details[open] > .notification-trigger {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+}
+
+.my-tasks-tabs {
+    display: flex;
+    gap: 0.55rem;
+    overflow-x: auto;
+    padding: 0.15rem 0 0.4rem;
+}
+
+.my-tasks-tab {
+    display: inline-flex;
+    min-height: 2.6rem;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.55rem;
+    border: 1px solid #d6e1d2;
+    border-radius: 999px;
+    background: #fffefa;
+    padding: 0.45rem 0.85rem;
+    color: #526556;
+    font-size: 0.86rem;
+    font-weight: 650;
+    cursor: pointer;
+}
+
+.my-tasks-tab span {
+    display: inline-grid;
+    min-width: 1.45rem;
+    height: 1.45rem;
+    place-items: center;
+    border-radius: 999px;
+    background: #edf3e8;
+    color: #355541;
+    font-size: 0.75rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.my-tasks-tab.is-active {
+    border-color: #185b40;
+    background: #185b40;
+    color: #fff;
+}
+
+.my-tasks-tab.is-active span {
+    background: rgb(255 255 255 / 18%);
+    color: #fff;
+}
+
+.my-tasks-facts,
+.task-detail-facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.my-tasks-facts p,
+.task-detail-facts p {
+    display: grid;
+    min-width: 0;
+    gap: 0.2rem;
+    margin: 0;
+    border: 1px solid #e3eade;
+    border-radius: 0.75rem;
+    background: #f7f9f4;
+    padding: 0.7rem 0.8rem;
+}
+
+.my-tasks-facts span,
+.task-detail-facts span {
+    color: #657769;
+    font-size: 0.76rem;
+}
+
+.my-tasks-facts strong,
+.task-detail-facts strong {
+    color: #1c3929;
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+
+.my-tasks-pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.my-tasks-pagination > p {
+    flex: 1 0 100%;
+    color: #68786a;
+    font-size: 0.85rem;
+}
+
+.my-tasks-page-link {
+    display: inline-flex;
+    min-height: 2.35rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d6e1d2;
+    border-radius: 0.65rem;
+    background: #fffefa;
+    padding: 0.4rem 0.75rem;
+    color: #355541;
+    font-size: 0.86rem;
+    text-decoration: none;
+}
+
+.my-tasks-page-link.is-active {
+    border-color: #185b40;
+    background: #185b40;
+    color: #fff;
+}
+
+.my-tasks-page-link.is-disabled {
+    color: #9aa69a;
 }
 
 .my-tasks-card {

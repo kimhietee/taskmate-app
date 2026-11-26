@@ -1,6 +1,7 @@
-import { formatAmount, formatDate } from '@/lib/format';
+import { formatAmount, formatDate, formatHoursFlexibility } from '@/lib/format';
 import { PAYMENT_BOUNDARY_NOTICE } from '@/constants/notices';
 import { Form, Head, Link } from '@inertiajs/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TaskStatusBadge } from '@/components/task-status-badge';
 import { ApplicationStatusBadge } from '@/components/application-status-badge';
@@ -11,6 +12,16 @@ import agreements from '@/routes/agreements';
 import { edit, mine, cancel } from '@/routes/tasks';
 import { RatingSummary } from '@/components/rating-summary';
 import { ProblemReportForm } from '@/components/problem-report-form';
+import { ToBeDiscussedBadge } from '@/components/terms-status-badge';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 
 type Applicant = {
     id: number;
@@ -39,20 +50,28 @@ type Task = {
     id: number;
     title: string;
     category: string;
+    workTypeLabel: string;
     budget: string | null;
-    budgetMin: string | null;
-    budgetMax: string | null;
-    budgetDisplay: string;
+    budgetToBeDiscussed: boolean;
+    payTimingLabel: string;
+    payTimingToBeDiscussed: boolean;
+    payTimingNote: string | null;
+    scheduleSummary: string | null;
+    scheduleNote: string | null;
+    scheduleFlexible: boolean;
+    scheduleToBeDiscussed: boolean;
+    canHoursChange: boolean | null;
     workMode: string;
+    workModeValue: string;
     status: string;
     description: string;
     requiredActivities: string | null;
     deliverables: string | null;
-    estimatedDurationDays: number | null;
-    estimatedDurationLabel: string | null;
+    estimatedDurationHours: string | null;
     skillRequirements: string | null;
     workplaceName: string | null;
     workplaceAddress: string | null;
+    deadline: string | null;
     reviewNote: string | null;
     removalReason?: string | null;
     createdAt: string | null;
@@ -96,6 +115,9 @@ export default function ShowTask({
     canProposeAgreement,
     problemReport,
 }: Props) {
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+    const canReviewApplicants = canRespondApplications && ['approved', 'assigned'].includes(task.status);
+
     return (
         <>
             <Head title={task.title} />
@@ -111,13 +133,16 @@ export default function ShowTask({
                 <header className="task-detail-hero">
                     <div>
                         <p className="task-detail-category">
-                            {task.category}
+                            {task.category} · {task.workTypeLabel}
                         </p>
                         <h1>
                             {task.title}
                         </h1>
                         <p className="task-detail-meta">
-                            Estimated duration · {task.estimatedDurationLabel ?? 'Not provided'}
+                            {task.estimatedDurationHours ? `Estimated duration · ${task.estimatedDurationHours} hours` : 'Duration not provided'}
+                        </p>
+                        <p className="task-detail-meta">
+                            Posted {task.createdAt ? formatDate(task.createdAt) : 'recently'} · {task.applicantsCount} applicants
                         </p>
                     </div>
                     <div className="task-detail-hero-side">
@@ -146,11 +171,6 @@ export default function ShowTask({
                             </p>
                         </div>
                     )}
-                    {task.estimatedDurationLabel && (
-                        <p className="text-sm">
-                            Estimated duration: {task.estimatedDurationLabel}
-                        </p>
-                    )}
                     {task.skillRequirements && (
                         <p className="text-sm">
                             Skills: {task.skillRequirements}
@@ -159,7 +179,15 @@ export default function ShowTask({
                 </section>
                 <section className="task-detail-section task-detail-work">
                     <h2>Work details</h2>
-                    <p>{task.workMode}</p>
+                    <div className="task-detail-facts">
+                        <p><span>Work mode</span><strong>{task.workMode}</strong></p>
+                        <p><span>Estimated duration</span><strong>{task.estimatedDurationHours ? `${task.estimatedDurationHours} hours` : 'Not provided'}</strong></p>
+                        <p><span>Work schedule</span><strong>{task.scheduleToBeDiscussed || !task.scheduleSummary ? <ToBeDiscussedBadge /> : task.scheduleSummary}</strong></p>
+                        <p><span>Can hours change?</span><strong>{formatHoursFlexibility(task.canHoursChange)}</strong></p>
+                        <p><span>Deadline</span><strong>{task.deadline ? formatDate(task.deadline) : 'No deadline'}</strong></p>
+                    </div>
+                    {task.scheduleFlexible && <p className="text-sm">The schedule is flexible.</p>}
+                    {task.scheduleNote && <p className="text-sm whitespace-pre-wrap"><strong>Schedule note:</strong> {task.scheduleNote}</p>}
                     {task.workplaceName && <p>{task.workplaceName}</p>}
                     {task.workplaceAddress && <p>{task.workplaceAddress}</p>}
                     <p className="text-sm text-muted-foreground">
@@ -170,7 +198,11 @@ export default function ShowTask({
                 </section>
                 <section className="task-detail-section task-detail-pay">
                     <h2>Compensation</h2>
-                    <p>Estimated budget: {task.budgetDisplay}</p>
+                    <div className="task-detail-facts">
+                        <p><span>Budget</span><strong>{task.budgetToBeDiscussed || task.budget === null ? <ToBeDiscussedBadge /> : `₱${formatAmount(task.budget)}`}</strong></p>
+                        <p><span>Pay timing</span><strong>{task.payTimingToBeDiscussed ? <ToBeDiscussedBadge /> : task.payTimingLabel}</strong></p>
+                    </div>
+                    {task.payTimingNote && <p className="text-sm whitespace-pre-wrap"><strong>Payment note:</strong> {task.payTimingNote}</p>}
                     <p className="text-sm text-muted-foreground">
                         {PAYMENT_BOUNDARY_NOTICE}
                     </p>
@@ -216,11 +248,16 @@ export default function ShowTask({
                         </Link>
                     </Button>
                 )}
-                {applicants.length > 0 && (
+                {(applicants.length > 0 || canReviewApplicants) && (
                     <section className="task-detail-section task-detail-applicants">
                         <h2>
                             Applicants ({applicants.length})
                         </h2>
+                        {applicants.length === 0 && (
+                            <p className="text-sm text-muted-foreground">
+                                {task.status === 'approved' ? 'No applications yet. Students who apply will appear here.' : 'Applications will appear here once the task is approved.'}
+                            </p>
+                        )}
                         {applicants.map((application) => (
                             <article
                                 key={application.id}
@@ -405,19 +442,23 @@ export default function ShowTask({
                             </Button>
                         )}
                     {canCancel && (
-                        <Form
-                            {...cancel.form(task.id)}
-                            onSubmit={(event) => {
-                                if (!window.confirm('Cancel this task?'))
-                                    event.preventDefault();
-                            }}
-                        >
-                            <Button variant="outline" type="submit">
-                                Cancel task
-                            </Button>
-                        </Form>
+                        <Button variant="outline" type="button" onClick={() => setCancelDialogOpen(true)}>Cancel task</Button>
                     )}
                 </div>
+                <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Cancel this task?</DialogTitle>
+                            <DialogDescription>This task will be closed to new applications and removed from Browse Tasks.</DialogDescription>
+                        </DialogHeader>
+                        <Form {...cancel.form(task.id)} onSuccess={() => setCancelDialogOpen(false)}>
+                            <DialogFooter>
+                                <DialogClose asChild><Button type="button" variant="outline">Keep task</Button></DialogClose>
+                                <Button type="submit" variant="destructive">Cancel task</Button>
+                            </DialogFooter>
+                        </Form>
+                    </DialogContent>
+                </Dialog>
             </main>
         </>
     );

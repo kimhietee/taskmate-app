@@ -1,8 +1,19 @@
-import { formatDate } from '@/lib/format';
+import { formatAmount, formatDate } from '@/lib/format';
 import { Form, Head, Link } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { TaskStatusBadge } from '@/components/task-status-badge';
 import { PaymentStatusBadge } from '@/components/payment-status-badge';
+import { ToBeDiscussedBadge } from '@/components/terms-status-badge';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { create, show, edit, cancel } from '@/routes/tasks';
 import agreements from '@/routes/agreements';
 
@@ -10,11 +21,15 @@ type Task = {
     id: number;
     title: string;
     category: string;
+    workType: string;
+    workTypeLabel: string;
     budget: string | null;
-    budgetDisplay: string;
+    budgetToBeDiscussed: boolean;
+    payTimingLabel: string;
+    payTimingToBeDiscussed: boolean;
+    scheduleSummary: string | null;
+    scheduleToBeDiscussed: boolean;
     workMode: string;
-    estimatedDurationDays: number | null;
-    estimatedDurationLabel: string | null;
     status: string;
     statusLabel: string;
     reviewNote: string | null;
@@ -32,11 +47,57 @@ type Props = {
     tasks: {
         data: Task[];
         links: { url: string | null; label: string; active: boolean }[];
+        from?: number | null;
+        to?: number | null;
+        total?: number;
     };
     status?: string | null;
 };
 
+type FilterTab = 'all' | 'pending_review' | 'active' | 'changes_requested' | 'closed';
+
+function matchesFilter(task: Task, tab: FilterTab): boolean {
+    if (tab === 'all') return true;
+    if (tab === 'pending_review') return task.status === 'pending_review';
+    if (tab === 'active') return ['approved', 'assigned', 'in_progress'].includes(task.status);
+    if (tab === 'changes_requested') return task.status === 'changes_requested';
+    return ['completed', 'cancelled', 'rejected', 'removed'].includes(task.status);
+}
+
+function formatPaginationLabel(label: string): string {
+    return label
+        .replaceAll('&laquo; Previous', 'Previous')
+        .replaceAll('Next &raquo;', 'Next')
+        .replaceAll('&laquo;', 'Previous')
+        .replaceAll('&raquo;', 'Next')
+        .trim();
+}
+
 export default function MyTasks({ tasks, status }: Props) {
+    const [activeTab, setActiveTab] = useState<FilterTab>('all');
+    const [cancellingTask, setCancellingTask] = useState<Task | null>(null);
+    const counts = useMemo(
+        () => ({
+            all: tasks.data.length,
+            pending_review: tasks.data.filter((task) => matchesFilter(task, 'pending_review')).length,
+            active: tasks.data.filter((task) => matchesFilter(task, 'active')).length,
+            changes_requested: tasks.data.filter((task) => matchesFilter(task, 'changes_requested')).length,
+            closed: tasks.data.filter((task) => matchesFilter(task, 'closed')).length,
+        }),
+        [tasks.data],
+    );
+    const filteredTasks = useMemo(
+        () => tasks.data.filter((task) => matchesFilter(task, activeTab)),
+        [tasks.data, activeTab],
+    );
+    const tabs: { key: FilterTab; label: string; count: number }[] = [
+        { key: 'all', label: 'All', count: counts.all },
+        { key: 'pending_review', label: 'Pending review', count: counts.pending_review },
+        { key: 'active', label: 'Active / approved', count: counts.active },
+        { key: 'changes_requested', label: 'Changes requested', count: counts.changes_requested },
+        { key: 'closed', label: 'Completed / closed', count: counts.closed },
+    ];
+
     return (
         <>
             <Head title="My tasks" />
@@ -61,6 +122,21 @@ export default function MyTasks({ tasks, status }: Props) {
                         {status}
                     </div>
                 )}
+                {tasks.data.length > 0 && (
+                    <nav className="my-tasks-tabs" aria-label="Task status filters">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.key}
+                                type="button"
+                                onClick={() => setActiveTab(tab.key)}
+                                aria-pressed={activeTab === tab.key}
+                                className={activeTab === tab.key ? 'my-tasks-tab is-active' : 'my-tasks-tab'}
+                            >
+                                {tab.label}<span>{tab.count}</span>
+                            </button>
+                        ))}
+                    </nav>
+                )}
                 {tasks.data.length === 0 ? (
                     <div className="my-tasks-empty">
                         <h2 className="font-semibold">
@@ -74,8 +150,14 @@ export default function MyTasks({ tasks, status }: Props) {
                         </Button>
                     </div>
                 ) : (
-                    <div className="my-tasks-grid">
-                        {tasks.data.map((task) => (
+                    filteredTasks.length === 0 ? (
+                        <div className="my-tasks-empty">
+                            <h2>No tasks in this status on this page</h2>
+                            <p>Choose another status to see your other listings.</p>
+                            <Button type="button" onClick={() => setActiveTab('all')}>Show all tasks</Button>
+                        </div>
+                    ) : <div className="my-tasks-grid">
+                        {filteredTasks.map((task) => (
                             <article
                                 key={task.id}
                                 className="my-tasks-card"
@@ -101,16 +183,14 @@ export default function MyTasks({ tasks, status }: Props) {
                                     </div>
                                 </div>
                                 <p className="text-sm text-muted-foreground">
-                                    {task.category} · {task.workMode}
+                                    {task.category} · {task.workTypeLabel}
                                 </p>
-                                <p className="text-sm">
-                                    Estimated duration:{' '}
-                                    {task.estimatedDurationLabel ??
-                                        'Not provided'}
-                                </p>
-                                <p className="font-medium">
-                                    {task.budgetDisplay}
-                                </p>
+                                <div className="my-tasks-facts">
+                                    <p><span>Work mode</span><strong>{task.workMode}</strong></p>
+                                    <p><span>Budget</span><strong>{task.budgetToBeDiscussed || task.budget === null ? <ToBeDiscussedBadge /> : `₱${formatAmount(task.budget)}`}</strong></p>
+                                    <p><span>Schedule</span><strong>{task.scheduleToBeDiscussed || !task.scheduleSummary ? <ToBeDiscussedBadge /> : task.scheduleSummary}</strong></p>
+                                    <p><span>Pay timing</span><strong>{task.payTimingToBeDiscussed ? <ToBeDiscussedBadge /> : task.payTimingLabel}</strong></p>
+                                </div>
                                 <p className="text-xs text-muted-foreground">
                                     Posted{' '}
                                     {task.createdAt
@@ -155,59 +235,62 @@ export default function MyTasks({ tasks, status }: Props) {
                                                 </Link>
                                             </Button>
                                         )}
-                                    {task.canCancel && (
-                                        <Form
-                                            {...cancel.form(task.id)}
-                                            onSubmit={(event) => {
-                                                if (
-                                                    !window.confirm(
-                                                        'Cancel this task?',
-                                                    )
-                                                )
-                                                    event.preventDefault();
-                                            }}
-                                        >
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                type="submit"
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </Form>
-                                    )}
+                                    {task.canCancel && <Button variant="outline" size="sm" type="button" onClick={() => setCancellingTask(task)}>Cancel</Button>}
                                 </div>
                             </article>
                         ))}
                     </div>
+                    )
                 )}
                 {tasks.links.length > 3 && (
                     <nav
-                        className="flex flex-wrap gap-2"
+                        className="my-tasks-pagination"
                         aria-label="Pagination"
                     >
+                        {tasks.from != null && tasks.to != null && tasks.total != null && (
+                            <p>Showing {tasks.from}–{tasks.to} of {tasks.total} tasks</p>
+                        )}
                         {tasks.links.map((link, index) =>
                             link.url ? (
                                 <Link
                                     key={index}
                                     href={link.url}
-                                    className={`rounded border px-3 py-1 text-sm ${link.active ? 'bg-muted font-medium' : ''}`}
+                                    className={`my-tasks-page-link ${link.active ? 'is-active' : ''}`}
+                                    aria-current={link.active ? 'page' : undefined}
                                     dangerouslySetInnerHTML={{
-                                        __html: link.label,
+                                        __html: formatPaginationLabel(link.label),
                                     }}
                                 />
                             ) : (
                                 <span
                                     key={index}
-                                    className="rounded border px-3 py-1 text-sm text-muted-foreground"
+                                    className="my-tasks-page-link is-disabled"
                                     dangerouslySetInnerHTML={{
-                                        __html: link.label,
+                                        __html: formatPaginationLabel(link.label),
                                     }}
                                 />
                             ),
                         )}
                     </nav>
                 )}
+                <Dialog open={cancellingTask !== null} onOpenChange={(open) => !open && setCancellingTask(null)}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Cancel this task?</DialogTitle>
+                            <DialogDescription>
+                                {cancellingTask ? `“${cancellingTask.title}” will be closed to new applications and removed from Browse Tasks.` : ''}
+                            </DialogDescription>
+                        </DialogHeader>
+                        {cancellingTask && (
+                            <Form {...cancel.form(cancellingTask.id)} onSuccess={() => setCancellingTask(null)}>
+                                <DialogFooter>
+                                    <DialogClose asChild><Button type="button" variant="outline">Keep task</Button></DialogClose>
+                                    <Button type="submit" variant="destructive">Cancel task</Button>
+                                </DialogFooter>
+                            </Form>
+                        )}
+                    </DialogContent>
+                </Dialog>
             </main>
         </>
     );

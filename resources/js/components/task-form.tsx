@@ -36,7 +36,6 @@ type Props = {
         categories: Option[];
         workTypes?: Option[];
         workModes: Option[];
-        workModesWithLocation?: string[];
         payTimings?: Option[];
         daysOfWeek?: Option[];
         guidelines: string[];
@@ -58,10 +57,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
           : 'fixed';
     const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(initialScheduleMode);
     const [selectedDays, setSelectedDays] = useState<string[]>(task?.scheduleDays ?? []);
-    const hasWorkplace = options.workModesWithLocation?.includes(workMode) ?? false;
-    const workModes = task?.workModeValue === 'hybrid'
-        ? [...options.workModes, { value: 'hybrid', label: 'Hybrid (existing task)' }]
-        : options.workModes;
+    const hasWorkplace = workMode === 'onsite' || workMode === 'hybrid';
     const workTypes = options.workTypes ?? [
         { value: 'one_time_gig', label: 'One-time gig / task' },
         { value: 'part_time', label: 'Short-term part-time' },
@@ -458,7 +454,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                                     <option value="" disabled>
                                         Select a work mode
                                     </option>
-                                    {workModes.map((option) => (
+                                    {options.workModes.map((option) => (
                                         <option key={option.value} value={option.value}>
                                             {option.label}
                                         </option>

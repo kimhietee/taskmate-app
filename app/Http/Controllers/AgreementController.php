@@ -155,7 +155,7 @@ class AgreementController extends Controller
             'finalAmount' => $item->final_amount,
             'startDate' => $item->start_date?->toDateString(),
             'dueDate' => $item->due_date?->toDateString(),
-            'workMode' => config('taskmate.work_mode_labels.'.$item->work_mode, $item->work_mode),
+            'workMode' => config('taskmate.work_modes.'.$item->work_mode, $item->work_mode),
             'workplaceName' => $item->workplace_name,
             'workplaceAddress' => $item->workplace_address,
             'paymentArrangement' => $item->payment_arrangement,
@@ -290,7 +290,7 @@ class AgreementController extends Controller
             'scheduleToBeDiscussed' => $task->isScheduleToBeDiscussed(),
             'scheduleNote' => $task->schedule_note,
             'canHoursChange' => $task->can_hours_change,
-            'workMode' => config('taskmate.work_mode_labels.'.$task->work_mode, $task->work_mode),
+            'workMode' => config('taskmate.work_modes.'.$task->work_mode, $task->work_mode),
             'workplaceName' => $task->workplace_name,
             'workplaceAddress' => $task->workplace_address,
         ];

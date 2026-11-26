@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Head, Link, router } from "@inertiajs/react";
-import { ArrowUpRight, BriefcaseBusiness, Clock3, MapPin, Search } from "lucide-react";
+import { ArrowUpRight, BriefcaseBusiness, CalendarDays, Clock3, CreditCard, MapPin, Search, TriangleAlert } from "lucide-react";
 import { ApplicationStatusBadge } from "@/components/application-status-badge";
 import { VerificationStatusBadge } from "@/components/verification-status-badge";
+import { Button } from "@/components/ui/button";
+import { formatAmount, formatDate } from "@/lib/format";
 import browse from "@/routes/browse";
 
 type Option = { value: string; label: string };
@@ -11,52 +13,68 @@ type Listing = {
     title: string;
     descriptionPreview: string;
     category: string;
-    budgetDisplay: string;
+    workTypeLabel: string;
+    budget: string | null;
+    budgetToBeDiscussed: boolean;
+    payTimingLabel: string;
+    payTimingToBeDiscussed: boolean;
+    scheduleSummary: string | null;
+    scheduleToBeDiscussed: boolean;
     workMode: string;
-    estimatedDurationDays: number | null;
-    estimatedDurationLabel: string | null;
-    deliverablesPreview: string | null;
+    deadline: string | null;
     workplaceName: string | null;
     workplaceAddress: string | null;
     posterName: string;
     posterType: string;
     posterVerificationStatus: "pending" | "verified" | "rejected" | "more_info_requested";
     hasApplied: boolean;
-    canApply: boolean;
 };
 type Props = {
     tasks: {
         data: Listing[];
         links: { url: string | null; label: string; active: boolean }[];
+        from?: number | null;
+        to?: number | null;
+        total?: number;
     };
     filters: {
         search?: string;
         category?: string;
+        work_type?: string;
         work_mode?: string;
         min_budget?: string;
         max_budget?: string;
         sort?: string;
     };
-    options: { categories: Option[]; workModes: Option[]; sorts: Option[] };
+    options: { categories: Option[]; workTypes?: Option[]; workModes: Option[]; sorts: Option[] };
+    isVerifiedStudent?: boolean;
+    studentVerificationUrl?: string | null;
 };
 
-export default function BrowseTasks({ tasks, filters, options }: Props) {
-    const budgetFiltersActive = Boolean(filters.min_budget || filters.max_budget);
+export default function BrowseTasks({ tasks, filters, options, isVerifiedStudent = true, studentVerificationUrl }: Props) {
+    const advancedFiltersActive = Boolean(filters.work_type || filters.min_budget || filters.max_budget);
     const [values, setValues] = useState({
         search: filters.search ?? "",
         category: filters.category ?? "",
+        work_type: filters.work_type ?? "",
         work_mode: filters.work_mode ?? "",
         min_budget: filters.min_budget ?? "",
         max_budget: filters.max_budget ?? "",
         sort: filters.sort ?? "newest",
     });
-    const [budgetFiltersOpen, setBudgetFiltersOpen] = useState(budgetFiltersActive);
+    const [advancedFiltersOpen, setAdvancedFiltersOpen] = useState(advancedFiltersActive);
     const submit = (event: React.FormEvent) => {
         event.preventDefault();
-        router.get(browse.index().url, values, {
+        const query = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ""));
+        router.get(browse.index().url, query, {
             preserveState: true,
             replace: true,
         });
+    };
+    const hasActiveFilters = Boolean(values.search || values.category || values.work_type || values.work_mode || values.min_budget || values.max_budget || values.sort !== "newest");
+    const clearFilters = () => {
+        setValues({ search: "", category: "", work_type: "", work_mode: "", min_budget: "", max_budget: "", sort: "newest" });
+        router.get(browse.index().url, {}, { preserveState: true, replace: true });
     };
 
     return (
@@ -72,17 +90,27 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                             <p className="browse-eyebrow">Find your next opportunity</p>
                             <h1>Browse tasks</h1>
                             <p className="browse-hero-description">
-                                Explore campus work with clear details about the task, location,
-                                duration, and budget.
+                                Explore tasks with clear details about the work, schedule, location,
+                                and budget.
                             </p>
                         </div>
                     </div>
                     <p className="browse-count">
-                        <strong>{tasks.data.length}</strong>
-                        task
-                        {tasks.data.length === 1 ? "" : "s"} on this page
+                        <strong>{tasks.total ?? tasks.data.length}</strong>
+                        task{(tasks.total ?? tasks.data.length) === 1 ? "" : "s"} available
                     </p>
                 </header>
+
+                {!isVerifiedStudent && (
+                    <section className="browse-verification-notice" role="status">
+                        <TriangleAlert aria-hidden="true" />
+                        <div>
+                            <strong>Browse preview</strong>
+                            <p>You can explore approved tasks now. Verify your student account before applying or posting.</p>
+                        </div>
+                        {studentVerificationUrl && <Button asChild size="sm"><Link href={studentVerificationUrl}>Verify account</Link></Button>}
+                    </section>
+                )}
 
                 <form onSubmit={submit} className="browse-filters">
                     <div className="browse-filter-grid">
@@ -152,15 +180,22 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                     </div>
 
                     <details
-                        open={budgetFiltersOpen}
-                        onToggle={(event) => setBudgetFiltersOpen(event.currentTarget.open)}
+                        open={advancedFiltersOpen}
+                        onToggle={(event) => setAdvancedFiltersOpen(event.currentTarget.open)}
                         className="browse-budget-filters"
                     >
                         <summary>
-                            Budget filters
-                            {budgetFiltersActive ? " · active" : ""}
+                            More filters
+                            {advancedFiltersActive ? " · active" : ""}
                         </summary>
                         <div className="browse-budget-fields">
+                            {(options.workTypes?.length ?? 0) > 0 && <label className="browse-filter-field" htmlFor="filter-work-type">
+                                Work type
+                                <select id="filter-work-type" name="work_type" value={values.work_type} onChange={(event) => setValues({ ...values, work_type: event.target.value })} className="browse-filter-control">
+                                    <option value="">All work types</option>
+                                    {options.workTypes!.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                                </select>
+                            </label>}
                             <label className="browse-filter-field" htmlFor="min-budget">
                                 Minimum budget (PHP)
                                 <input
@@ -207,9 +242,9 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                             <Search aria-hidden="true" />
                             Find tasks
                         </button>
-                        <Link href={browse.index().url} className="browse-clear">
+                        <button type="button" onClick={clearFilters} className="browse-clear">
                             Clear filters
-                        </Link>
+                        </button>
                         <label className="browse-sort-field" htmlFor="sort-tasks">
                             Sort by
                             <select
@@ -240,7 +275,9 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                             <article key={task.id} className="browse-task-card">
                                 <div className="browse-task-card-top">
                                     <div className="browse-task-heading">
-                                        <p className="browse-task-category">{task.category}</p>
+                                        <p className="browse-task-category">
+                                            {task.category} · {task.workTypeLabel}
+                                        </p>
                                         <h2>{task.title}</h2>
                                     </div>
                                     <div className="browse-task-badges">
@@ -265,49 +302,57 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                                 </div>
                                 <p className="browse-task-description">{task.descriptionPreview}</p>
                                 <div className="browse-task-facts">
-                                    {task.estimatedDurationLabel && (
-                                        <span className="browse-task-fact">
-                                            <Clock3 aria-hidden="true" />
-                                            <span>
-                                                <strong>Duration:</strong>{" "}
-                                                {task.estimatedDurationLabel}
-                                            </span>
+                                    <span className="browse-task-fact">
+                                        <Clock3 aria-hidden="true" />
+                                        <span>
+                                            <strong>Schedule:</strong>{" "}
+                                            {task.scheduleToBeDiscussed || !task.scheduleSummary
+                                                ? "To be discussed"
+                                                : task.scheduleSummary}
                                         </span>
-                                    )}
+                                    </span>
+                                    <span className="browse-task-fact">
+                                        <CreditCard aria-hidden="true" />
+                                        <span>
+                                            <strong>Pay timing:</strong>{" "}
+                                            {task.payTimingToBeDiscussed
+                                                ? "To be discussed"
+                                                : task.payTimingLabel}
+                                        </span>
+                                    </span>
                                     {(task.workplaceName || task.workplaceAddress) && (
                                         <span className="browse-task-fact">
                                             <MapPin aria-hidden="true" />
                                             <span>
-                                                <strong>
-                                                    {task.workMode === "On-campus"
-                                                        ? "On-campus:"
-                                                        : task.workMode === "Outside-campus"
-                                                          ? "Outside-campus:"
-                                                          : "Work location:"}
-                                                </strong>{" "}
+                                                <strong>Work location:</strong>{" "}
                                                 {[task.workplaceName, task.workplaceAddress]
                                                     .filter(Boolean)
                                                     .join(" · ")}
                                             </span>
                                         </span>
                                     )}
+                                    {task.deadline && (
+                                        <span className="browse-task-fact">
+                                            <CalendarDays aria-hidden="true" />
+                                            <span>
+                                                <strong>Deadline:</strong> {formatDate(task.deadline)}
+                                            </span>
+                                        </span>
+                                    )}
                                 </div>
-                                {task.deliverablesPreview && (
-                                    <p className="browse-deliverable">
-                                        <strong>Expected result:</strong> {task.deliverablesPreview}
-                                    </p>
-                                )}
                                 <div className="browse-task-card-footer">
                                     <div className="browse-task-budget">
                                         <span>Budget</span>
-                                        <strong>{task.budgetDisplay}</strong>
+                                        <strong>
+                                            {task.budgetToBeDiscussed || task.budget === null
+                                                ? "To be discussed"
+                                                : `₱${formatAmount(task.budget)}`}
+                                        </strong>
                                     </div>
                                     <Link href={browse.show(task.id)} className="browse-task-cta">
                                         {task.hasApplied
                                             ? "View application"
-                                            : task.canApply
-                                              ? "View details and apply"
-                                              : "View task details"}
+                                            : "View task details"}
                                         <ArrowUpRight aria-hidden="true" />
                                     </Link>
                                 </div>
@@ -319,14 +364,17 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                         <span>
                             <Search aria-hidden="true" />
                         </span>
-                        <h2>No tasks match your search</h2>
+                            <h2>{hasActiveFilters ? "No tasks match your search" : "No tasks available right now"}</h2>
                         <p>Try changing or clearing your filters.</p>
-                        <Link href={browse.index().url} className="browse-clear browse-empty-clear">
+                        <button type="button" onClick={clearFilters} className="browse-clear browse-empty-clear">
                             Clear filters
-                        </Link>
+                        </button>
                     </div>
                 )}
 
+                {tasks.from != null && tasks.to != null && tasks.total != null && (
+                    <p className="browse-result-count">Showing {tasks.from}–{tasks.to} of {tasks.total} tasks</p>
+                )}
                 {tasks.links.length > 3 && (
                     <nav className="browse-pagination" aria-label="Task pages">
                         {tasks.links.map((link, index) =>
