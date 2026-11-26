@@ -2840,7 +2840,7 @@ details[open] > .notification-trigger {
         radial-gradient(circle at 50% 10%, #fffef8 0, #f8f6eb 68%),
         #f8f6eb;
     color: #193c2c;
-    animation: landing-overlay-exit 1000ms 4.55s ease-in forwards;
+    animation: landing-overlay-exit 450ms 2550ms ease-in forwards;
 }
 
 .landing-intro-content {
@@ -2929,7 +2929,7 @@ details[open] > .notification-trigger {
     border-radius: 50%;
     background: #1b7850;
     box-shadow: 0 0 0 0.28rem rgb(27 120 80 / 13%);
-    animation: workflow-dot-travel 3.5s 550ms cubic-bezier(0.35, 0.05, 0.25, 1) forwards;
+    animation: workflow-dot-travel 1800ms 350ms linear forwards;
 }
 
 .landing-intro-workflow li {
@@ -2955,7 +2955,7 @@ details[open] > .notification-trigger {
     background: #fffef8;
     color: #637869;
     opacity: 0.72;
-    animation: workflow-step-activate 320ms var(--check-delay, 850ms) ease-out both;
+    animation: workflow-step-activate 320ms var(--check-delay, 350ms) ease-out both;
 }
 
 .landing-intro-check {
@@ -2973,14 +2973,9 @@ details[open] > .notification-trigger {
     font-size: 1rem;
     font-weight: 900;
     opacity: 0;
-    animation: workflow-check-appear 300ms var(--check-delay, 850ms) ease-out both;
+    animation: workflow-check-appear 300ms var(--check-delay, 350ms) ease-out both;
 }
 
-.landing-intro-workflow li:nth-child(1) .landing-intro-step-icon { animation-delay: 850ms; }
-.landing-intro-workflow li:nth-child(2) .landing-intro-step-icon { animation-delay: 1650ms; }
-.landing-intro-workflow li:nth-child(3) .landing-intro-step-icon { animation-delay: 2450ms; }
-.landing-intro-workflow li:nth-child(4) .landing-intro-step-icon { animation-delay: 3250ms; }
-.landing-intro-workflow li:nth-child(5) .landing-intro-step-icon { animation-delay: 4050ms; }
 
 .landing-page-content[data-intro-complete='true'] .welcome-header.reveal,
 .landing-page-content[data-intro-complete='true'] .welcome-intro.reveal,

@@ -168,7 +168,7 @@ export default function Welcome() {
 
         const timeout = window.setTimeout(() => {
             setIntroComplete(true);
-        }, 5600);
+        }, 3000);
 
         return () => window.clearTimeout(timeout);
     }, [introRun]);
@@ -540,7 +540,7 @@ export default function Welcome() {
                                     key={label}
                                     style={
                                         {
-                                            '--check-delay': `${850 + index * 800}ms`,
+                                            '--check-delay': `${350 + index * 450}ms`,
                                         } as CSSProperties
                                     }
                                 >
