@@ -134,7 +134,7 @@ export default function StudentVerification({
     return (
         <>
             <Head title="Verify as CMU Student" />
-            <div className="page-narrow space-y-6">
+            <div className="page-narrow verification-student-page">
                 <div className="space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                         <VerificationStatusBadge status={verificationStatus} />

@@ -1,5 +1,6 @@
 import { formatDate } from '@/lib/format';
 import { Head, Link } from '@inertiajs/react';
+import { ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ReportStatusBadge } from '@/components/report-status-badge';
 import reports from '@/routes/reports';
@@ -27,22 +28,29 @@ export default function MyReports({
     return (
         <>
             <Head title="My reports" />
-            <main className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
-                <h1 className="text-2xl font-semibold">My reports</h1>
-                <p className="rounded-lg border p-4 text-sm">
+            <main className="reports-list-page">
+                <header className="reports-page-hero">
+                    <span className="reports-page-icon" aria-hidden="true"><ClipboardList /></span>
+                    <div>
+                        <p className="reports-page-eyebrow">Help and safety</p>
+                        <h1>My reports</h1>
+                        <p>Track concerns you filed or reports involving you.</p>
+                    </div>
+                </header>
+                <p className="reports-boundary-notice">
                     {COMPLETION_PAYMENT_NOTICE}
                 </p>
                 {status && (
-                    <p role="status" className="rounded border p-3 text-sm">
+                    <p role="status" className="reports-status">
                         {status}
                     </p>
                 )}
                 {page.data.length ? (
-                    <div className="space-y-3">
+                    <div className="reports-list">
                         {page.data.map((item) => (
                             <article
                                 key={item.id}
-                                className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-card p-4"
+                                className="report-list-card"
                             >
                                 <div>
                                     <h2 className="font-medium">
@@ -70,7 +78,7 @@ export default function MyReports({
                         ))}
                     </div>
                 ) : (
-                    <p className="rounded-xl border bg-card p-8 text-center text-sm text-muted-foreground">
+                    <p className="reports-empty-state">
                         You have not filed or received any reports.
                     </p>
                 )}
@@ -81,7 +89,7 @@ export default function MyReports({
                                 <Link
                                     key={index}
                                     href={link.url}
-                                    className="rounded border px-3 py-1 text-sm"
+                                    className={`reports-pagination-link ${link.active ? 'is-active' : ''}`}
                                     dangerouslySetInnerHTML={{
                                         __html: link.label,
                                     }}
@@ -89,7 +97,7 @@ export default function MyReports({
                             ) : (
                                 <span
                                     key={index}
-                                    className="rounded border px-3 py-1 text-sm"
+                                    className="reports-pagination-link is-disabled"
                                     dangerouslySetInnerHTML={{
                                         __html: link.label,
                                     }}

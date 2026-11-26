@@ -769,6 +769,7 @@ export default function BrowseTaskDetail({
                                     type="button"
                                     size="sm"
                                     variant="outline"
+                                    aria-expanded={scheduleEditorOpen}
                                     onClick={() => setScheduleEditorOpen((open) => !open)}
                                 >
                                     {scheduleEditorOpen ? 'Hide schedule editor' : 'Edit my classes'}

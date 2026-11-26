@@ -32,7 +32,7 @@ export default function Profile() {
 
             <h1 className="sr-only">Profile settings</h1>
 
-            <div className="space-y-6">
+            <div className="space-y-6 settings-profile-page">
                 <Heading
                     variant="small"
                     title="Profile"
@@ -44,7 +44,7 @@ export default function Profile() {
                     options={{
                         preserveScroll: true,
                     }}
-                    className="space-y-6"
+                    className="settings-profile-form"
                 >
                     {({ processing, errors }) => (
                         <>

@@ -22,19 +22,24 @@ export default function ShowReport({
     return (
         <>
             <Head title={`Report #${report.id}`} />
-            <main className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
-                <p className="rounded-lg border bg-muted/40 p-4 text-sm">
+            <main className="report-detail-page">
+                <header className="report-detail-hero">
+                    <p className="reports-page-eyebrow">Report update</p>
+                    <h1>Report #{report.id}</h1>
+                    <p>Review the current status and any response related to your report.</p>
+                </header>
+                <p className="reports-boundary-notice">
                     {notice}
                 </p>
                 {responseTargetDays && (
-                    <p className="text-sm">
+                    <p className="report-response-target">
                         Target review time: {responseTargetDays} days
                     </p>
                 )}
                 {status && (
                     <div
                         role="status"
-                        className="rounded-lg border p-3 text-sm"
+                        className="reports-status"
                     >
                         {status}
                     </div>
@@ -45,7 +50,7 @@ export default function ShowReport({
                     statementMaxLength={statementMaxLength}
                 />
                 {report.status === 'open' && contactLine && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="report-contact-line">
                         {contactLine}
                     </p>
                 )}

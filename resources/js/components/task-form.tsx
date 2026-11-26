@@ -72,22 +72,22 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
     const canHoursChangeDefault = task?.canHoursChange === true ? '1' : task?.canHoursChange === false ? '0' : '';
 
     return (
-        <Form {...action} className="space-y-6">
+        <Form {...action} className="task-form">
             {({ errors, processing }) => (
                 <>
                     {resetWarning && (
                         <div
                             role="alert"
-                            className="rounded-lg border border-warning-border bg-warning-bg px-4 py-3 text-sm text-warning-fg"
+                            className="task-form-reset-warning"
                         >
                             Saving these changes will send this task back for review and clear the previous review note.
                         </div>
                     )}
 
                     {/* Section 1: Task basics */}
-                    <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
+                    <section className="task-form-section task-form-section--basics">
                         <div>
-                            <div className="flex items-center gap-2.5">
+                            <div className="task-form-section-heading">
                                 <span
                                     aria-hidden="true"
                                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
@@ -171,9 +171,9 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                     </section>
 
                     {/* Section 2: Pay */}
-                    <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
+                    <section className="task-form-section task-form-section--pay">
                         <div>
-                            <div className="flex items-center gap-2.5">
+                            <div className="task-form-section-heading">
                                 <span
                                     aria-hidden="true"
                                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
@@ -261,9 +261,9 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                     </section>
 
                     {/* Section 3: Schedule */}
-                    <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
+                    <section className="task-form-section task-form-section--schedule">
                         <div>
-                            <div className="flex items-center gap-2.5">
+                            <div className="task-form-section-heading">
                                 <span
                                     aria-hidden="true"
                                     className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
@@ -429,8 +429,8 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                     </section>
 
                     {/* Section 4: Location & deadline */}
-                    <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
-                        <div className="flex items-center gap-2.5">
+                    <section className="task-form-section task-form-section--workplace">
+                        <div className="task-form-section-heading">
                             <span
                                 aria-hidden="true"
                                 className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
@@ -478,7 +478,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                         </div>
 
                         {hasWorkplace && (
-                            <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4">
+                            <div className="task-form-workplace">
                                 <p className="text-xs text-muted-foreground">
                                     Students see the place of work before applying. Enter a worksite, not a home
                                     address.
@@ -510,8 +510,8 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                     </section>
 
                     {/* Section 5: Confirm & submit */}
-                    <section className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
-                        <div className="flex items-center gap-2.5">
+                    <section className="task-form-section task-form-section--guidelines">
+                        <div className="task-form-section-heading">
                             <span
                                 aria-hidden="true"
                                 className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold tabular-nums text-foreground"
@@ -521,7 +521,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                             <h2 className="text-lg font-semibold">Platform rules</h2>
                         </div>
 
-                        <div className="rounded-lg border border-border bg-muted/40 p-4">
+                        <div className="task-form-guidelines">
                             <h3 className="text-sm font-semibold text-foreground">Task guidelines</h3>
                             <ul className="mt-2 list-disc space-y-1.5 pl-5 text-sm text-muted-foreground">
                                 {options.guidelines.map((guideline) => (
@@ -531,7 +531,7 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                         </div>
 
                         <div className="space-y-1.5">
-                            <div className="flex min-h-11 items-start gap-3 rounded-lg border border-border bg-card p-3 transition-colors hover:bg-muted/40">
+                            <div className="task-form-confirm">
                                 <input
                                     id="guidelines_confirmed"
                                     name="guidelines_confirmed"
@@ -548,8 +548,8 @@ export default function TaskForm({ action, options, task, resetWarning }: Props)
                         </div>
                     </section>
 
-                    <div className="sticky bottom-0 z-30 -mx-4 border-t border-border bg-card/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] shadow-lg backdrop-blur-xs md:static md:mx-0 md:flex md:justify-end md:border-0 md:bg-transparent md:p-0 md:shadow-none">
-                        <Button type="submit" className="w-full md:w-auto" disabled={processing}>
+                    <div className="task-form-actions task-form-submit-bar">
+                        <Button type="submit" className="task-form-submit w-full md:w-auto" disabled={processing}>
                             {processing ? 'Saving...' : task ? 'Save changes' : 'Submit task for review'}
                         </Button>
                     </div>

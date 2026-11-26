@@ -20,7 +20,7 @@ const taskSteps = [
         label: 'POST A TASK',
         title: 'Describe the work clearly',
         description:
-            'Verified faculty and staff, approved organizations, and students when posting is enabled can provide the work details, duration, budget, and work mode. On-campus and off-campus tasks include a location. Every new or edited task goes to an administrator for review.',
+            'Verified faculty and staff, approved organizations, and students when posting is enabled can provide the work details, duration, budget, and work mode. In-person tasks include a work location. Every new or edited task goes to an administrator for review.',
     },
     {
         label: 'FIND WORK',

@@ -1,4 +1,5 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import InputError from '@/components/input-error';
@@ -28,25 +29,29 @@ export default function RateAgreement({
     return (
         <>
             <Head title="Rate your experience" />
-            <main className="mx-auto max-w-2xl space-y-5 p-4 sm:p-6">
-                <div>
-                    <h1 className="text-2xl font-semibold">
+            <main className="rating-form-page">
+                <header className="rating-form-hero">
+                    <span className="rating-form-icon" aria-hidden="true"><Star /></span>
+                    <div>
+                    <p className="rating-form-eyebrow">Share your experience</p>
+                    <h1>
                         Rate your experience
                     </h1>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="rating-form-description">
                         Share your experience working with {rateeName} on “
                         {agreement.taskTitle}”.
                     </p>
-                </div>
+                    </div>
+                </header>
                 {status && (
-                    <p role="status" className="rounded border p-3">
+                    <p role="status" className="rating-status">
                         {status}
                     </p>
                 )}
-                <p className="rounded-lg border bg-muted/40 p-4 text-sm">
+                <p className="rating-guidance">
                     {ratingNotice}
                 </p>
-                <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                <p className="rating-report-guidance">
                     Use the agreement page to{' '}
                     <Link
                         className="underline"
@@ -65,7 +70,7 @@ export default function RateAgreement({
                 </p>
                 <Form
                     {...agreements.rate.store.form(agreement.id)}
-                    className="space-y-5 rounded-xl border bg-card p-5"
+                    className="rating-form-card"
                 >
                     {({ errors, processing }) => (
                         <>

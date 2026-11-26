@@ -76,10 +76,10 @@ export default function AuthSimpleLayout({ children, title, description }: AuthL
     return (
         <>
             <PrototypeBanner prominent />
-            <main className="mx-auto w-full px-3 py-4 sm:px-5 sm:py-6">
-                <div className="mx-auto w-full max-w-[22rem] rounded-xl border border-t-4 border-t-brand-gold bg-card p-4 shadow-sm sm:p-5">
+            <main className="auth-secondary-main mx-auto w-full px-3 py-4 sm:px-5 sm:py-6">
+                <div className="auth-secondary-card mx-auto w-full max-w-[22rem] rounded-xl border border-t-4 border-t-brand-gold bg-card p-4 shadow-sm sm:p-5">
                     <div className="flex flex-col gap-3">
-                        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b pb-3">
+                        <div className="auth-secondary-heading flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b pb-3">
                             <Link
                                 href={home()}
                                 className="inline-flex items-center gap-2 text-lg font-bold tracking-tight"

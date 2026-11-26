@@ -1,10 +1,14 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
+    CalendarDays,
     ClipboardCheck,
     ClipboardList,
+    Clock3,
+    CreditCard,
     Handshake,
     MapPin,
+    ShieldCheck,
     UserRoundPlus,
 } from 'lucide-react';
 import { register, login } from '@/routes';
@@ -12,6 +16,8 @@ import browse from '@/routes/browse';
 import tasks from '@/routes/tasks';
 
 type SampleTask = {
+    category: string;
+    workType: string;
     title: string;
     description: string;
     workMode: string;
@@ -20,53 +26,72 @@ type SampleTask = {
     posterMark: string;
     posterType: string;
     duration: string;
+    schedule: string;
+    payTiming: string;
     budget: string;
 };
 
 const sampleTasks: SampleTask[] = [
     {
+        category: 'Design and creative work',
+        workType: 'One-time task',
         title: 'Design a campus event poster',
         description:
             'Create a poster for a campus event and deliver a print-ready file.',
-        workMode: 'Online',
+        workMode: 'Remote',
         poster: 'CMU Student Affairs',
         posterMark: 'SA',
         posterType: 'Organization',
         duration: '3 hours',
+        schedule: 'Flexible',
+        payTiming: 'Upon completion',
         budget: '₱600',
     },
     {
+        category: 'Event support',
+        workType: 'One-time task',
         title: 'Help organize a reading event',
         description:
             'Arrange event materials and help guests find their seats.',
-        workMode: 'On-campus',
+        workMode: 'Onsite',
         location: 'CMU Main Library',
         poster: 'CMU Library Services',
         posterMark: 'LB',
         posterType: 'Faculty / Staff',
         duration: '4 hours',
+        schedule: 'Mon & Wed · 1–3 PM',
+        payTiming: 'Daily',
         budget: '₱450',
     },
     {
-        title: 'Photograph products for a catalog',
+        category: 'Errands and delivery',
+        workType: 'One-time task',
+        title: 'Deliver printed event materials',
         description:
-            'Capture clear product photos for a small shop’s online catalog.',
-        workMode: 'Off-campus',
-        location: 'Print shop, Valencia City',
-        poster: 'Valencia Print Partner',
-        posterMark: 'VP',
+            'Pick up and deliver prepared event materials to the campus activity venue.',
+        workMode: 'Onsite',
+        location: 'CMU Activities Center',
+        poster: 'CMU Events Office',
+        posterMark: 'EO',
         posterType: 'Organization',
-        duration: '1 day',
-        budget: '₱800',
+        duration: '2 hours',
+        schedule: 'To be discussed',
+        payTiming: 'To be discussed',
+        budget: 'To be discussed',
     },
     {
-        title: 'Transcribe interview notes',
-        description: 'Turn recorded interviews into organized, proofread text.',
-        workMode: 'Online',
+        category: 'Data entry and clerical work',
+        workType: 'Short-term part-time',
+        title: 'Update the student club event calendar',
+        description:
+            'Keep event listings organized and check submitted updates twice a week.',
+        workMode: 'Remote',
         poster: 'Student Media Club',
         posterMark: 'SM',
         posterType: 'Student',
         duration: '2 hours',
+        schedule: 'Flexible',
+        payTiming: 'Weekly',
         budget: '₱350',
     },
 ];
@@ -122,10 +147,11 @@ export default function Welcome() {
                 { label: 'Log in', href: login().url, primary: false },
             ];
     const introSteps = [
-        { label: 'Post & review', Icon: ClipboardCheck },
+        { label: 'Post a task', Icon: ClipboardList },
+        { label: 'Admin reviews', Icon: ShieldCheck },
         { label: 'Student applies', Icon: UserRoundPlus },
         { label: 'Agree before work', Icon: Handshake },
-        { label: 'Record outcome', Icon: ClipboardList },
+        { label: 'Record outcome', Icon: ClipboardCheck },
     ];
     const activeSample = sampleTasks[activeSampleIndex];
 
@@ -142,7 +168,7 @@ export default function Welcome() {
 
         const timeout = window.setTimeout(() => {
             setIntroComplete(true);
-        }, 5600);
+        }, 3000);
 
         return () => window.clearTimeout(timeout);
     }, [introRun]);
@@ -349,6 +375,14 @@ export default function Welcome() {
                                         {activeSample.workMode}
                                     </span>
                                 </div>
+                                <div className="task-paper-category-row">
+                                    <span className="task-paper-category">
+                                        {activeSample.category}
+                                    </span>
+                                    <span className="task-paper-work-type">
+                                        {activeSample.workType}
+                                    </span>
+                                </div>
                                 <h2
                                     className="task-paper-title"
                                     id="sample-task-title"
@@ -380,7 +414,7 @@ export default function Welcome() {
                                 )}
                                 <dl className="task-paper-facts">
                                     <div>
-                                        <dt>Duration</dt>
+                                        <dt><Clock3 aria-hidden="true" size={14} /> Duration</dt>
                                         <dd>{activeSample.duration}</dd>
                                     </div>
                                     <div>
@@ -390,13 +424,24 @@ export default function Welcome() {
                                         </dd>
                                     </div>
                                 </dl>
+                                <div className="task-paper-schedule">
+                                    <p>
+                                        <CalendarDays aria-hidden="true" size={14} />
+                                        <span><strong>Schedule</strong>{activeSample.schedule}</span>
+                                    </p>
+                                    <p>
+                                        <CreditCard aria-hidden="true" size={14} />
+                                        <span><strong>Pay timing</strong>{activeSample.payTiming}</span>
+                                    </p>
+                                </div>
                             </div>
                             <p className="sr-only">
-                                Sample {activeSample.workMode.toLowerCase()}{' '}
-                                task:
+                                Sample {activeSample.category.toLowerCase()} task:
                                 {` ${activeSample.title} for ${activeSample.poster}.`}{' '}
-                                Estimated duration: {activeSample.duration}.
-                                Budget: {activeSample.budget}.
+                                Work mode: {activeSample.workMode}. Estimated
+                                duration: {activeSample.duration}. Schedule:{' '}
+                                {activeSample.schedule}. Pay timing:{' '}
+                                {activeSample.payTiming}. Budget: {activeSample.budget}.
                             </p>
                         </aside>
                     </section>
@@ -418,16 +463,24 @@ export default function Welcome() {
                         <ol className="workflow-grid">
                             {[
                                 [
-                                    'Find a task',
-                                    'Eligible posters submit tasks for review. Students can browse approved tasks and apply after verification.',
+                                    'Post a task',
+                                    'Share the work, location, time, and pay details students need to decide.',
                                 ],
                                 [
-                                    'Agree on the details',
-                                    'The poster and selected student confirm the same work and amount before the task begins.',
+                                    'Admin reviews',
+                                    'An administrator reviews every new or updated task before it appears in Browse.',
+                                ],
+                                [
+                                    'Student applies',
+                                    'Verified students review approved tasks and send an application to the poster.',
+                                ],
+                                [
+                                    'Agree before work',
+                                    'The poster and selected applicant confirm the same agreement before work begins.',
                                 ],
                                 [
                                     'Record the outcome',
-                                    'Record completion and payment status. Leave a rating or report a concern when needed.',
+                                    'Record completion and payment status. Payment happens directly between users; ratings and reports are available afterward.',
                                 ],
                             ].map(([title, detail], index) => (
                                 <li
@@ -451,9 +504,9 @@ export default function Welcome() {
             </div>
             {!introComplete && (
                 <p className="sr-only" role="status" aria-live="polite">
-                    A task is posted and reviewed, a student applies, both agree
-                    on the terms, and the outcome and payment status are
-                    recorded.
+                    A task is posted, an administrator reviews it, a verified
+                    student applies, both parties agree on the terms, and the
+                    outcome and payment status are recorded.
                 </p>
             )}
             <div
@@ -476,8 +529,8 @@ export default function Welcome() {
                         </span>
                     </h1>
                     <p className="landing-intro-copy">
-                        Browse approved side jobs, review the details, and agree
-                        before work begins.
+                        Every task is reviewed. Verified students apply, agree
+                        on the terms, then record the outcome.
                     </p>
                     <div className="landing-intro-workflow">
                         <span className="landing-intro-travel-dot" />
@@ -487,7 +540,7 @@ export default function Welcome() {
                                     key={label}
                                     style={
                                         {
-                                            '--check-delay': `${850 + index * 800}ms`,
+                                            '--check-delay': `${350 + index * 450}ms`,
                                         } as CSSProperties
                                     }
                                 >
