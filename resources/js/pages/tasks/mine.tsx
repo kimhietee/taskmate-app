@@ -149,14 +149,14 @@ export default function MyTasks({ tasks, status }: Props) {
                             <Link href={create()}>Post a task</Link>
                         </Button>
                     </div>
-                ) : (
-                    filteredTasks.length === 0 ? (
+                ) : filteredTasks.length === 0 ? (
                         <div className="my-tasks-empty">
                             <h2>No tasks in this status on this page</h2>
                             <p>Choose another status to see your other listings.</p>
                             <Button type="button" onClick={() => setActiveTab('all')}>Show all tasks</Button>
                         </div>
-                    ) : <div className="my-tasks-grid">
+                ) : (
+                    <div className="my-tasks-grid">
                         {filteredTasks.map((task) => (
                             <article
                                 key={task.id}
@@ -240,7 +240,6 @@ export default function MyTasks({ tasks, status }: Props) {
                             </article>
                         ))}
                     </div>
-                    )
                 )}
                 {tasks.links.length > 3 && (
                     <nav
