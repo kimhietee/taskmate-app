@@ -40,6 +40,7 @@ use Laravel\Fortify\Fortify;
 use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Services\EmailVerificationCodeService;
+use App\Services\PasswordRequirementsService;
 use App\Services\PrototypeMailboxService;
 use App\Services\StudentVerificationService;
 use Illuminate\Auth\Events\Verified;
@@ -158,10 +159,16 @@ class FortifyServiceProvider extends ServiceProvider
             'teamInvitation' => $this->teamInvitation($request),
         ]));
 
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-        ]));
+        Fortify::resetPasswordView(function (Request $request) {
+            $passwordRequirements = app(PasswordRequirementsService::class);
+
+            return Inertia::render('auth/reset-password', [
+                'email' => $request->email,
+                'token' => $request->route('token'),
+                'passwordRules' => $passwordRequirements->rulesString(),
+                'passwordRequirements' => $passwordRequirements->forFrontend(),
+            ]);
+        });
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
             'status' => $request->session()->get('status'),
@@ -191,14 +198,20 @@ class FortifyServiceProvider extends ServiceProvider
         /* @end-chisel-email-verification */
 
         /* @chisel-registration */
-        Fortify::registerView(fn (Request $request) => Inertia::render('auth/register', [
-            'teamInvitation' => $this->teamInvitation($request),
-            'institutionalEmailDomains' => config('taskmate.institutional_email_domains', []),
-            'requireInstitutionalEmail' => (bool) config('taskmate.require_institutional_email', false),
-            'autoVerifyInstitutionalStudent' => (bool) config('taskmate.student_verification.auto_verify_institutional_email', true),
-            'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),
-            'affiliationOptions' => config('taskmate.affiliations', ['student' => [], 'faculty_staff' => []]),
-        ]));
+        Fortify::registerView(function (Request $request) {
+            $passwordRequirements = app(PasswordRequirementsService::class);
+
+            return Inertia::render('auth/register', [
+                'teamInvitation' => $this->teamInvitation($request),
+                'passwordRules' => $passwordRequirements->rulesString(),
+                'passwordRequirements' => $passwordRequirements->forFrontend(),
+                'institutionalEmailDomains' => config('taskmate.institutional_email_domains', []),
+                'requireInstitutionalEmail' => (bool) config('taskmate.require_institutional_email', false),
+                'autoVerifyInstitutionalStudent' => (bool) config('taskmate.student_verification.auto_verify_institutional_email', true),
+                'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),
+                'affiliationOptions' => config('taskmate.affiliations', ['student' => [], 'faculty_staff' => []]),
+            ]);
+        });
         /* @end-chisel-registration */
 
         /* @chisel-2fa */

@@ -1,5 +1,5 @@
 import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import InputError from '@/components/input-error';
 import type { Props as ManagePasskeysProps } from '@/components/manage-passkeys';
@@ -7,20 +7,25 @@ import ManagePasskeys from '@/components/manage-passkeys';
 import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
 import ManageTwoFactor from '@/components/manage-two-factor';
 import PasswordInput from '@/components/password-input';
+import { PasswordRequirementsChecklist } from '@/components/password-requirements-checklist';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import type { PasswordRequirements } from '@/lib/password-requirements';
 import { edit } from '@/routes/security';
 
 type Props = {
     passwordRules: string;
+    passwordRequirements?: PasswordRequirements;
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
 export default function Security(props: Props) {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
 
     return (
         <>
@@ -46,7 +51,14 @@ export default function Security(props: Props) {
                                 'current_password',
                             ]}
                             resetOnSuccess
+                            onSuccess={() => {
+                                setNewPassword('');
+                                setConfirmPassword('');
+                            }}
                             onError={(errors) => {
+                                setNewPassword('');
+                                setConfirmPassword('');
+
                                 if (errors.password) {
                                     passwordInput.current?.focus();
                                 }
@@ -79,6 +91,8 @@ export default function Security(props: Props) {
                                             id="password"
                                             ref={passwordInput}
                                             name="password"
+                                            value={newPassword}
+                                            onChange={(event) => setNewPassword(event.target.value)}
                                             autoComplete="new-password"
                                             placeholder="New password"
                                             passwordrules={props.passwordRules}
@@ -93,6 +107,8 @@ export default function Security(props: Props) {
                                         <PasswordInput
                                             id="password_confirmation"
                                             name="password_confirmation"
+                                            value={confirmPassword}
+                                            onChange={(event) => setConfirmPassword(event.target.value)}
                                             autoComplete="new-password"
                                             placeholder="Confirm password"
                                             passwordrules={props.passwordRules}
@@ -101,6 +117,12 @@ export default function Security(props: Props) {
                                             message={errors.password_confirmation}
                                         />
                                     </div>
+
+                                    <PasswordRequirementsChecklist
+                                        password={newPassword}
+                                        confirmation={confirmPassword}
+                                        requirements={props.passwordRequirements}
+                                    />
 
                                     <div className="flex items-center gap-3">
                                         <Button
