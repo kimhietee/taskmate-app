@@ -1,19 +1,34 @@
 import { Form, Head } from '@inertiajs/react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
+import { PasswordRequirementsChecklist } from '@/components/password-requirements-checklist';
+import {
+    DEFAULT_PASSWORD_REQUIREMENTS,
+    type PasswordRequirements,
+} from '@/lib/password-requirements';
 import { update } from '@/routes/password';
 
 type Props = {
     token: string;
     email: string;
-    passwordRules: string;
+    passwordRules?: string;
+    passwordRequirements?: PasswordRequirements;
 };
 
-export default function ResetPassword({ token, email, passwordRules }: Props) {
+export default function ResetPassword({
+    token,
+    email,
+    passwordRules = '',
+    passwordRequirements = DEFAULT_PASSWORD_REQUIREMENTS,
+}: Props) {
+    const [password, setPassword] = useState('');
+    const [passwordConfirmation, setPasswordConfirmation] = useState('');
+
     return (
         <>
             <Head title="Reset password" />
@@ -22,6 +37,11 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                 {...update.form()}
                 transform={(data) => ({ ...data, token, email })}
                 resetOnSuccess={['password', 'password_confirmation']}
+                onSuccess={() => {
+                    setPassword('');
+                    setPasswordConfirmation('');
+                }}
+                className="space-y-4"
             >
                 {({ processing, errors }) => (
                     <div className="grid gap-6">
@@ -47,6 +67,8 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             <PasswordInput
                                 id="password"
                                 name="password"
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 autoFocus
@@ -63,6 +85,8 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             <PasswordInput
                                 id="password_confirmation"
                                 name="password_confirmation"
+                                value={passwordConfirmation}
+                                onChange={(event) => setPasswordConfirmation(event.target.value)}
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 placeholder="Confirm password"
@@ -73,6 +97,12 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 className="mt-2"
                             />
                         </div>
+
+                        <PasswordRequirementsChecklist
+                            password={password}
+                            confirmation={passwordConfirmation}
+                            requirements={passwordRequirements}
+                        />
 
                         <Button
                             type="submit"
