@@ -32,14 +32,21 @@ export function UserMenuContent({ user }: Props) {
                     <UserInfo user={user} />
                 </div>
                 <div className="px-1 pb-2">
-                    <VerificationStatusBadge status={user.verification_status} />
+                    <VerificationStatusBadge
+                        status={user.verification_status}
+                    />
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
                 {user.is_admin && (
                     <DropdownMenuItem asChild>
-                        <Link className="block w-full cursor-pointer" href="/admin" prefetch onClick={cleanup}>
+                        <Link
+                            className="block w-full cursor-pointer"
+                            href="/admin"
+                            prefetch
+                            onClick={cleanup}
+                        >
                             Admin dashboard
                         </Link>
                     </DropdownMenuItem>

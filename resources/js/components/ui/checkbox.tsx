@@ -4,7 +4,6 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-// Visible box is 20px. The ::after layer extends the tappable area to 44px.
 function Checkbox({
   className,
   ...props
@@ -13,7 +12,7 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer border-input bg-field data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-ring aria-invalid:border-destructive relative size-5 shrink-0 rounded-[5px] border shadow-xs transition-colors after:absolute after:-inset-3 disabled:cursor-not-allowed disabled:opacity-50 md:after:-inset-1.5",
+        "peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       {...props}

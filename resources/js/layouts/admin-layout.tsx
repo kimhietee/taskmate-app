@@ -4,23 +4,30 @@ import { AdminSidebar } from '@/components/admin-sidebar';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
 import PrototypeBanner from '@/components/prototype-banner';
-import SiteFooter from '@/components/site-footer';
 
 export default function AdminLayout({ children }: PropsWithChildren) {
     return (
-        <div className="flex min-h-svh flex-col">
+        <>
             <PrototypeBanner />
             <AppShell>
                 <AdminSidebar />
-                <AppContent variant="sidebar" className="min-w-0 overflow-x-clip">
+                <AppContent
+                    variant="sidebar"
+                    className="min-w-0 overflow-x-clip"
+                >
                     <AppSidebarHeader
                         showMessages={false}
-                        breadcrumbs={[{ title: 'Administration', href: '/admin' }]}
+                        showBack
+                        showAppearance
+                        breadcrumbs={[
+                            { title: 'Administration', href: '/admin' },
+                        ]}
                     />
-                    <div className="page-wide space-y-6">{children}</div>
-                    <SiteFooter />
+                    <div className="mx-auto w-full max-w-6xl px-4 py-6">
+                        {children}
+                    </div>
                 </AppContent>
             </AppShell>
-        </div>
+        </>
     );
 }

@@ -3,21 +3,16 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-// Status variants (destructive, success, warning, info) use the status tokens.
-// Put an icon as the first child so the message never relies on colour alone.
 const alertVariants = cva(
   "relative w-full rounded-lg border px-4 py-3 text-sm grid has-[>svg]:grid-cols-[calc(var(--spacing)*4)_1fr] grid-cols-[0_1fr] has-[>svg]:gap-x-3 gap-y-0.5 items-start [&>svg]:size-4 [&>svg]:translate-y-0.5 [&>svg]:text-current",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default: "bg-background text-foreground",
         destructive:
-          "border-danger-border bg-danger-bg text-danger-fg *:data-[slot=alert-description]:text-danger-fg/90",
-        success:
-          "border-success-border bg-success-bg text-success-fg *:data-[slot=alert-description]:text-success-fg/90",
-        warning:
-          "border-warning-border bg-warning-bg text-warning-fg *:data-[slot=alert-description]:text-warning-fg/90",
-        info: "border-info-border bg-info-bg text-info-fg *:data-[slot=alert-description]:text-info-fg/90",
+          "text-destructive-foreground [&>svg]:text-current *:data-[slot=alert-description]:text-destructive-foreground/80",
+        info: "border-info-border bg-info-bg text-info-fg [&>svg]:text-info-fg",
+        warning: "border-warning-border bg-warning-bg text-warning-fg [&>svg]:text-warning-fg",
       },
     },
     defaultVariants: {

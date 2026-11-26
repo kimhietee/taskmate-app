@@ -33,7 +33,20 @@ export function StatusBadge({
     className?: string;
 }) {
     return (
-        <Badge variant={tone} className={className}>
+        <Badge
+            variant="outline"
+            className={[
+                'gap-1.5 border font-medium',
+                tone === 'success' && 'border-success-border bg-success-bg text-success-fg',
+                tone === 'warning' && 'border-warning-border bg-warning-bg text-warning-fg',
+                tone === 'danger' && 'border-danger-border bg-danger-bg text-danger-fg',
+                tone === 'info' && 'border-info-border bg-info-bg text-info-fg',
+                tone === 'neutral' && 'border-neutral-border bg-neutral-bg text-neutral-fg',
+                className,
+            ]
+                .filter(Boolean)
+                .join(' ')}
+        >
             <Icon aria-hidden="true" />
             <span>{children}</span>
         </Badge>

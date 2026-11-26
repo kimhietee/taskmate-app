@@ -1,5 +1,12 @@
 import { Link } from '@inertiajs/react';
-import { BriefcaseBusiness, Flag, LayoutDashboard, ShieldCheck, Star, Users } from 'lucide-react';
+import {
+    BriefcaseBusiness,
+    Flag,
+    LayoutDashboard,
+    ShieldCheck,
+    Star,
+    Users,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -27,19 +34,21 @@ const items: NavItem[] = [
 export function AdminSidebar() {
     return (
         <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader className="border-b border-sidebar-border/60 pb-2">
+            <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <Link href={admin.dashboard()} prefetch>
                                 <AppLogo />
-                                <span className="truncate text-sm font-semibold tracking-tight">Administration</span>
+                                <span className="truncate text-sm font-medium">
+                                    Administration
+                                </span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-            <SidebarContent className="pt-2">
+            <SidebarContent>
                 <NavMain items={items} groupLabel="Administration" />
             </SidebarContent>
             <SidebarFooter>

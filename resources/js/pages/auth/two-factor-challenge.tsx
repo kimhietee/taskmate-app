@@ -9,8 +9,6 @@ import {
     InputOTPGroup,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
 import { OTP_MAX_LENGTH } from '@/hooks/use-two-factor-auth';
 import { store } from '@/routes/two-factor/login';
 
@@ -28,7 +26,7 @@ export default function TwoFactorChallenge() {
                 title: 'Recovery code',
                 description:
                     'Please confirm access to your account by entering one of your emergency recovery codes.',
-                toggleText: 'sign in using an authentication code',
+                toggleText: 'login using an authentication code',
             };
         }
 
@@ -36,7 +34,7 @@ export default function TwoFactorChallenge() {
             title: 'Authentication code',
             description:
                 'Enter the authentication code provided by your authenticator application.',
-            toggleText: 'sign in using a recovery code',
+            toggleText: 'login using a recovery code',
         };
     }, [showRecoveryInput]);
 
@@ -55,28 +53,28 @@ export default function TwoFactorChallenge() {
         <>
             <Head title="Two-factor authentication" />
 
-            <div className="space-y-5">
+            <div className="space-y-6">
                 <Form
                     {...store.form()}
-                    className="space-y-5"
+                    className="space-y-4"
                     resetOnError
                     resetOnSuccess={!showRecoveryInput}
                 >
                     {({ errors, processing, clearErrors }) => (
                         <>
                             {showRecoveryInput ? (
-                                <div className="grid gap-1.5">
-                                    <Label htmlFor="recovery_code">Recovery code</Label>
+                                <>
                                     <Input
-                                        id="recovery_code"
                                         name="recovery_code"
                                         type="text"
                                         placeholder="Enter recovery code"
                                         autoFocus={showRecoveryInput}
                                         required
                                     />
-                                    <InputError message={errors.recovery_code} />
-                                </div>
+                                    <InputError
+                                        message={errors.recovery_code}
+                                    />
+                                </>
                             ) : (
                                 <div className="flex flex-col items-center justify-center space-y-3 text-center">
                                     <div className="flex w-full items-center justify-center">
@@ -96,7 +94,6 @@ export default function TwoFactorChallenge() {
                                                         <InputOTPSlot
                                                             key={index}
                                                             index={index}
-                                                            className="h-11 w-10 bg-field md:h-10"
                                                         />
                                                     ),
                                                 )}
@@ -112,21 +109,20 @@ export default function TwoFactorChallenge() {
                                 className="w-full"
                                 disabled={processing}
                             >
-                                {processing && <Spinner />}
                                 Continue
                             </Button>
 
                             <div className="text-center text-sm text-muted-foreground">
                                 <span>or you can </span>
-                                <Button
+                                <button
                                     type="button"
-                                    variant="link"
-                                    size="sm"
-                                    className="h-auto p-0 font-normal text-foreground underline decoration-muted-foreground/50 underline-offset-4 hover:text-brand"
-                                    onClick={() => toggleRecoveryMode(clearErrors)}
+                                    className="cursor-pointer text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
+                                    onClick={() =>
+                                        toggleRecoveryMode(clearErrors)
+                                    }
                                 >
                                     {authConfigContent.toggleText}
-                                </Button>
+                                </button>
                             </div>
                         </>
                     )}

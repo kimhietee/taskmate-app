@@ -1,28 +1,7 @@
-import { Form, Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Info, TriangleAlert } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
-import InputError from '@/components/input-error';
-import { ratingNotice } from '@/components/rating-summary';
-import { StarRating } from '@/components/star-rating';
-import { STATUS, StatusBadge } from '@/components/status-badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
+import { formatAmount } from '@/lib/format';
+import { Form, Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
-import { formatAmount, formatDate } from '@/lib/format';
-import admin from '@/routes/admin';
+import { ratingNotice } from '@/components/rating-summary';
 
 type Rating = {
     id: number;
@@ -35,294 +14,144 @@ type Rating = {
     recordReference: string | null;
     agreedAmount: string | null;
     paymentArrangement: string | null;
-    dueDate: string | null;
     rater: string;
     ratee: string;
     hidden: boolean;
     hiddenReason: string | null;
     visibleToOthers: boolean;
 };
-
 function Page({ rating, notice }: { rating: Rating; notice: string }) {
-    const flashStatus = (usePage().props as { flash?: { status?: string | null } }).flash?.status;
-    const [hideDialogOpen, setHideDialogOpen] = useState(false);
-
-    const hideFormId = `hide-rating-${rating.id}`;
-
-    const handleOpenHideDialog = () => {
-        const form = document.getElementById(hideFormId) as HTMLFormElement | null;
-        if (form?.reportValidity()) {
-            setHideDialogOpen(true);
-        }
-    };
-
     return (
         <>
             <Head title="Review rating" />
-            <div className="space-y-6">
-                {flashStatus && (
-                    <div
-                        role="status"
-                        className="rounded-lg border border-success-border bg-success-bg px-4 py-3 text-sm text-success-fg"
+            <div
+                className="admin-page admin-rating-detail max-w-4xl space-y-4"
+                data-tone="ratings"
+            >
+                <Link className="admin-back-link" href="/admin/ratings">
+                    ← Back to ratings
+                </Link>
+                <header className="admin-page-heading flex-wrap">
+                    <div>
+                        <p className="admin-page-eyebrow">Feedback review</p>
+                        <h1>Rating for {rating.taskTitle}</h1>
+                        <p className="admin-page-description">
+                            {rating.rater} rated {rating.ratee}
+                        </p>
+                    </div>
+                    <span
+                        className="admin-pill"
+                        data-variant={rating.hidden ? 'quiet' : undefined}
                     >
-                        {flashStatus}
-                    </div>
-                )}
-
-                <header className="space-y-2">
-                    <Button variant="ghost" size="sm" asChild className="-ml-2">
-                        <Link href={admin.ratings.index()}>
-                            <ArrowLeft aria-hidden="true" />
-                            Back to ratings
-                        </Link>
-                    </Button>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div className="space-y-1">
-                            <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
-                                Rating for {rating.taskTitle}
-                            </h1>
-                            <p className="text-sm text-muted-foreground">
-                                {rating.rater} rated {rating.ratee}
-                            </p>
-                        </div>
-                        <StatusBadge
-                            tone={rating.hidden ? STATUS.pending[0] : STATUS.success[0]}
-                            icon={rating.hidden ? STATUS.pending[1] : STATUS.success[1]}
-                        >
-                            {rating.hidden ? 'Hidden' : 'Visible'}
-                        </StatusBadge>
-                    </div>
+                        {rating.hidden ? 'Hidden' : 'Visible'}
+                    </span>
                 </header>
-
-                <div className="space-y-3">
-                    <Alert variant="info">
-                        <Info aria-hidden="true" />
-                        <AlertDescription>{ratingNotice}</AlertDescription>
-                    </Alert>
-                    <Alert variant="warning">
-                        <TriangleAlert aria-hidden="true" />
-                        <AlertDescription>{notice}</AlertDescription>
-                    </Alert>
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-                    <div className="min-w-0 space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Rating breakdown</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 text-sm">
-                                <dl className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-1">
-                                        <dt className="text-xs font-semibold text-muted-foreground">Direction</dt>
-                                        <dd className="capitalize text-foreground">
-                                            {rating.direction.replaceAll('_', ' ')}
-                                        </dd>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <dt className="text-xs font-semibold text-muted-foreground">
-                                            Overall experience
-                                        </dt>
-                                        <dd className="flex items-center gap-2 font-semibold tabular-nums text-foreground">
-                                            <StarRating score={rating.overall} label="Overall experience" />
-                                            <span>{rating.overall}/5</span>
-                                        </dd>
-                                    </div>
-                                </dl>
-
-                                <div className="space-y-2 border-t border-border pt-4">
-                                    <p className="text-xs font-semibold text-muted-foreground">Dimension scores</p>
-                                    <dl className="grid gap-3 sm:grid-cols-2">
-                                        {rating.scores.map((score) => (
-                                            <div
-                                                key={score.dimension}
-                                                className="flex items-center justify-between gap-2 rounded-lg border border-border bg-muted/20 p-3"
-                                            >
-                                                <dt className="text-sm text-foreground">{score.label}</dt>
-                                                <dd className="flex items-center gap-1.5 font-semibold tabular-nums text-foreground">
-                                                    <StarRating score={score.score} label={score.label} />
-                                                    <span>{score.score}/5</span>
-                                                </dd>
-                                            </div>
-                                        ))}
-                                    </dl>
-                                </div>
-
-                                {rating.comment && (
-                                    <div className="space-y-1 border-t border-border pt-4">
-                                        <p className="text-xs font-semibold text-muted-foreground">Comment</p>
-                                        <p className="whitespace-pre-wrap text-foreground">{rating.comment}</p>
-                                    </div>
-                                )}
-
-                                <div className="space-y-1 border-t border-border pt-4">
-                                    <p className="text-xs font-semibold text-muted-foreground">Visibility status</p>
-                                    <p className="text-foreground">
-                                        {rating.hidden
-                                            ? `Hidden — ${rating.hiddenReason ?? ''}`
-                                            : rating.visibleToOthers
-                                              ? 'Visible to others'
-                                              : 'Waiting for both ratings or window close'}
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Agreement summary</CardTitle>
-                            </CardHeader>
-                            <CardContent className="space-y-4 text-sm">
-                                <dl className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-1">
-                                        <dt className="text-xs font-semibold text-muted-foreground">Agreed amount</dt>
-                                        <dd className="font-semibold tabular-nums text-foreground">
-                                            {rating.agreedAmount ? `₱${formatAmount(rating.agreedAmount)}` : '—'}
-                                        </dd>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <dt className="text-xs font-semibold text-muted-foreground">Due date</dt>
-                                        <dd className="tabular-nums text-foreground">
-                                            {rating.dueDate ? formatDate(rating.dueDate) : '—'}
-                                        </dd>
-                                    </div>
-                                    <div className="space-y-1 sm:col-span-2">
-                                        <dt className="text-xs font-semibold text-muted-foreground">
-                                            Payment arrangement
-                                        </dt>
-                                        <dd className="whitespace-pre-wrap text-foreground">
-                                            {rating.paymentArrangement ?? '—'}
-                                        </dd>
-                                    </div>
-                                    <div className="space-y-1 sm:col-span-2">
-                                        <dt className="text-xs font-semibold text-muted-foreground">
-                                            Agreement record reference
-                                        </dt>
-                                        <dd className="font-mono text-xs break-all text-foreground">
-                                            {rating.recordReference ?? 'Unavailable'}
-                                        </dd>
-                                    </div>
-                                </dl>
-
-                                <div>
-                                    <Button variant="outline" size="sm" asChild>
-                                        <Link href={admin.agreements.show(rating.agreementId)}>View agreement</Link>
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
+                <p className="admin-notice">{ratingNotice}</p>
+                <p className="admin-notice">{notice}</p>
+                <section className="admin-detail-card space-y-3">
+                    <h2 className="text-lg font-semibold">Rating details</h2>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <p className="rounded-lg bg-muted/40 p-3 text-sm">
+                            <span className="block text-muted-foreground">
+                                Direction
+                            </span>
+                            <strong className="capitalize">
+                                {rating.direction.replaceAll('_', ' ')}
+                            </strong>
+                        </p>
+                        <p className="rounded-lg bg-muted/40 p-3 text-sm">
+                            <span className="block text-muted-foreground">
+                                Overall experience
+                            </span>
+                            <strong>{rating.overall}/5</strong>
+                        </p>
+                        {rating.scores.map((score) => (
+                            <p
+                                key={score.dimension}
+                                className="rounded-lg bg-muted/40 p-3 text-sm"
+                            >
+                                <span className="block text-muted-foreground">
+                                    {score.label}
+                                </span>
+                                <strong>{score.score}/5</strong>
+                            </p>
+                        ))}
                     </div>
-
-                    <aside className="lg:sticky lg:top-[calc(var(--banner-h,0px)+1.5rem)]">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Moderation</CardTitle>
-                                <CardDescription>
-                                    {rating.hidden
-                                        ? 'Restore this rating so it follows normal visibility rules.'
-                                        : 'Hide this rating from public profile summaries.'}
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                {rating.hidden ? (
-                                    <Form {...admin.ratings.moderate.form(rating.id)} className="space-y-3">
-                                        {({ processing, errors }) => (
-                                            <>
-                                                <input type="hidden" name="action" value="restore" />
-                                                <InputError message={(errors as Record<string, string | undefined>).action} />
-                                                <Button
-                                                    type="submit"
-                                                    variant="outline"
-                                                    className="w-full"
-                                                    disabled={processing}
-                                                >
-                                                    {processing && <Spinner />}
-                                                    Restore rating
-                                                </Button>
-                                            </>
-                                        )}
-                                    </Form>
-                                ) : (
-                                    <Form
-                                        {...admin.ratings.moderate.form(rating.id)}
-                                        id={hideFormId}
-                                        onSuccess={() => setHideDialogOpen(false)}
-                                        onError={() => setHideDialogOpen(false)}
-                                        className="space-y-4"
-                                    >
-                                        {({ processing, errors }) => {
-                                            const errorRecord = errors as Record<string, string | undefined>;
-
-                                            return (
-                                                <>
-                                                    <input type="hidden" name="action" value="hide" />
-                                                    <div className="grid gap-1.5">
-                                                        <Label htmlFor="reason">Reason for hiding (required)</Label>
-                                                        <Textarea
-                                                            id="reason"
-                                                            name="reason"
-                                                            required
-                                                            maxLength={2000}
-                                                            placeholder="Explain why this rating is being hidden"
-                                                        />
-                                                        <InputError message={errorRecord.reason ?? errorRecord.action} />
-                                                    </div>
-
-                                                    <Button
-                                                        type="button"
-                                                        variant="destructive"
-                                                        className="w-full"
-                                                        disabled={processing}
-                                                        onClick={handleOpenHideDialog}
-                                                    >
-                                                        Hide rating
-                                                    </Button>
-
-                                                    <Dialog open={hideDialogOpen} onOpenChange={setHideDialogOpen}>
-                                                        <DialogContent>
-                                                            <DialogHeader>
-                                                                <DialogTitle>Hide this rating?</DialogTitle>
-                                                                <DialogDescription>
-                                                                    This excludes the rating from public rating counts
-                                                                    and averages while keeping the record for audit.
-                                                                </DialogDescription>
-                                                            </DialogHeader>
-                                                            <DialogFooter>
-                                                                <DialogClose asChild>
-                                                                    <Button
-                                                                        type="button"
-                                                                        variant="outline"
-                                                                        disabled={processing}
-                                                                    >
-                                                                        Cancel
-                                                                    </Button>
-                                                                </DialogClose>
-                                                                <Button
-                                                                    type="submit"
-                                                                    form={hideFormId}
-                                                                    variant="destructive"
-                                                                    disabled={processing}
-                                                                >
-                                                                    {processing && <Spinner />}
-                                                                    Confirm hide rating
-                                                                </Button>
-                                                            </DialogFooter>
-                                                        </DialogContent>
-                                                    </Dialog>
-                                                </>
-                                            );
-                                        }}
-                                    </Form>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </aside>
-                </div>
+                    {rating.comment && (
+                        <p className="rounded-lg border p-3 whitespace-pre-wrap">
+                            {rating.comment}
+                        </p>
+                    )}
+                    <p>
+                        Status:{' '}
+                        {rating.hidden
+                            ? `Hidden — ${rating.hiddenReason ?? ''}`
+                            : rating.visibleToOthers
+                              ? 'Visible to others'
+                              : 'Waiting for both ratings or window close'}
+                    </p>
+                    <p>
+                        Agreed amount:{' '}
+                        {rating.agreedAmount
+                            ? `₱${formatAmount(rating.agreedAmount)}`
+                            : '—'}
+                    </p>
+                    <p className="whitespace-pre-wrap">
+                        Payment arrangement: {rating.paymentArrangement ?? '—'}
+                    </p>
+                    <p>
+                        Agreement record reference:{' '}
+                        <span className="font-mono break-all">
+                            {rating.recordReference ?? 'Unavailable'}
+                        </span>
+                    </p>
+                    <p>
+                        <Link
+                            className="underline"
+                            href={`/admin/agreements/${rating.agreementId}`}
+                        >
+                            View agreement
+                        </Link>
+                    </p>
+                </section>
+                {rating.hidden ? (
+                    <Form
+                        action={`/admin/ratings/${rating.id}/moderate`}
+                        method="post"
+                    >
+                        <input type="hidden" name="action" value="restore" />
+                        <button className="admin-filter-submit">
+                            Restore rating
+                        </button>
+                    </Form>
+                ) : (
+                    <Form
+                        action={`/admin/ratings/${rating.id}/moderate`}
+                        method="post"
+                        className="admin-detail-card admin-rating-action space-y-2"
+                    >
+                        <input type="hidden" name="action" value="hide" />
+                        <label
+                            className="block text-sm font-medium"
+                            htmlFor="reason"
+                        >
+                            Reason for hiding (required)
+                        </label>
+                        <textarea
+                            id="reason"
+                            name="reason"
+                            required
+                            maxLength={2000}
+                            className="min-h-24 w-full rounded border bg-background p-3"
+                        />
+                        <button className="rounded bg-destructive px-4 py-2 text-destructive-foreground">
+                            Hide rating
+                        </button>
+                    </Form>
+                )}
             </div>
         </>
     );
 }
-
-Page.layout = (page: ReactNode) => <AdminLayout>{page}</AdminLayout>;
-
+Page.layout = (page: React.ReactNode) => <AdminLayout>{page}</AdminLayout>;
 export default Page;
