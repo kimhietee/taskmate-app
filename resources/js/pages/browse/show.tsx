@@ -195,6 +195,7 @@ export default function BrowseTaskDetail({
 
     const handleSaveClassSchedule = () => {
         setSavingSchedule(true);
+        setBlockError(null);
         setScheduleSavedNotice(null);
         router.put(
             '/my-class-schedule',
@@ -205,6 +206,9 @@ export default function BrowseTaskDetail({
                 onSuccess: () => {
                     setScheduleDirty(false);
                     setScheduleSavedNotice('Your class schedule was saved privately to your account.');
+                },
+                onError: (errors) => {
+                    setBlockError(String(Object.values(errors)[0] ?? 'Unable to save your schedule. Please try again.'));
                 },
                 onFinish: () => {
                     setSavingSchedule(false);
@@ -786,7 +790,7 @@ export default function BrowseTaskDetail({
                                                         onClick={() => setNewBlockDay(day.value)}
                                                         className={
                                                             selected
-                                                                ? 'focus-ring min-h-11 rounded-md border border-brand bg-info-bg px-3 text-xs font-semibold text-info-fg transition-colors md:min-h-9'
+                                                                ? 'focus-ring min-h-11 rounded-md border-2 border-primary bg-primary px-3 text-xs font-semibold text-primary-foreground transition-colors md:min-h-9'
                                                                 : 'focus-ring min-h-11 rounded-md border border-border bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted/40 md:min-h-9'
                                                         }
                                                     >
@@ -831,7 +835,7 @@ export default function BrowseTaskDetail({
                                     </div>
 
                                     {blockError && (
-                                        <p role="alert" className="text-xs font-semibold text-destructive-foreground">
+                                        <p role="alert" className="text-sm font-semibold text-red-700 dark:text-red-300">
                                             {blockError}
                                         </p>
                                     )}
@@ -863,7 +867,7 @@ export default function BrowseTaskDetail({
                                                 {scheduleSavedNotice && (
                                                     <span
                                                         role="status"
-                                                        className="text-xs font-semibold text-success-fg"
+                                                        className="text-sm font-semibold text-green-800 dark:text-green-300"
                                                     >
                                                         {scheduleSavedNotice}
                                                     </span>
