@@ -76,6 +76,11 @@ if [ -n "${TASKMATE_ADMIN_EMAIL:-}" ]; then
     done
 fi
 
+# Seed beta sample accounts and approved campus tasks unless explicitly disabled
+if [ "${TASKMATE_SEED_BETA_DATA:-true}" != "false" ]; then
+    php artisan db:seed --class=BetaSampleDataSeeder --force --no-interaction
+fi
+
 php artisan optimize --no-interaction
 
 # Keep newly created cache/log files writable by Apache's www-data user
