@@ -3,6 +3,8 @@
 return [
     // Prototype features are enabled for local evaluation unless explicitly disabled.
     'prototype_mode' => env('TASKMATE_PROTOTYPE_MODE', true),
+    // Explicitly opt in to the simulated /prototype/mailbox inbox outside local/testing (only active when MAIL_MAILER=log and prototype_mode=true).
+    'prototype_mailbox' => env('TASKMATE_PROTOTYPE_MAILBOX', false),
     'rate_limits' => [
         'login' => ['max_attempts' => 5, 'decay_seconds' => 60],
         'register' => ['max_attempts' => 20, 'decay_seconds' => 3600],

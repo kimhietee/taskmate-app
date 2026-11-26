@@ -27,6 +27,7 @@ type Props = {
     codeExpiryMinutes: number;
     affiliationOptions: string[];
     mailUsesLogDriver: boolean;
+    prototypeMailboxEnabled?: boolean;
     status?: string | null;
 };
 
@@ -45,9 +46,11 @@ export default function StudentVerification({
     codeExpiryMinutes = 15,
     affiliationOptions = [],
     mailUsesLogDriver = false,
+    prototypeMailboxEnabled = false,
     status = null,
 }: Props) {
     const { prototypeMode } = usePage<{ prototypeMode?: boolean }>().props;
+    const showPrototypeMailbox = prototypeMailboxEnabled && mailUsesLogDriver;
     const [method, setMethod] = useState<'institutional' | 'manual'>('institutional');
 
     const savedAffiliation = studentDetails.affiliation ?? '';
@@ -230,26 +233,31 @@ export default function StudentVerification({
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {prototypeMode && mailUsesLogDriver && (
+                            {(showPrototypeMailbox || (prototypeMode && mailUsesLogDriver)) && (
                                 <Alert variant="warning">
                                     <TriangleAlert aria-hidden="true" />
                                     <AlertDescription className="space-y-2.5 text-xs">
                                         <p>
-                                            <strong>Local prototype mode:</strong> Open the simulated email tab to view your 6-digit CMU student verification code directly (no need to check <code>storage/logs/laravel.log</code>).
+                                            <strong>Local prototype mode:</strong>{' '}
+                                            {showPrototypeMailbox
+                                                ? 'Open the simulated email tab to view your 6-digit CMU student verification code directly.'
+                                                : 'Mail is set to the log driver. Configure SMTP in .env to deliver CMU codes to real inboxes.'}
                                         </p>
-                                        <div>
-                                            <Button size="sm" variant="outline" asChild>
-                                                <a
-                                                    href="/prototype/mailbox"
-                                                    target="taskmate_prototype_mailbox"
-                                                    rel="noopener"
-                                                >
-                                                    <Mail className="size-3.5" aria-hidden="true" />
-                                                    Open Prototype Email Tab
-                                                    <ExternalLink className="size-3.5" aria-hidden="true" />
-                                                </a>
-                                            </Button>
-                                        </div>
+                                        {showPrototypeMailbox && (
+                                            <div>
+                                                <Button size="sm" variant="outline" asChild>
+                                                    <a
+                                                        href="/prototype/mailbox"
+                                                        target="taskmate_prototype_mailbox"
+                                                        rel="noopener"
+                                                    >
+                                                        <Mail className="size-3.5" aria-hidden="true" />
+                                                        Open Prototype Email Tab
+                                                        <ExternalLink className="size-3.5" aria-hidden="true" />
+                                                    </a>
+                                                </Button>
+                                            </div>
+                                        )}
                                     </AlertDescription>
                                 </Alert>
                             )}

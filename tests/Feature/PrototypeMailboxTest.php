@@ -94,5 +94,12 @@ class PrototypeMailboxTest extends TestCase
 
         config(['taskmate.prototype_mode' => true, 'mail.default' => 'smtp']);
         $this->actingAs($user)->get(route('prototype.mailbox'))->assertNotFound();
+
+        $this->app['env'] = 'production';
+        config(['taskmate.prototype_mode' => true, 'taskmate.prototype_mailbox' => false, 'mail.default' => 'log']);
+        $this->actingAs($user)->get(route('prototype.mailbox'))->assertNotFound();
+
+        config(['taskmate.prototype_mode' => true, 'taskmate.prototype_mailbox' => true, 'mail.default' => 'log']);
+        $this->actingAs($user)->get(route('prototype.mailbox'))->assertOk();
     }
 }

@@ -176,6 +176,7 @@ class FortifyServiceProvider extends ServiceProvider
             return Inertia::render('auth/verify-email', [
                 'status' => $request->session()->get('status'),
                 'mailUsesLogDriver' => config('mail.default') === 'log',
+                'prototypeMailboxEnabled' => app(PrototypeMailboxService::class)->isEnabled(),
                 'maskedEmail' => $user ? $codes->maskEmail($user->email) : null,
                 'codeExpiryMinutes' => (int) config('taskmate.student_verification.code_expiry_minutes', 15),
                 'willAutoVerifyStudent' => $user !== null

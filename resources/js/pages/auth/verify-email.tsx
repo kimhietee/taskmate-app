@@ -13,6 +13,7 @@ import { send } from '@/routes/verification';
 type Props = {
     status?: string;
     mailUsesLogDriver?: boolean;
+    prototypeMailboxEnabled?: boolean;
     maskedEmail?: string | null;
     codeExpiryMinutes?: number;
     willAutoVerifyStudent?: boolean;
@@ -22,12 +23,14 @@ type Props = {
 export default function VerifyEmail({
     status,
     mailUsesLogDriver = false,
+    prototypeMailboxEnabled = false,
     maskedEmail = null,
     codeExpiryMinutes = 15,
     willAutoVerifyStudent = false,
     unverifiedStudentsCanBrowse = true,
 }: Props) {
     const { prototypeMode } = usePage<{ prototypeMode?: boolean }>().props;
+    const showPrototypeMailbox = prototypeMailboxEnabled && mailUsesLogDriver;
     const codeForm = useForm({ code: '' });
 
     const submitCode = (event: React.FormEvent) => {
@@ -58,26 +61,31 @@ export default function VerifyEmail({
                     </p>
                 </div>
 
-                {prototypeMode && mailUsesLogDriver && (
+                {(showPrototypeMailbox || (prototypeMode && mailUsesLogDriver)) && (
                     <Alert variant="warning">
                         <TriangleAlert aria-hidden="true" />
                         <AlertDescription className="space-y-2.5 text-xs">
                             <p>
-                                <strong>Local prototype mode:</strong> Mail is set to the <code>log</code> driver instead of real Gmail. Open the simulated email tab below to view your 6-digit verification code directly (no need to open <code>storage/logs/laravel.log</code>).
+                                <strong>Local prototype mode:</strong>{' '}
+                                {showPrototypeMailbox
+                                    ? 'Mail is set to the log driver instead of real Gmail. Open the simulated email tab below to view your 6-digit verification code directly.'
+                                    : 'Mail is set to the log driver. Configure SMTP in .env to deliver verification codes to real inboxes.'}
                             </p>
-                            <div>
-                                <Button size="sm" variant="outline" asChild>
-                                    <a
-                                        href="/prototype/mailbox"
-                                        target="taskmate_prototype_mailbox"
-                                        rel="noopener"
-                                    >
-                                        <Mail className="size-3.5" aria-hidden="true" />
-                                        Open Prototype Email Tab
-                                        <ExternalLink className="size-3.5" aria-hidden="true" />
-                                    </a>
-                                </Button>
-                            </div>
+                            {showPrototypeMailbox && (
+                                <div>
+                                    <Button size="sm" variant="outline" asChild>
+                                        <a
+                                            href="/prototype/mailbox"
+                                            target="taskmate_prototype_mailbox"
+                                            rel="noopener"
+                                        >
+                                            <Mail className="size-3.5" aria-hidden="true" />
+                                            Open Prototype Email Tab
+                                            <ExternalLink className="size-3.5" aria-hidden="true" />
+                                        </a>
+                                    </Button>
+                                </div>
+                            )}
                         </AlertDescription>
                     </Alert>
                 )}

@@ -1,0 +1,62 @@
+# Render Blueprint for TaskMate Beta Deployment
+# Deploy from GitHub: Render Dashboard -> New + -> Blueprint -> select this repository.
+services:
+  - type: web
+    name: taskmate-beta
+    runtime: docker
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      - key: APP_NAME
+        value: TaskMate
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false # Generate locally with: php artisan key:generate --show
+      - key: APP_URL
+        sync: false # Set to your Render HTTPS URL, e.g. https://taskmate-beta.onrender.com
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: LOG_LEVEL
+        value: warning
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: taskmate-db
+          property: connectionString
+      - key: SESSION_DRIVER
+        value: database
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      # Prototype beta controls (keep prototype_mode=true for classmate testing)
+      - key: TASKMATE_PROTOTYPE_MODE
+        value: "true"
+      # Set MAIL_MAILER=smtp (+ MAIL_HOST/PORT/USERNAME/PASSWORD) to send real Gmail/CMU codes,
+      # or keep MAIL_MAILER=log + TASKMATE_PROTOTYPE_MAILBOX=true to use the in-browser Prototype Mail tab.
+      - key: MAIL_MAILER
+        value: log
+      - key: TASKMATE_PROTOTYPE_MAILBOX
+        value: "true"
+      - key: MAIL_FROM_ADDRESS
+        value: noreply@taskmate.example.test
+      - key: MAIL_FROM_NAME
+        value: TaskMate
+      - key: TASKMATE_REQUIRE_INSTITUTIONAL_EMAIL
+        value: "false"
+      - key: TASKMATE_AUTO_VERIFY_INSTITUTIONAL_STUDENT
+        value: "true"
+      - key: TASKMATE_UNVERIFIED_STUDENTS_CAN_BROWSE
+        value: "true"
+
+databases:
+  - name: taskmate-db
+    plan: free
+    databaseName: taskmate
+    user: taskmate

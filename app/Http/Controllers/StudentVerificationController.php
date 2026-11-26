@@ -9,6 +9,7 @@ use App\Models\EmailVerificationCode;
 use App\Models\User;
 use App\Notifications\StudentInstitutionalCodeNotification;
 use App\Services\EmailVerificationCodeService;
+use App\Services\PrototypeMailboxService;
 use App\Services\StudentVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -47,6 +48,7 @@ class StudentVerificationController extends Controller
             'codeExpiryMinutes' => (int) config('taskmate.student_verification.code_expiry_minutes', 15),
             'affiliationOptions' => config('taskmate.affiliations.student', []),
             'mailUsesLogDriver' => config('mail.default') === 'log',
+            'prototypeMailboxEnabled' => app(PrototypeMailboxService::class)->isEnabled(),
             'status' => $request->session()->get('status'),
         ]);
     }

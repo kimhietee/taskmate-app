@@ -18,7 +18,10 @@ class PrototypeMailboxService
 
     public function isEnabled(): bool
     {
-        return app()->environment(['local', 'testing'])
+        $allowedEnvironment = app()->environment(['local', 'testing'])
+            || (bool) config('taskmate.prototype_mailbox', false);
+
+        return $allowedEnvironment
             && (bool) config('taskmate.prototype_mode', false)
             && config('mail.default') === 'log';
     }
