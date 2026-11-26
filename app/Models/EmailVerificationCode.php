@@ -15,6 +15,8 @@ class EmailVerificationCode extends Model
 
     public const PURPOSE_STUDENT_INSTITUTIONAL_EMAIL = 'student_institutional_email';
 
+    public const PURPOSE_PASSWORD_RESET = 'password_reset';
+
     public $timestamps = false;
 
     public function user(): BelongsTo

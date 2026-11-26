@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\VerifyEmailCodeController;
+use App\Http\Controllers\Auth\VerifyPasswordResetCodeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PrototypeMailboxController;
 use App\Http\Controllers\StudentVerificationController;
@@ -58,6 +59,14 @@ Route::middleware(['auth:web', 'throttle:6,1'])
 Route::middleware(['auth:web'])
     ->get('/prototype/mailbox', PrototypeMailboxController::class)
     ->name('prototype.mailbox');
+
+Route::middleware(['guest:web', 'throttle:6,1'])
+    ->post('/forgot-password/verify-code', VerifyPasswordResetCodeController::class)
+    ->name('password.verify-code');
+
+Route::middleware(['guest:web'])
+    ->get('/prototype/password-reset-mailbox', [PrototypeMailboxController::class, 'passwordReset'])
+    ->name('prototype.password-reset-mailbox');
 
 Route::middleware(['auth', 'verified', 'account.active'])->group(function () {
     Route::get('/verification/student', [StudentVerificationController::class, 'show'])->name('verification.student.show');

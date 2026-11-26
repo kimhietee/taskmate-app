@@ -7,6 +7,7 @@ use App\Actions\Fortify\CreateNewUser;
 /* @end-chisel-registration */
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
+use App\Http\Responses\SuccessfulPasswordResetLinkRequestResponse;
 /* @chisel-passkeys */
 use App\Http\Responses\PasskeyLoginResponse;
 /* @end-chisel-passkeys */
@@ -26,6 +27,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse as SuccessfulPasswordResetLinkRequestResponseContract;
 /* @chisel-registration */
 use Laravel\Fortify\Contracts\RegisterResponse as RegisterResponseContract;
 /* @end-chisel-registration */
@@ -44,6 +46,7 @@ use App\Services\PasswordRequirementsService;
 use App\Services\PrototypeMailboxService;
 use App\Services\StudentVerificationService;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Mail\Events\MessageSent;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -65,6 +68,10 @@ class FortifyServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        $this->app->bind(
+            SuccessfulPasswordResetLinkRequestResponseContract::class,
+            SuccessfulPasswordResetLinkRequestResponse::class,
+        );
         /* @chisel-passkeys */
         $this->app->singleton(PasskeyLoginResponseContract::class, PasskeyLoginResponse::class);
         /* @end-chisel-passkeys */
@@ -126,6 +133,39 @@ class FortifyServiceProvider extends ServiceProvider
                 ->line('If you did not create a TaskMate account, no further action is required.');
         });
 
+        ResetPassword::toMailUsing(function (object $notifiable, string $token): MailMessage {
+            $expiryMinutes = (int) config('taskmate.student_verification.code_expiry_minutes', 15);
+            $email = method_exists($notifiable, 'getEmailForPasswordReset')
+                ? (string) $notifiable->getEmailForPasswordReset()
+                : (string) ($notifiable->email ?? '');
+            $code = $notifiable instanceof User && $email !== ''
+                ? app(EmailVerificationCodeService::class)->issue(
+                    $notifiable,
+                    EmailVerificationCode::PURPOSE_PASSWORD_RESET,
+                    $email,
+                )
+                : null;
+            $resetUrl = url(route('password.reset', [
+                'token' => $token,
+                'email' => $email,
+            ], false));
+
+            $mail = (new MailMessage)
+                ->subject('Reset your TaskMate password')
+                ->line('You are receiving this email because we received a password reset request for your TaskMate account.');
+
+            if ($code !== null) {
+                $mail->line('Enter this 6-digit password reset code on the Forgot password screen to verify your request:')
+                    ->line("Password reset code: {$code}")
+                    ->line("This code expires in {$expiryMinutes} minutes.")
+                    ->line('Or click the button below if you are opening this email in the same browser:');
+            }
+
+            return $mail
+                ->action('Reset Password', $resetUrl)
+                ->line('If you did not request a password reset, no further action is required.');
+        });
+
         Event::listen(Verified::class, function (Verified $event): void {
             if ($event->user instanceof User) {
                 app(StudentVerificationService::class)->maybeAutoVerifyOnAccountEmailConfirmed($event->user);
@@ -170,9 +210,26 @@ class FortifyServiceProvider extends ServiceProvider
             ]);
         });
 
-        Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/forgot-password', [
-            'status' => $request->session()->get('status'),
-        ]));
+        Fortify::requestPasswordResetLinkView(function (Request $request) {
+            $expiryMinutes = max(1, (int) config('taskmate.student_verification.code_expiry_minutes', 15));
+            $codes = app(EmailVerificationCodeService::class);
+            $rawEmail = $request->session()->get('password_reset.email');
+            $requestedAt = (int) $request->session()->get('password_reset.requested_at', 0);
+            $isFresh = is_string($rawEmail)
+                && trim($rawEmail) !== ''
+                && $requestedAt > 0
+                && (now()->timestamp - $requestedAt) <= ($expiryMinutes * 60);
+            $requestedEmail = $isFresh ? Str::lower(trim($rawEmail)) : null;
+
+            return Inertia::render('auth/forgot-password', [
+                'status' => $request->session()->get('status'),
+                'mailUsesLogDriver' => config('mail.default') === 'log',
+                'prototypeMailboxEnabled' => app(PrototypeMailboxService::class)->isEnabled(),
+                'requestedEmail' => $requestedEmail,
+                'maskedEmail' => $requestedEmail !== null ? $codes->maskEmail($requestedEmail) : null,
+                'codeExpiryMinutes' => $expiryMinutes,
+            ]);
+        });
 
         /* @chisel-email-verification */
         Fortify::verifyEmailView(function (Request $request) {

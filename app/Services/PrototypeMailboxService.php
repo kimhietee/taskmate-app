@@ -57,23 +57,43 @@ class PrototypeMailboxService
         }
 
         $code = null;
-        if (preg_match('/Verification code:\s*(\d{6})/i', $textBody, $codeMatch) === 1) {
-            $code = $codeMatch[1];
+        $codeLabel = null;
+        $isResetCode = false;
+        if (preg_match('/(Verification|Password reset) code:\s*(\d{6})/i', $textBody, $codeMatch) === 1) {
+            $isResetCode = strcasecmp($codeMatch[1], 'Password reset') === 0;
+            $code = $codeMatch[2];
+            $codeLabel = $isResetCode ? '6-digit password reset code' : '6-digit verification code';
         }
 
+        $kind = $isResetCode ? 'password_reset' : 'verification';
         $actionUrl = null;
+        $actionLabel = null;
+        $actionDescription = null;
+
         if (preg_match('#https?://[^\s"\'<>]+/email/verify/\d+/[a-f0-9]+[^\s"\'<>]*#i', $textBody, $urlMatch) === 1) {
+            $kind = 'verification';
             $actionUrl = html_entity_decode($urlMatch[0], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $actionLabel = 'Verify Email Address (backup link)';
+            $actionDescription = 'Backup signed verification link:';
+        } elseif (preg_match('#https?://[^\s"\'<>]+/reset-password/[A-Za-z0-9]+[^\s"\'<>]*#i', $textBody, $urlMatch) === 1) {
+            $kind = 'password_reset';
+            $actionUrl = html_entity_decode($urlMatch[0], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $actionLabel = 'Reset Password (backup link)';
+            $actionDescription = 'Backup password reset link:';
         }
 
         $entry = [
             'id' => (string) Str::uuid(),
+            'kind' => $kind,
             'subject' => (string) ($symfony->getSubject() ?: 'TaskMate Notification'),
             'from' => $fromLabel,
             'to' => implode(', ', $recipients),
             'body' => trim($textBody),
             'code' => $code,
+            'codeLabel' => $code !== null ? $codeLabel : null,
             'actionUrl' => $actionUrl,
+            'actionLabel' => $actionLabel,
+            'actionDescription' => $actionDescription,
             'sentAt' => now()->toIso8601String(),
         ];
 
@@ -113,6 +133,33 @@ class PrototypeMailboxService
         }
 
         $messages = array_values($collected);
+        usort($messages, fn (array $a, array $b) => strcmp((string) ($b['sentAt'] ?? ''), (string) ($a['sentAt'] ?? '')));
+
+        return $messages;
+    }
+
+    /** @return array<int, array<string, mixed>> */
+    public function passwordResetMessagesForEmail(string $email): array
+    {
+        if (! $this->isEnabled()) {
+            return [];
+        }
+
+        $normalized = Str::lower(trim($email));
+        if ($normalized === '') {
+            return [];
+        }
+
+        $items = Cache::get($this->cacheKey($normalized), []);
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $messages = array_values(array_filter(
+            $items,
+            fn ($item): bool => is_array($item) && isset($item['id']) && ($item['kind'] ?? null) === 'password_reset',
+        ));
+
         usort($messages, fn (array $a, array $b) => strcmp((string) ($b['sentAt'] ?? ''), (string) ($a['sentAt'] ?? '')));
 
         return $messages;

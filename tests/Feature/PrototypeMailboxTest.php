@@ -102,4 +102,70 @@ class PrototypeMailboxTest extends TestCase
         config(['taskmate.prototype_mode' => true, 'taskmate.prototype_mailbox' => true, 'mail.default' => 'log']);
         $this->actingAs($user)->get(route('prototype.mailbox'))->assertOk();
     }
+
+    public function test_prototype_password_reset_mailbox_captures_reset_code_for_requesting_guest_session_only(): void
+    {
+        config([
+            'taskmate.prototype_mode' => true,
+            'mail.default' => 'log',
+        ]);
+
+        // Also capture an account email for the same address to confirm it never leaks to the guest reset mailbox.
+        $this->post(route('register.store'), [
+            'user_type' => 'student',
+            'name' => 'Reset Mailbox Student',
+            'email' => 'reset.mailbox@gmail.com',
+            'password' => 'password',
+            'password_confirmation' => 'password',
+        ])->assertRedirect(route('dashboard'));
+        $this->post(route('logout'));
+
+        $this->post(route('password.email'), [
+            'email' => 'reset.mailbox@gmail.com',
+        ])->assertSessionHas('status');
+
+        $this->get(route('prototype.password-reset-mailbox'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('prototype/mailbox')
+                ->where('mode', 'password_reset')
+                ->where('addresses.0', 'reset.mailbox@gmail.com')
+                ->has('messages', 1)
+                ->where('messages.0.to', 'reset.mailbox@gmail.com')
+                ->where('messages.0.subject', 'Reset your TaskMate password')
+                ->where('messages.0.codeLabel', '6-digit password reset code')
+                ->where('messages.0.code', fn ($code) => is_string($code) && preg_match('/^\d{6}$/', $code) === 1)
+                ->where('messages.0.actionUrl', fn ($url) => is_string($url) && str_contains($url, '/reset-password/')));
+
+        // Another browser session must never see reset.mailbox@gmail.com's reset code.
+        $this->flushSession();
+
+        $this->get(route('prototype.password-reset-mailbox'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('prototype/mailbox')
+                ->where('mode', 'password_reset')
+                ->has('addresses', 0)
+                ->has('messages', 0));
+    }
+
+    public function test_prototype_password_reset_mailbox_requires_guest_and_returns_404_when_disabled(): void
+    {
+        $user = User::factory()->unverifiedStudent()->create();
+        $this->actingAs($user)->get(route('prototype.password-reset-mailbox'))->assertRedirect(route('dashboard'));
+        $this->actingAs($user)->post(route('logout'));
+
+        config(['taskmate.prototype_mode' => false, 'mail.default' => 'log']);
+        $this->get(route('prototype.password-reset-mailbox'))->assertNotFound();
+
+        config(['taskmate.prototype_mode' => true, 'mail.default' => 'smtp']);
+        $this->get(route('prototype.password-reset-mailbox'))->assertNotFound();
+
+        $this->app['env'] = 'production';
+        config(['taskmate.prototype_mode' => true, 'taskmate.prototype_mailbox' => false, 'mail.default' => 'log']);
+        $this->get(route('prototype.password-reset-mailbox'))->assertNotFound();
+
+        config(['taskmate.prototype_mode' => true, 'taskmate.prototype_mailbox' => true, 'mail.default' => 'log']);
+        $this->get(route('prototype.password-reset-mailbox'))->assertOk();
+    }
 }

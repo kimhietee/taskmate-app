@@ -11,7 +11,10 @@ type PrototypeEmail = {
     to: string;
     body: string;
     code: string | null;
+    codeLabel?: string | null;
     actionUrl: string | null;
+    actionLabel?: string | null;
+    actionDescription?: string | null;
     sentAt: string | null;
 };
 
@@ -19,9 +22,16 @@ type Props = {
     addresses: string[];
     messages: PrototypeEmail[];
     userName: string;
+    mode?: 'account' | 'password_reset';
 };
 
-export default function PrototypeMailbox({ addresses = [], messages = [], userName }: Props) {
+export default function PrototypeMailbox({
+    addresses = [],
+    messages = [],
+    userName,
+    mode = 'account',
+}: Props) {
+    const isPasswordReset = mode === 'password_reset';
     const [selectedId, setSelectedId] = useState<string | null>(messages[0]?.id ?? null);
     const [copiedCode, setCopiedCode] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState(false);
@@ -113,16 +123,26 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                     <div className="prototype-mailbox-addresses mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="font-medium text-slate-900 dark:text-zinc-100">Simulated inbox for:</span>
-                            {addresses.map((address) => (
-                                <span
-                                    key={address}
-                                    className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-800 dark:bg-zinc-800 dark:text-zinc-200"
-                                >
-                                    {address}
+                            {addresses.length > 0 ? (
+                                addresses.map((address) => (
+                                    <span
+                                        key={address}
+                                        className="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-[11px] text-slate-800 dark:bg-zinc-800 dark:text-zinc-200"
+                                    >
+                                        {address}
+                                    </span>
+                                ))
+                            ) : (
+                                <span className="text-slate-500 dark:text-zinc-400">
+                                    {isPasswordReset ? 'Request a reset code first' : 'No address yet'}
                                 </span>
-                            ))}
+                            )}
                         </div>
-                        <span>Copy the 6-digit code below and paste it back into your TaskMate tab.</span>
+                        <span>
+                            {isPasswordReset
+                                ? 'Copy the 6-digit password reset code below and paste it back into your Forgot password tab.'
+                                : 'Copy the 6-digit code below and paste it back into your TaskMate tab.'}
+                        </span>
                     </div>
 
                     {messages.length === 0 ? (
@@ -130,7 +150,17 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                             <Inbox className="size-10 text-slate-400 dark:text-zinc-500" aria-hidden="true" />
                             <h2 className="mt-3 text-base font-semibold">Your prototype inbox is empty</h2>
                             <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-zinc-400">
-                                No verification emails have been captured for this account yet. Click <strong>Resend verification code</strong> or <strong>Send 6-digit CMU code</strong> in your TaskMate tab, then click Refresh here.
+                                {isPasswordReset ? (
+                                    <>
+                                        No password reset emails have been captured for this browser session yet. Enter your account email and click{' '}
+                                        <strong>Email password reset link</strong> on the Forgot password screen, then click Refresh here.
+                                    </>
+                                ) : (
+                                    <>
+                                        No verification emails have been captured for this account yet. Click{' '}
+                                        <strong>Resend verification code</strong> or <strong>Send 6-digit CMU code</strong> in your TaskMate tab, then click Refresh here.
+                                    </>
+                                )}
                             </p>
                             <Button type="button" variant="outline" size="sm" className="mt-4" onClick={refreshInbox}>
                                 <RefreshCw className="size-3.5" aria-hidden="true" />
@@ -224,7 +254,7 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                                         <div className="prototype-mailbox-code my-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 dark:border-blue-900 dark:bg-blue-950/40">
                                             <div>
                                                 <p className="text-xs font-medium uppercase tracking-wide text-blue-900 dark:text-blue-200">
-                                                    6-digit verification code
+                                                    {selectedMessage.codeLabel ?? '6-digit verification code'}
                                                 </p>
                                                 <p
                                                     data-test="prototype-verification-code"
@@ -259,12 +289,12 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                                     {selectedMessage.actionUrl && (
                                         <div className="mt-6 border-t border-slate-200 pt-4 dark:border-zinc-800">
                                             <p className="mb-2 text-xs text-slate-500 dark:text-zinc-400">
-                                                Backup signed verification link:
+                                                {selectedMessage.actionDescription ?? 'Backup signed verification link:'}
                                             </p>
                                             <Button variant="outline" size="sm" asChild>
                                                 <a href={selectedMessage.actionUrl}>
                                                     <ExternalLink className="size-3.5" aria-hidden="true" />
-                                                    Verify Email Address (backup link)
+                                                    {selectedMessage.actionLabel ?? 'Verify Email Address (backup link)'}
                                                 </a>
                                             </Button>
                                         </div>
