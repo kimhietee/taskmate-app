@@ -192,13 +192,14 @@ class RegistrationTest extends TestCase
 
     public function test_make_admin_command_marks_an_existing_user_admin_and_verified(): void
     {
-        $user = User::factory()->create(['email' => 'candidate@example.test']);
+        $user = User::factory()->unverified()->create(['email' => 'candidate@example.test']);
 
         $this->artisan('taskmate:make-admin', ['email' => $user->email])
             ->expectsOutputToContain('is now a verified TaskMate administrator.')
             ->assertSuccessful();
 
         $this->assertTrue($user->fresh()->is_admin);
+        $this->assertNotNull($user->fresh()->email_verified_at);
         $this->assertSame(VerificationStatus::Verified, $user->fresh()->verification_status);
         $this->assertNotNull($user->fresh()->verified_at);
     }

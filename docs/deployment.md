@@ -60,13 +60,15 @@ You have two choices:
 - Testers click **Open Prototype Email Tab ↗** on `/email/verify` or `/verification/student` to copy their 6-digit code in a simulated inbox tab (scoped strictly to their signed-in account).
 
 ### 2. Real Inbox Delivery (Recommended Once Ready)
-Set `TASKMATE_PROTOTYPE_MAILBOX=false` and configure SMTP (e.g. **Brevo**, **Resend**, or **Gmail SMTP with a 16-char App Password**):
+Set `TASKMATE_PROTOTYPE_MAILBOX=false` and configure a mail provider:
+- **On Render Free tier:** Render blocks outbound SMTP ports (`25`, `465`, `587`), so use an **HTTPS email API** (port `443`) such as Brevo or Resend rather than standard SMTP.
+- **On Paid Render / Railway / hosts that allow SMTP:** use standard SMTP (in Laravel 13, `MAIL_SCHEME` is `smtp` for port `587` or `smtps` for port `465`):
 
 ```env
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_SCHEME=tls
+MAIL_SCHEME=smtp
 MAIL_USERNAME=your.test.sender@gmail.com
 MAIL_PASSWORD=your-16-char-app-password
 MAIL_FROM_ADDRESS=your.test.sender@gmail.com
@@ -78,11 +80,12 @@ MAIL_FROM_NAME="TaskMate"
 ## Creating Your First Admin Account on the Cloud Host
 
 1. Open your deployed site and register your own account at `/register` with a strong password (12+ chars, upper, lower, number, symbol).
-2. Confirm your email code.
-3. Open your cloud provider's **Shell / Console** tab (Render Shell or Railway CLI `railway run`) and run:
-   ```bash
-   php artisan taskmate:make-admin your-admin-email@example.com
-   ```
-4. Sign in and visit `/admin` to review beta accounts and approve posted tasks.
+2. Promote your registered account using the official `taskmate:make-admin` Artisan command:
+   - **On Render Free (no web Shell):** In Render Dashboard → your web service → **Environment**, add `TASKMATE_ADMIN_EMAIL=your-admin-email@example.com` (supports comma-separated emails for multiple team admins) and save. On boot, `docker/entrypoint.sh` runs `php artisan taskmate:make-admin` automatically. Remove `TASKMATE_ADMIN_EMAIL` once your admin accounts are promoted.
+   - **On hosts with a Shell / CLI (Paid Render or Railway):**
+     ```bash
+     php artisan taskmate:make-admin your-admin-email@example.com
+     ```
+3. Sign in at `/login` and visit `/admin` to review beta accounts and approve posted tasks.
 
 > **Never reuse default local demo credentials (`password`) on a public URL.**
