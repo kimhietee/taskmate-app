@@ -1,5 +1,14 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { Info, ShieldAlert, TriangleAlert } from 'lucide-react';
+import {
+    Banknote,
+    BriefcaseBusiness,
+    CalendarDays,
+    ClipboardList,
+    Info,
+    ShieldAlert,
+    TriangleAlert,
+    UsersRound,
+} from 'lucide-react';
 import { useState } from 'react';
 import { ApplicationStatusBadge } from '@/components/application-status-badge';
 import { PaymentStatusBadge } from '@/components/payment-status-badge';
@@ -129,11 +138,15 @@ export default function ShowTask({
     const promoteProposeAgreement = canProposeAgreement;
     const promoteViewAgreement = !promoteProposeAgreement && Boolean(agreement);
     const promoteEditTask = !promoteProposeAgreement && !promoteViewAgreement && !hasPendingDecisions && canEditNow;
+    const brandCardClass =
+        'overflow-hidden rounded-2xl border-[#D8E5D9] bg-white text-[#183324] shadow-sm dark:border-[#32473A] dark:bg-[#17251C] dark:text-[#EDF4EC]';
+    const detailTileClass =
+        'rounded-xl border border-[#E5ECE5] bg-[#F5F8F2] p-3.5 dark:border-[#2D4235] dark:bg-[#101B15]';
 
     return (
         <>
             <Head title={task.title} />
-            <div className="page space-y-6">
+            <div className="page space-y-6 text-[#183324] dark:text-[#EDF4EC]">
                 {status && (
                     <div
                         role="status"
@@ -143,20 +156,31 @@ export default function ShowTask({
                     </div>
                 )}
 
-                <div className="space-y-2">
+                <div className="relative overflow-hidden rounded-2xl border border-[#D8E5D9] bg-gradient-to-br from-white via-[#F5F8F2] to-[#FEF3C7]/50 p-5 shadow-sm dark:border-[#32473A] dark:from-[#17251C] dark:via-[#17251C] dark:to-[#20382B] sm:p-6">
+                    <div
+                        aria-hidden="true"
+                        className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#065F46] via-[#0C7A55] to-[#FCD34D]"
+                    />
                     <Link
                         href={mine()}
-                        className="focus-ring inline-flex items-center gap-1 rounded-sm text-sm font-semibold text-brand underline-offset-4 hover:underline"
+                        className="focus-ring inline-flex items-center gap-1 rounded-sm text-sm font-semibold text-[#065F46] underline-offset-4 hover:underline dark:text-[#FCD34D]"
                     >
                         ← Back to My tasks
                     </Link>
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <p className="text-sm text-muted-foreground">
-                                {task.category}
-                                {task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}
-                            </p>
-                            <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">{task.title}</h1>
+                    <div className="mt-4 flex flex-wrap items-start justify-between gap-3">
+                        <div className="flex min-w-0 items-start gap-3">
+                            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#065F46] text-[#FCD34D] shadow-sm dark:bg-[#064E3B]">
+                                <BriefcaseBusiness aria-hidden="true" className="size-5" />
+                            </span>
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold tracking-[0.08em] text-[#065F46] uppercase dark:text-[#FCD34D]">
+                                    {task.category}
+                                    {task.workTypeLabel ? ` · ${task.workTypeLabel}` : ''}
+                                </p>
+                                <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#183324] md:text-3xl dark:text-[#EDF4EC]">
+                                    {task.title}
+                                </h1>
+                            </div>
                         </div>
                         <TaskStatusBadge status={task.status} label={statusLabel} />
                     </div>
@@ -194,9 +218,12 @@ export default function ShowTask({
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
                     {/* Left column: Task details, Schedule & Workplace, Compensation, Applicants */}
                     <div className="space-y-6">
-                        <Card>
+                        <Card className={brandCardClass}>
                             <CardHeader>
-                                <CardTitle>Task details</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-[#183324] dark:text-[#EDF4EC]">
+                                    <ClipboardList aria-hidden="true" className="size-5 text-[#065F46] dark:text-[#FCD34D]" />
+                                    Task details
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
                                 <p className="whitespace-pre-wrap text-base leading-relaxed text-foreground">
@@ -239,13 +266,16 @@ export default function ShowTask({
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className={brandCardClass}>
                             <CardHeader>
-                                <CardTitle>Schedule and work setup</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-[#183324] dark:text-[#EDF4EC]">
+                                    <CalendarDays aria-hidden="true" className="size-5 text-[#065F46] dark:text-[#FCD34D]" />
+                                    Schedule and work setup
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4 text-sm">
                                 <dl className="grid gap-4 sm:grid-cols-2">
-                                    <div>
+                                    <div className={detailTileClass}>
                                         <dt className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                                             Work hours
                                         </dt>
@@ -257,7 +287,7 @@ export default function ShowTask({
                                             )}
                                         </dd>
                                     </div>
-                                    <div>
+                                    <div className={detailTileClass}>
                                         <dt className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                                             Can hours change
                                         </dt>
@@ -265,13 +295,13 @@ export default function ShowTask({
                                             {formatHoursFlexibility(task.canHoursChange)}
                                         </dd>
                                     </div>
-                                    <div>
+                                    <div className={detailTileClass}>
                                         <dt className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                                             Work mode
                                         </dt>
                                         <dd className="mt-1 font-semibold text-foreground">{task.workMode}</dd>
                                     </div>
-                                    <div>
+                                    <div className={detailTileClass}>
                                         <dt className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                                             Deadline
                                         </dt>
@@ -288,7 +318,7 @@ export default function ShowTask({
                                 )}
 
                                 {(task.workplaceName || task.workplaceAddress) && (
-                                    <div className="rounded-lg border border-border bg-muted/40 p-3.5">
+                                    <div className="rounded-xl border border-[#D8E5D9] bg-[#F5F8F2] p-3.5 dark:border-[#32473A] dark:bg-[#101B15]">
                                         <p className="text-sm text-foreground">
                                             <strong>Workplace:</strong>{' '}
                                             {[task.workplaceName, task.workplaceAddress].filter(Boolean).join(' · ')}
@@ -303,12 +333,15 @@ export default function ShowTask({
                             </CardContent>
                         </Card>
 
-                        <Card>
+                        <Card className={brandCardClass}>
                             <CardHeader>
-                                <CardTitle>Compensation</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-[#183324] dark:text-[#EDF4EC]">
+                                    <Banknote aria-hidden="true" className="size-5 text-[#065F46] dark:text-[#FCD34D]" />
+                                    Compensation
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
-                                <div className="grid gap-4 rounded-lg border border-border bg-muted/40 p-4 sm:grid-cols-2">
+                                <div className="grid gap-4 rounded-xl border border-[#D8E5D9] bg-[#F5F8F2] p-4 sm:grid-cols-2 dark:border-[#32473A] dark:bg-[#101B15]">
                                     <div>
                                         <p className="text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                                             Pay amount
@@ -346,9 +379,12 @@ export default function ShowTask({
                         </Card>
 
                         {/* Applicants section — always visible */}
-                        <Card>
+                        <Card className={brandCardClass}>
                             <CardHeader>
-                                <CardTitle className="tabular-nums">Applicants ({applicants.length})</CardTitle>
+                                <CardTitle className="flex items-center gap-2 text-[#183324] dark:text-[#EDF4EC]">
+                                    <UsersRound aria-hidden="true" className="size-5 text-[#065F46] dark:text-[#FCD34D]" />
+                                    Applicants ({applicants.length})
+                                </CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {applicants.length === 0 ? (
@@ -367,7 +403,7 @@ export default function ShowTask({
                                             return (
                                                 <article
                                                     key={application.id}
-                                                    className="space-y-3 rounded-xl border border-border bg-muted/20 p-4"
+                                                    className="space-y-3 rounded-xl border border-[#D8E5D9] bg-[#F5F8F2]/70 p-4 dark:border-[#32473A] dark:bg-[#101B15]/70"
                                                 >
                                                     <div className="flex flex-wrap items-start justify-between gap-2">
                                                         <div className="space-y-1">
@@ -513,7 +549,7 @@ export default function ShowTask({
                     {/* Right sticky rail: Status & Next Action card, Agreement card, Owner actions */}
                     <aside className="space-y-4 lg:sticky lg:top-[calc(var(--banner-h,0px)+5rem)]">
                         {agreement && (
-                            <Card>
+                            <Card className={brandCardClass}>
                                 <CardHeader>
                                     <CardTitle>Agreement</CardTitle>
                                 </CardHeader>
@@ -529,7 +565,7 @@ export default function ShowTask({
                                     </div>
                                     <Button
                                         variant={promoteViewAgreement ? 'default' : 'outline'}
-                                        className="w-full"
+                                        className={`min-h-11 w-full ${promoteViewAgreement ? 'bg-[#065F46] text-white hover:bg-[#064E3B] dark:bg-[#FCD34D] dark:text-[#183324] dark:hover:bg-[#FDE68A]' : 'border-[#D8E5D9] bg-transparent text-[#065F46] hover:bg-[#F5F8F2] dark:border-[#536B5A] dark:text-[#EDF4EC] dark:hover:bg-[#20382B]'}`}
                                         asChild
                                     >
                                         <Link href={agreements.show(agreement.id)}>View agreement</Link>
@@ -538,7 +574,7 @@ export default function ShowTask({
                             </Card>
                         )}
 
-                        <Card>
+                        <Card className={brandCardClass}>
                             <CardHeader>
                                 <CardTitle>Task management</CardTitle>
                             </CardHeader>
@@ -577,7 +613,7 @@ export default function ShowTask({
                                     {canProposeAgreement && (
                                         <Button
                                             variant={promoteProposeAgreement ? 'default' : 'outline'}
-                                            className="w-full"
+                                            className={`min-h-11 w-full ${promoteProposeAgreement ? 'bg-[#065F46] text-white hover:bg-[#064E3B] dark:bg-[#FCD34D] dark:text-[#183324] dark:hover:bg-[#FDE68A]' : 'border-[#D8E5D9] bg-transparent text-[#065F46] hover:bg-[#F5F8F2] dark:border-[#536B5A] dark:text-[#EDF4EC] dark:hover:bg-[#20382B]'}`}
                                             asChild
                                         >
                                             <Link href={agreements.create(task.id)}>Propose agreement</Link>
@@ -587,14 +623,14 @@ export default function ShowTask({
                                     {canEditNow && (
                                         <Button
                                             variant={promoteEditTask ? 'default' : 'outline'}
-                                            className="w-full"
+                                            className={`min-h-11 w-full ${promoteEditTask ? 'bg-[#065F46] text-white hover:bg-[#064E3B] dark:bg-[#FCD34D] dark:text-[#183324] dark:hover:bg-[#FDE68A]' : 'border-[#D8E5D9] bg-transparent text-[#065F46] hover:bg-[#F5F8F2] dark:border-[#536B5A] dark:text-[#EDF4EC] dark:hover:bg-[#20382B]'}`}
                                             asChild
                                         >
                                             <Link href={edit(task.id)}>Edit task</Link>
                                         </Button>
                                     )}
 
-                                    <Button variant="outline" className="w-full" asChild>
+                                    <Button variant="outline" className="min-h-11 w-full" asChild>
                                         <Link href={mine()}>My tasks</Link>
                                     </Button>
 
