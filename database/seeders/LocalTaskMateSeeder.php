@@ -21,7 +21,7 @@ class LocalTaskMateSeeder extends Seeder
     }
 
     /** @return array<int, array<string, mixed>> */
-    private static function catalog(): array
+    public static function catalog(): array
     {
         return [
             [

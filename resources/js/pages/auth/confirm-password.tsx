@@ -1,21 +1,24 @@
 import { Form, Head } from '@inertiajs/react';
-import {
-    index as confirmOptions,
-    store as confirmStore,
-} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
 import InputError from '@/components/input-error';
-import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
+/* @chisel-passkeys */
+import {
+    index as confirmOptions,
+    store as confirmStore,
+} from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
+import PasskeyVerify from '@/components/passkey-verify';
+/* @end-chisel-passkeys */
 
 export default function ConfirmPassword() {
     return (
         <>
             <Head title="Confirm password" />
 
+            {/* @chisel-passkeys */}
             <PasskeyVerify
                 routes={{
                     options: confirmOptions(),
@@ -25,15 +28,12 @@ export default function ConfirmPassword() {
                 loadingLabel="Confirming..."
                 separator="Or confirm with password"
             />
+            {/* @end-chisel-passkeys */}
 
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password']}
-                className="space-y-5"
-            >
+            <Form {...store.form()} resetOnSuccess={['password']}>
                 {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-1.5">
+                    <div className="space-y-6">
+                        <div className="grid gap-2">
                             <Label htmlFor="password">Password</Label>
                             <PasswordInput
                                 id="password"
@@ -42,19 +42,21 @@ export default function ConfirmPassword() {
                                 autoComplete="current-password"
                                 autoFocus
                             />
+
                             <InputError message={errors.password} />
                         </div>
 
-                        <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={processing}
-                            data-test="confirm-password-button"
-                        >
-                            {processing && <Spinner />}
-                            Confirm password
-                        </Button>
-                    </>
+                        <div className="flex items-center">
+                            <Button
+                                className="w-full"
+                                disabled={processing}
+                                data-test="confirm-password-button"
+                            >
+                                {processing && <Spinner />}
+                                Confirm password
+                            </Button>
+                        </div>
+                    </div>
                 )}
             </Form>
         </>

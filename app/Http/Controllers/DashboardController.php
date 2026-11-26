@@ -30,6 +30,10 @@ class DashboardController extends Controller
 
         return Inertia::render('dashboard', [
             'pendingInvitations' => $pendingInvitations,
+            'accountIdentity' => [
+                'email' => $request->user()->email,
+                'idNumber' => $request->user()->id_number,
+            ],
             'status' => $request->session()->get('status'),
             'studentsCanPost' => (bool) config('taskmate.students_can_post', true),
             'unverifiedStudentsCanBrowse' => (bool) config('taskmate.student_verification.unverified_students_can_browse', true),

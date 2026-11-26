@@ -37,6 +37,24 @@ class DashboardTest extends TestCase
         $response->assertOk();
     }
 
+    public function test_dashboard_receives_the_current_users_account_identity_for_its_account_card(): void
+    {
+        $user = User::factory()->verified()->create([
+            'email' => 'dashboard-owner@example.test',
+            'id_number' => 'FAKE-STU-123',
+        ]);
+
+        $this->actingAs($user)->get(route('dashboard'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('dashboard')
+                ->where('accountIdentity.email', 'dashboard-owner@example.test')
+                ->where('accountIdentity.idNumber', 'FAKE-STU-123')
+                ->missing('accountIdentity.supportingInfo')
+                ->missing('auth.user.id_number'),
+            );
+    }
+
     public function test_faculty_without_a_team_can_visit_the_canonical_dashboard_path(): void
     {
         $faculty = User::factory()->verified()->facultyStaff()->make([

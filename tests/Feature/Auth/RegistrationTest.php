@@ -9,6 +9,7 @@ use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Validation\Rules\Password;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -22,7 +23,38 @@ class RegistrationTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('auth/register')
-                ->where('institutionalEmailDomains.0', 'cmu.edu.ph'));
+                ->where('institutionalEmailDomains.0', 'cmu.edu.ph')
+                ->where('passwordRequirements.min', 8)
+                ->where('passwordRules', 'minlength: 8;'));
+    }
+
+    public function test_registration_screen_exposes_strong_production_password_requirements(): void
+    {
+        $previousCallback = Password::$defaultCallback;
+        Password::defaults(fn (): Password => Password::min(12)
+            ->mixedCase()
+            ->letters()
+            ->numbers()
+            ->symbols()
+            ->uncompromised());
+
+        try {
+            $this->get(route('register'))
+                ->assertOk()
+                ->assertInertia(fn (Assert $page) => $page
+                    ->component('auth/register')
+                    ->where('passwordRequirements', [
+                        'min' => 12,
+                        'mixedCase' => true,
+                        'letters' => true,
+                        'numbers' => true,
+                        'symbols' => true,
+                        'uncompromised' => true,
+                    ])
+                    ->where('passwordRules', Password::default()->toPasswordRulesString()));
+        } finally {
+            Password::$defaultCallback = $previousCallback;
+        }
     }
 
     public function test_registration_screen_includes_team_invitation_context(): void
@@ -192,13 +224,14 @@ class RegistrationTest extends TestCase
 
     public function test_make_admin_command_marks_an_existing_user_admin_and_verified(): void
     {
-        $user = User::factory()->create(['email' => 'candidate@example.test']);
+        $user = User::factory()->unverified()->create(['email' => 'candidate@example.test']);
 
         $this->artisan('taskmate:make-admin', ['email' => $user->email])
             ->expectsOutputToContain('is now a verified TaskMate administrator.')
             ->assertSuccessful();
 
         $this->assertTrue($user->fresh()->is_admin);
+        $this->assertNotNull($user->fresh()->email_verified_at);
         $this->assertSame(VerificationStatus::Verified, $user->fresh()->verification_status);
         $this->assertNotNull($user->fresh()->verified_at);
     }

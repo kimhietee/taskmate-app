@@ -2,6 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
+import { PasswordRequirementsChecklist } from '@/components/password-requirements-checklist';
 import { SafetyNotice } from '@/components/safety-notice';
 import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    arePasswordRequirementsMet,
+    DEFAULT_PASSWORD_REQUIREMENTS,
+    type PasswordRequirements,
+} from '@/lib/password-requirements';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
 
@@ -17,6 +23,7 @@ type AffiliationOptions = { student: string[]; faculty_staff: string[] };
 
 type Props = {
     passwordRules?: string;
+    passwordRequirements?: PasswordRequirements;
     institutionalEmailDomains?: string[];
     requireInstitutionalEmail?: boolean;
     autoVerifyInstitutionalStudent?: boolean;
@@ -52,6 +59,7 @@ const NATIVE_SELECT_CLASS =
 
 export default function Register({
     passwordRules = '',
+    passwordRequirements = DEFAULT_PASSWORD_REQUIREMENTS,
     institutionalEmailDomains = ['cmu.edu.ph'],
     requireInstitutionalEmail = false,
     autoVerifyInstitutionalStudent = true,
@@ -164,6 +172,10 @@ export default function Register({
         }
         if (!form.data.password) {
             setStepError('Create a password to continue.');
+            return false;
+        }
+        if (!arePasswordRequirementsMet(form.data.password, passwordRequirements)) {
+            setStepError('Complete all password requirements before continuing.');
             return false;
         }
         if (form.data.password !== form.data.password_confirmation) {
@@ -510,6 +522,12 @@ export default function Register({
                             />
                             <InputError message={form.errors.password_confirmation} />
                         </div>
+
+                        <PasswordRequirementsChecklist
+                            password={form.data.password}
+                            confirmation={form.data.password_confirmation}
+                            requirements={passwordRequirements}
+                        />
 
                         <SafetyNotice />
 

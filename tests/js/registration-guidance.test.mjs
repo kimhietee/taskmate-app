@@ -39,6 +39,7 @@ const modules = {
     },
     '@/components/input-error': () => null,
     '@/components/password-input': (props) => element('input', props),
+    '@/components/password-requirements-checklist': { PasswordRequirementsChecklist: () => null },
     '@/components/safety-notice': { SafetyNotice: () => element('p', { children: 'Safety notice' }) },
     '@/components/text-link': (props) => element('a', props),
     '@/components/ui/button': { Button: (props) => element('button', props) },
@@ -46,6 +47,10 @@ const modules = {
     '@/components/ui/label': { Label: (props) => element('label', props) },
     '@/components/ui/spinner': { Spinner: () => null },
     '@/components/ui/textarea': { Textarea: (props) => element('textarea', props) },
+    '@/lib/password-requirements': {
+        DEFAULT_PASSWORD_REQUIREMENTS: { min: 8, mixedCase: false, letters: false, numbers: false, symbols: false, uncompromised: false },
+        arePasswordRequirementsMet: () => true,
+    },
     '@/routes': { login: () => '/login' },
     '@/routes/register': { store: { url: () => '/register', form: () => ({ action: '/register', method: 'post' }) } },
 };

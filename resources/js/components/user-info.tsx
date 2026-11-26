@@ -2,13 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useInitials } from '@/hooks/use-initials';
 import type { User } from '@/types';
 
-export function UserInfo({
-    user,
-    showEmail = false,
-}: {
-    user: User;
-    showEmail?: boolean;
-}) {
+export function UserInfo({ user }: { user: User }) {
     const getInitials = useInitials();
     const showAvatar = Boolean(user.avatar && user.avatar !== '');
 
@@ -18,7 +12,7 @@ export function UserInfo({
                 {showAvatar ? (
                     <AvatarImage src={user.avatar} alt={user.name} />
                 ) : null}
-                <AvatarFallback className="rounded-lg bg-muted text-foreground">
+                <AvatarFallback className="rounded-lg text-black dark:text-white">
                     {getInitials(user.name)}
                 </AvatarFallback>
             </Avatar>
