@@ -21,12 +21,22 @@ class BetaSampleDataSeederTest extends TestCase
         $this->seed(BetaSampleDataSeeder::class);
         $this->seed(BetaSampleDataSeeder::class);
 
-        $this->assertDatabaseCount('users', 3);
+        $this->assertDatabaseCount('users', 4);
         $this->assertDatabaseCount('tasks', 12);
 
+        $admin = User::query()->where('email', 'admin@gmail.com')->firstOrFail();
         $carl = User::query()->where('email', 'carl@gmail.com')->firstOrFail();
         $karl = User::query()->where('email', 'karl@gmail.com')->firstOrFail();
         $kharl = User::query()->where('email', 'kharl@gmail.com')->firstOrFail();
+
+        $this->assertSame(UserType::FacultyStaff, $admin->user_type);
+        $this->assertSame(VerificationStatus::Verified, $admin->verification_status);
+        $this->assertTrue($admin->is_admin);
+        $this->assertTrue(Hash::check(BetaSampleDataSeeder::DEFAULT_ADMIN_PASSWORD, $admin->password));
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk();
 
         $this->assertSame(UserType::FacultyStaff, $carl->user_type);
         $this->assertSame(VerificationStatus::Verified, $carl->verification_status);
@@ -58,12 +68,20 @@ class BetaSampleDataSeederTest extends TestCase
     {
         $this->seed(BetaSampleDataSeeder::class);
 
+        $admin = User::query()->where('email', 'admin@gmail.com')->firstOrFail();
+        $admin->password = Hash::make('CustomRootPass#2026');
+        $admin->save();
+
         $carl = User::query()->where('email', 'carl@gmail.com')->firstOrFail();
         $carl->password = Hash::make('CustomAdminPass#2026');
         $carl->is_admin = true;
         $carl->save();
 
         $this->seed(BetaSampleDataSeeder::class);
+
+        $admin->refresh();
+        $this->assertTrue(Hash::check('CustomRootPass#2026', $admin->password));
+        $this->assertTrue($admin->is_admin);
 
         $carl->refresh();
         $this->assertTrue(Hash::check('CustomAdminPass#2026', $carl->password));

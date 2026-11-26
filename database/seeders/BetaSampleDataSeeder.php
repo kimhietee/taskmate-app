@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\TaskStatus;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 
 class BetaSampleDataSeeder extends Seeder
@@ -13,12 +14,28 @@ class BetaSampleDataSeeder extends Seeder
 
     public const DEFAULT_PASSWORD = 'TaskMateBeta#2026';
 
+    public const DEFAULT_ADMIN_PASSWORD = 'TaskMateAdmin#2026';
+
     public function run(): void
     {
         $seedPassword = (string) (env('TASKMATE_BETA_SEED_PASSWORD') ?: self::DEFAULT_PASSWORD);
+        $adminPassword = (string) (env('TASKMATE_BETA_ADMIN_PASSWORD') ?: self::DEFAULT_ADMIN_PASSWORD);
         $now = now();
 
         $accounts = [
+            [
+                'email' => 'admin@gmail.com',
+                'first_name' => 'TaskMate',
+                'last_name' => 'Admin',
+                'name' => 'TaskMate Admin',
+                'user_type' => 'faculty_staff',
+                'affiliation' => 'TaskMate Project Administration',
+                'id_number' => 'FAKE-ADMIN-BETA-001',
+                'organization_name' => null,
+                'position' => null,
+                'supporting_info' => null,
+                'password' => $adminPassword,
+            ],
             [
                 'email' => 'carl@gmail.com',
                 'first_name' => 'Carl',
@@ -30,6 +47,7 @@ class BetaSampleDataSeeder extends Seeder
                 'organization_name' => null,
                 'position' => null,
                 'supporting_info' => null,
+                'password' => $seedPassword,
             ],
             [
                 'email' => 'karl@gmail.com',
@@ -42,6 +60,7 @@ class BetaSampleDataSeeder extends Seeder
                 'organization_name' => null,
                 'position' => null,
                 'supporting_info' => null,
+                'password' => $seedPassword,
             ],
             [
                 'email' => 'kharl@gmail.com',
@@ -54,6 +73,7 @@ class BetaSampleDataSeeder extends Seeder
                 'organization_name' => 'Musuan Campus Partner Hub (Demo)',
                 'position' => 'Operations Coordinator',
                 'supporting_info' => 'Synthetic campus-partner organization created for beta prototype testing.',
+                'password' => $seedPassword,
             ],
         ];
 
@@ -70,7 +90,7 @@ class BetaSampleDataSeeder extends Seeder
             $user->supporting_info = $account['supporting_info'];
 
             if (! $user->exists) {
-                $user->password = Hash::make($seedPassword);
+                $user->password = Hash::make($account['password']);
                 $user->is_admin = false;
             }
 
@@ -106,6 +126,8 @@ class BetaSampleDataSeeder extends Seeder
 
             $user->save();
         }
+
+        Artisan::call('taskmate:make-admin', ['email' => 'admin@gmail.com']);
 
         $adminId = User::query()->where('is_admin', true)->value('id');
         $instructor = User::query()->where('email', 'carl@gmail.com')->firstOrFail();
