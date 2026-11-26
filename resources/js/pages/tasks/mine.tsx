@@ -125,7 +125,7 @@ export default function MyTasks({ tasks, status }: Props) {
                 <div
                     aria-hidden="true"
                     className="pointer-events-none absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
-                    style={{ backgroundImage: "url('/images/cmu-campus-background.jpg')" }}
+                    style={{ backgroundImage: "url('/images/cmu-campus-background.avif')" }}
                 />
                 <div
                     aria-hidden="true"
