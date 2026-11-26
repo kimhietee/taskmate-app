@@ -22,6 +22,7 @@ class MakeTaskMateAdmin extends Command
         }
 
         $user->is_admin = true;
+        $user->email_verified_at ??= now();
         $user->verification_status = 'verified';
         $user->verified_at = now();
         $user->verified_by = null;
