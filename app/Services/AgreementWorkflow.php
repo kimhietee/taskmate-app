@@ -28,7 +28,7 @@ class AgreementWorkflow
             if ($task->status !== TaskStatus::Assigned || $accepted->count() !== 1 || $task->hasActiveAgreement()) {
                 throw ValidationException::withMessages(['agreement' => 'This task is not ready for an agreement.']);
             }
-            if (in_array($task->work_mode, ['onsite', 'hybrid'], true)
+            if (in_array($task->work_mode, config('taskmate.work_modes_with_location', []), true)
                 && (! $task->workplace_name || ! $task->workplace_address)) {
                 throw ValidationException::withMessages(['task' => 'The task must have complete workplace details before an agreement can be proposed.']);
             }

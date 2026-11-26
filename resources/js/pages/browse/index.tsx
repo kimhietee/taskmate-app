@@ -281,7 +281,9 @@ export default function BrowseTasks({ tasks, filters, options }: Props) {
                                                 <strong>
                                                     {task.workMode === "On-campus"
                                                         ? "On-campus:"
-                                                        : "Off-campus:"}
+                                                        : task.workMode === "Outside-campus"
+                                                          ? "Outside-campus:"
+                                                          : "Work location:"}
                                                 </strong>{" "}
                                                 {[task.workplaceName, task.workplaceAddress]
                                                     .filter(Boolean)

@@ -2637,6 +2637,12 @@ details[open] > .notification-trigger {
     }
 }
 
+@media (min-width: 1200px) {
+    .workflow-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
 .dark .workflow-section {
     border-color: #35523f;
     background: radial-gradient(circle at 10% 0%, rgb(51 92 60 / 42%), transparent 36%), #15271c;
@@ -2895,7 +2901,7 @@ details[open] > .notification-trigger {
 .landing-intro-workflow ol {
     position: relative;
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 0.5rem;
     margin: 0;
     padding: 0;
@@ -2974,6 +2980,7 @@ details[open] > .notification-trigger {
 .landing-intro-workflow li:nth-child(2) .landing-intro-step-icon { animation-delay: 1650ms; }
 .landing-intro-workflow li:nth-child(3) .landing-intro-step-icon { animation-delay: 2450ms; }
 .landing-intro-workflow li:nth-child(4) .landing-intro-step-icon { animation-delay: 3250ms; }
+.landing-intro-workflow li:nth-child(5) .landing-intro-step-icon { animation-delay: 4050ms; }
 
 .landing-page-content[data-intro-complete='true'] .welcome-header.reveal,
 .landing-page-content[data-intro-complete='true'] .welcome-intro.reveal,
@@ -3116,9 +3123,38 @@ details[open] > .notification-trigger {
     font-weight: 700;
 }
 
+.task-paper-category-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+}
+
+.task-paper-category {
+    overflow: hidden;
+    color: #66776b;
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.task-paper-work-type {
+    flex: none;
+    padding: 0.24rem 0.48rem;
+    border: 1px solid #dce6d8;
+    border-radius: 999px;
+    color: #496651;
+    font-size: 0.65rem;
+    font-weight: 650;
+}
+
 .task-paper-title {
     max-width: 21rem;
-    margin-top: 1.6rem;
+    margin-top: 0.8rem;
     font-size: clamp(1.75rem, 3vw, 2.15rem);
     font-weight: 750;
     letter-spacing: -0.045em;
@@ -3131,6 +3167,10 @@ details[open] > .notification-trigger {
     color: #526658;
     font-size: 0.88rem;
     line-height: 1.5;
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
 }
 
 .task-paper-poster {
@@ -3179,6 +3219,10 @@ details[open] > .notification-trigger {
     color: #37684d;
 }
 
+.task-paper-location + .task-paper-facts {
+    margin-top: 0.8rem;
+}
+
 .task-paper-poster-type {
     margin-left: auto;
     padding: 0.35rem 0.5rem;
@@ -3206,8 +3250,16 @@ details[open] > .notification-trigger {
 }
 
 .task-paper dt {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     font-size: 0.75rem;
     color: #506357;
+}
+
+.task-paper dt svg {
+    flex: none;
+    color: #397052;
 }
 
 .task-paper dd {
@@ -3217,6 +3269,41 @@ details[open] > .notification-trigger {
 .task-paper .task-budget {
     font-size: 1.45rem;
     line-height: 1.2;
+}
+
+.task-paper-schedule {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.task-paper-schedule p {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.4rem;
+    min-width: 0;
+    color: #425b4a;
+    font-size: 0.68rem;
+    line-height: 1.35;
+}
+
+.task-paper-schedule svg {
+    flex: none;
+    margin-top: 0.08rem;
+    color: #397052;
+}
+
+.task-paper-schedule span {
+    display: grid;
+    gap: 0.12rem;
+    min-width: 0;
+}
+
+.task-paper-schedule strong {
+    color: #718075;
+    font-size: 0.63rem;
+    font-weight: 650;
 }
 
 .task-paper-animated {
@@ -3230,19 +3317,23 @@ details[open] > .notification-trigger {
 }
 
 .task-paper-animated .task-paper-header,
+.task-paper-animated .task-paper-category-row,
 .task-paper-animated .task-paper-title,
 .task-paper-animated .task-paper-summary,
 .task-paper-animated .task-paper-poster,
-.task-paper-animated .task-paper-facts {
+.task-paper-animated .task-paper-facts,
+.task-paper-animated .task-paper-schedule {
     opacity: 0;
     animation: task-card-detail 440ms ease-out forwards;
 }
 
 .task-paper-animated .task-paper-header { animation-delay: 180ms; }
-.task-paper-animated .task-paper-title { animation-delay: 300ms; }
-.task-paper-animated .task-paper-summary { animation-delay: 410ms; }
-.task-paper-animated .task-paper-poster { animation-delay: 520ms; }
-.task-paper-animated .task-paper-facts { animation-delay: 640ms; }
+.task-paper-animated .task-paper-category-row { animation-delay: 250ms; }
+.task-paper-animated .task-paper-title { animation-delay: 320ms; }
+.task-paper-animated .task-paper-summary { animation-delay: 400ms; }
+.task-paper-animated .task-paper-poster { animation-delay: 480ms; }
+.task-paper-animated .task-paper-facts { animation-delay: 560ms; }
+.task-paper-animated .task-paper-schedule { animation-delay: 640ms; }
 
 @keyframes task-card-enter {
     from { opacity: 0; transform: translateY(1rem) rotate(-1.2deg) scale(0.96); }
@@ -3372,10 +3463,12 @@ details[open] > .notification-trigger {
     .task-paper-animated,
     .task-paper-animated::before,
     .task-paper-animated .task-paper-header,
+    .task-paper-animated .task-paper-category-row,
     .task-paper-animated .task-paper-title,
     .task-paper-animated .task-paper-summary,
     .task-paper-animated .task-paper-poster,
-    .task-paper-animated .task-paper-facts {
+    .task-paper-animated .task-paper-facts,
+    .task-paper-animated .task-paper-schedule {
         animation: none;
         opacity: 1;
         transform: none;

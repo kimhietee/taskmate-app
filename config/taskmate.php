@@ -1,5 +1,11 @@
 <?php
 
+$workModes = [
+    'remote' => 'Online',
+    'onsite' => 'On-campus',
+    'outside_campus' => 'Outside-campus',
+];
+
 return [
     // Prototype features are enabled for local evaluation unless explicitly disabled.
     'prototype_mode' => env('TASKMATE_PROTOTYPE_MODE', true),
@@ -102,10 +108,14 @@ return [
     ],
 
     'work_modes' => [
-        'onsite' => 'Onsite',
-        'remote' => 'Remote',
+        ...$workModes,
+    ],
+    // Preserve readable labels for historical records without offering these modes for new tasks.
+    'work_mode_labels' => [
+        ...$workModes,
         'hybrid' => 'Hybrid',
     ],
+    'work_modes_with_location' => ['onsite', 'outside_campus', 'hybrid'],
 
     // PROVISIONAL: distinguishes one-time output-based gigs from scheduled short-term part-time work.
     'work_types' => [
