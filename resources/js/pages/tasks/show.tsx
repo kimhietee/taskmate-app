@@ -99,7 +99,7 @@ export default function ShowTask({
     return (
         <>
             <Head title={task.title} />
-            <div className="mx-auto max-w-4xl space-y-5 p-4 sm:p-6">
+            <main className="task-detail-page">
                 {status && (
                     <div
                         role="status"
@@ -108,19 +108,25 @@ export default function ShowTask({
                         {status}
                     </div>
                 )}
-                <div className="flex flex-wrap items-start justify-between gap-3">
+                <header className="task-detail-hero">
                     <div>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="task-detail-category">
                             {task.category}
                         </p>
-                        <h1 className="mt-1 text-2xl font-semibold">
+                        <h1>
                             {task.title}
                         </h1>
+                        <p className="task-detail-meta">
+                            Estimated duration · {task.estimatedDurationLabel ?? 'Not provided'}
+                        </p>
                     </div>
-                    <TaskStatusBadge status={task.status} label={statusLabel} />
-                </div>
-                <section className="space-y-4 rounded-xl border bg-card p-5">
-                    <h2 className="text-lg font-semibold">Task details</h2>
+                    <div className="task-detail-hero-side">
+                        <TaskStatusBadge status={task.status} label={statusLabel} />
+                        <p>{task.workMode}</p>
+                    </div>
+                </header>
+                <section className="task-detail-section task-detail-description">
+                    <h2>Task details</h2>
                     <p className="whitespace-pre-wrap">{task.description}</p>
                     {task.requiredActivities && (
                         <div>
@@ -151,8 +157,8 @@ export default function ShowTask({
                         </p>
                     )}
                 </section>
-                <section className="space-y-2 rounded-xl border bg-card p-5">
-                    <h2 className="text-lg font-semibold">Work details</h2>
+                <section className="task-detail-section task-detail-work">
+                    <h2>Work details</h2>
                     <p>{task.workMode}</p>
                     {task.workplaceName && <p>{task.workplaceName}</p>}
                     {task.workplaceAddress && <p>{task.workplaceAddress}</p>}
@@ -162,26 +168,26 @@ export default function ShowTask({
                         work, not a home address.
                     </p>
                 </section>
-                <section className="space-y-2 rounded-xl border bg-card p-5">
-                    <h2 className="text-lg font-semibold">Compensation</h2>
+                <section className="task-detail-section task-detail-pay">
+                    <h2>Compensation</h2>
                     <p>Estimated budget: {task.budgetDisplay}</p>
                     <p className="text-sm text-muted-foreground">
                         {PAYMENT_BOUNDARY_NOTICE}
                     </p>
                 </section>
                 {task.reviewNote && (
-                    <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                    <div className="task-detail-review-note">
                         Review note: {task.reviewNote}
                     </div>
                 )}
                 {task.removalReason && (
-                    <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-950">
+                    <div className="task-detail-removal-note">
                         This post was removed by an administrator. Reason:{' '}
                         {task.removalReason}
                     </div>
                 )}
                 {agreement && (
-                    <section className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-5">
+                    <section className="task-detail-agreement">
                         <div>
                             <h2 className="font-semibold">Agreement</h2>
                             <p className="text-sm">
@@ -211,14 +217,14 @@ export default function ShowTask({
                     </Button>
                 )}
                 {applicants.length > 0 && (
-                    <section className="space-y-4 rounded-xl border bg-card p-5">
-                        <h2 className="text-lg font-semibold">
+                    <section className="task-detail-section task-detail-applicants">
+                        <h2>
                             Applicants ({applicants.length})
                         </h2>
                         {applicants.map((application) => (
                             <article
                                 key={application.id}
-                                className="space-y-3 border-t pt-4"
+                                className="task-applicant-card"
                             >
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                     <div>
@@ -412,7 +418,7 @@ export default function ShowTask({
                         </Form>
                     )}
                 </div>
-            </div>
+            </main>
         </>
     );
 }

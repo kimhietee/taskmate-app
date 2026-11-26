@@ -40,28 +40,29 @@ export default function MyTasks({ tasks, status }: Props) {
     return (
         <>
             <Head title="My tasks" />
-            <div className="mx-auto max-w-5xl space-y-5 p-4 sm:p-6">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+            <main className="my-tasks-page">
+                <header className="my-tasks-hero">
                     <div>
-                        <h1 className="text-2xl font-semibold">My tasks</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="my-tasks-eyebrow">Your listings</p>
+                        <h1>My tasks</h1>
+                        <p className="my-tasks-description">
                             Tasks you have posted and their review status.
                         </p>
                     </div>
-                    <Button asChild>
+                    <Button asChild className="my-tasks-create-button">
                         <Link href={create()}>Post a task</Link>
                     </Button>
-                </div>
+                </header>
                 {status && (
                     <div
                         role="status"
-                        className="rounded-lg border px-4 py-3 text-sm"
+                        className="my-tasks-status"
                     >
                         {status}
                     </div>
                 )}
                 {tasks.data.length === 0 ? (
-                    <div className="rounded-xl border bg-card p-8 text-center">
+                    <div className="my-tasks-empty">
                         <h2 className="font-semibold">
                             You have not posted any tasks yet
                         </h2>
@@ -73,11 +74,11 @@ export default function MyTasks({ tasks, status }: Props) {
                         </Button>
                     </div>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2">
+                    <div className="my-tasks-grid">
                         {tasks.data.map((task) => (
                             <article
                                 key={task.id}
-                                className="space-y-3 rounded-xl border bg-card p-5"
+                                className="my-tasks-card"
                             >
                                 <div className="flex flex-wrap items-start justify-between gap-2">
                                     <h2 className="font-semibold">
@@ -207,7 +208,7 @@ export default function MyTasks({ tasks, status }: Props) {
                         )}
                     </nav>
                 )}
-            </div>
+            </main>
         </>
     );
 }

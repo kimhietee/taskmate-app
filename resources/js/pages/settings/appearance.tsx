@@ -10,13 +10,13 @@ export default function Appearance() {
 
             <h1 className="sr-only">Appearance settings</h1>
 
-            <div className="space-y-6">
+            <div className="space-y-6 settings-appearance-page">
                 <Heading
                     variant="small"
                     title="Appearance settings"
                     description="Update the appearance settings for your account"
                 />
-                <AppearanceTabs />
+                <AppearanceTabs className="settings-appearance-toggle" />
             </div>
         </>
     );

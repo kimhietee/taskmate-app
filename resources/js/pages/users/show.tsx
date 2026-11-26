@@ -1,5 +1,6 @@
 import { formatDate } from '@/lib/format';
 import { Head } from '@inertiajs/react';
+import { UserRound } from 'lucide-react';
 import { VerificationStatusBadge } from '@/components/verification-status-badge';
 import { RatingSummary, ratingNotice } from '@/components/rating-summary';
 import { StarRating } from '@/components/star-rating';
@@ -44,42 +45,50 @@ export default function UserProfile({
     return (
         <>
             <Head title={`${profile.displayName} profile`} />
-            <main className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
-                <header>
-                    <h1 className="text-2xl font-semibold">
+            <main className="public-user-profile-page">
+                <header className="public-user-profile-hero">
+                    <div className="public-user-avatar" aria-hidden="true">
+                        <UserRound />
+                    </div>
+                    <div className="public-user-profile-copy">
+                    <p className="public-user-profile-eyebrow">TaskMate member</p>
+                    <h1>
                         {profile.displayName}
                     </h1>
-                    <p className="mt-1 text-sm">
+                    <p className="public-user-profile-meta">
                         {profile.type}
                         {profile.affiliation ? ` · ${profile.affiliation}` : ''}
                     </p>
-                    <div className="mt-2">
+                    <div className="public-user-profile-badge">
                         <VerificationStatusBadge
                             status={profile.verificationStatus}
                         />
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
+                    <p className="public-user-profile-stats">
                         Member since{' '}
                         {profile.memberSince
                             ? formatDate(profile.memberSince)
                             : '—'}{' '}
                         · {profile.completedTasks} completed tasks
                     </p>
+                    </div>
                 </header>
-                <RatingSummary summary={profile.ratingSummary} />
-                <p className="rounded-lg border bg-muted/40 p-4 text-sm">
+                <section className="public-user-rating-summary">
+                    <RatingSummary summary={profile.ratingSummary} />
+                </section>
+                <p className="public-user-rating-notice">
                     {notice}
                 </p>
                 {problemReport && <ProblemReportForm {...problemReport} />}
-                <section className="space-y-3">
-                    <h2 className="text-lg font-semibold">
+                <section className="public-user-feedback">
+                    <h2>
                         Recent visible feedback
                     </h2>
                     {ratings.length ? (
                         ratings.map((rating) => (
                             <article
                                 key={rating.id}
-                                className="space-y-2 rounded-xl border bg-card p-4"
+                                className="public-user-feedback-card"
                             >
                                 <div className="flex justify-between gap-2">
                                     <p className="font-medium">
@@ -107,7 +116,7 @@ export default function UserProfile({
                             </article>
                         ))
                     ) : (
-                        <p className="rounded-lg border p-4 text-sm text-muted-foreground">
+                        <p className="public-user-feedback-empty">
                             No visible comments yet.
                         </p>
                     )}

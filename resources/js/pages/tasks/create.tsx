@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { CircleCheck, Clock, ShieldCheck } from 'lucide-react';
+import { CircleCheck, Clock, ClipboardList, ShieldCheck } from 'lucide-react';
 import TaskForm from '@/components/task-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,21 +24,25 @@ export default function CreateTask({ options, task, resetWarning }: Props) {
     return (
         <>
             <Head title="Post a task" />
-            <div className="page-wide space-y-6">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Post a task</h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
+            <div className="page-wide space-y-6 task-editor-page">
+                <header className="task-editor-hero task-editor-title-row">
+                    <span className="task-editor-icon" aria-hidden="true">
+                        <ClipboardList />
+                    </span>
+                    <div className="task-editor-heading">
+                        <p className="task-editor-eyebrow">Create a listing</p>
+                        <h1>Post a task</h1>
+                        <p className="task-editor-description">
                             Describe the work clearly so people can decide whether it suits them.
                         </p>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
+                    <Button variant="outline" size="sm" asChild className="task-editor-back">
                         <Link href={mine()}>Back to My tasks</Link>
                     </Button>
-                </div>
+                </header>
 
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-                    <div>
+                <div className="task-editor-layout">
+                    <div className="task-editor-form-wrap">
                         <TaskForm
                             action={store.form()}
                             options={options}
@@ -47,8 +51,8 @@ export default function CreateTask({ options, task, resetWarning }: Props) {
                         />
                     </div>
 
-                    <aside className="space-y-4 lg:sticky lg:top-[calc(var(--banner-h,0px)+5rem)]">
-                        <Card>
+                    <aside className="task-editor-preview">
+                        <Card className="task-editor-preview-card">
                             <CardHeader>
                                 <CardTitle>How students will see it</CardTitle>
                                 <CardDescription>

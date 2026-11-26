@@ -31,20 +31,21 @@ export default function VerificationDetails({
     return (
         <>
             <Head title="Update verification details" />
-            <div className="mx-auto max-w-2xl space-y-6 p-4">
-                <div className="space-y-2">
+            <main className="verification-details-page">
+                <header className="verification-page-hero">
                     <VerificationStatusBadge status={verificationStatus} />
-                    <h1 className="text-2xl font-semibold">
+                    <p className="verification-page-eyebrow">Account verification</p>
+                    <h1>
                         Update your submitted details
                     </h1>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="verification-page-description">
                         Update only the information requested for review. Your
                         account type and email cannot be changed here.
                         Submitting returns your account to pending review.
                     </p>
-                </div>
+                </header>
                 {verificationNote && (
-                    <div className="rounded-lg border p-4 text-sm">
+                    <div className="verification-admin-note">
                         <p className="font-medium">Administrator note</p>
                         <p className="mt-2 whitespace-pre-wrap">
                             {verificationNote}
@@ -55,7 +56,7 @@ export default function VerificationDetails({
 
                 <Form
                     {...verificationDetails.update.form()}
-                    className="space-y-5 rounded-xl border bg-card p-4 sm:p-6"
+                    className="verification-details-form"
                 >
                     {({ processing, errors }) => (
                         <>
@@ -175,7 +176,7 @@ export default function VerificationDetails({
                         </>
                     )}
                 </Form>
-            </div>
+            </main>
         </>
     );
 }

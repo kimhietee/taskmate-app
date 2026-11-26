@@ -1,5 +1,6 @@
 import { formatDate, formatDateTime } from '@/lib/format';
 import { Head, Link, router } from '@inertiajs/react';
+import { ShieldAlert } from 'lucide-react';
 
 type Sanction = {
     id: number;
@@ -26,18 +27,25 @@ export default function MySanctions({
     return (
         <>
             <Head title="Account actions" />
-            <main className="mx-auto max-w-3xl space-y-5 p-4 sm:p-6">
-                <Link href="/dashboard" className="text-sm underline">
+            <main className="sanctions-page">
+                <Link href="/dashboard" className="sanctions-back-link">
                     Back to dashboard
                 </Link>
-                <h1 className="text-2xl font-semibold">Account actions</h1>
+                <header className="sanctions-hero">
+                    <span className="sanctions-hero-icon" aria-hidden="true"><ShieldAlert /></span>
+                    <div>
+                        <p>Account status</p>
+                        <h1>Account actions</h1>
+                        <span>Review notices and any restrictions on your account.</span>
+                    </div>
+                </header>
                 {status && (
-                    <p role="status" className="rounded border p-3">
+                    <p role="status" className="sanctions-status">
                         {status}
                     </p>
                 )}
                 {activeSuspension && (
-                    <p className="rounded border border-red-300 p-4 text-sm">
+                    <p className="sanctions-active-notice">
                         Your account is suspended until{' '}
                         {activeSuspension.endsAt
                             ? formatDateTime(activeSuspension.endsAt)
@@ -49,7 +57,7 @@ export default function MySanctions({
                     sanctions.map((item) => (
                         <article
                             key={item.id}
-                            className="space-y-2 rounded-lg border bg-card p-4"
+                            className={`sanction-record ${item.active ? 'is-active' : ''}`}
                         >
                             <h2 className="font-semibold">
                                 {item.type.replaceAll('_', ' ')}
@@ -69,7 +77,7 @@ export default function MySanctions({
                             </p>
                             {item.type === 'warning' && !item.acknowledged && (
                                 <button
-                                    className="underline"
+                                    className="sanction-acknowledge"
                                     type="button"
                                     onClick={() =>
                                         router.post(
@@ -83,7 +91,7 @@ export default function MySanctions({
                         </article>
                     ))
                 ) : (
-                    <p className="rounded-lg border bg-card p-5 text-sm">
+                    <p className="sanctions-empty-state">
                         There are no account actions to show.
                     </p>
                 )}

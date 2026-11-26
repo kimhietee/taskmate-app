@@ -38,7 +38,7 @@ export default function Security(props: Props) {
 
             <h1 className="sr-only">Security settings</h1>
 
-            <div className="space-y-6">
+            <div className="space-y-6 settings-security-page">
                 <Heading
                     variant="small"
                     title="Update password"
@@ -72,7 +72,7 @@ export default function Security(props: Props) {
                             currentPasswordInput.current?.focus();
                         }
                     }}
-                    className="space-y-6"
+                    className="settings-security-form"
                 >
                     {({ errors, processing, recentlySuccessful }) => (
                         <>

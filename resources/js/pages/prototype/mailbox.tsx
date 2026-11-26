@@ -67,12 +67,12 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
     return (
         <>
             <Head title="Prototype Mail — Inbox" />
-            <div className="min-h-svh bg-[#f6f8fc] text-slate-900 dark:bg-zinc-950 dark:text-zinc-100">
+            <div className="prototype-mailbox-page min-h-svh bg-[#f6f8fc] text-slate-900 dark:bg-zinc-950 dark:text-zinc-100">
                 {/* Simulated Gmail-style top bar */}
-                <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95">
-                    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+                <header className="prototype-mailbox-header sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/95">
+                    <div className="prototype-mailbox-header-inner mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="flex size-9 items-center justify-center rounded-lg bg-red-600 text-white shadow-xs">
+                            <div className="prototype-mailbox-brand-icon flex size-9 items-center justify-center rounded-lg bg-red-600 text-white shadow-xs">
                                 <Mail className="size-5" aria-hidden="true" />
                             </div>
                             <div>
@@ -109,8 +109,8 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                     </div>
                 </header>
 
-                <main className="mx-auto max-w-6xl p-4 md:p-6">
-                    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+                <main className="prototype-mailbox-content mx-auto max-w-6xl p-4 md:p-6">
+                    <div className="prototype-mailbox-addresses mb-4 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs text-slate-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="font-medium text-slate-900 dark:text-zinc-100">Simulated inbox for:</span>
                             {addresses.map((address) => (
@@ -126,7 +126,7 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                     </div>
 
                     {messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                        <div className="prototype-mailbox-empty flex flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-16 text-center dark:border-zinc-800 dark:bg-zinc-900">
                             <Inbox className="size-10 text-slate-400 dark:text-zinc-500" aria-hidden="true" />
                             <h2 className="mt-3 text-base font-semibold">Your prototype inbox is empty</h2>
                             <p className="mt-1 max-w-md text-sm text-slate-500 dark:text-zinc-400">
@@ -138,13 +138,13 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                             </Button>
                         </div>
                     ) : (
-                        <div className="grid gap-4 lg:grid-cols-12">
+                        <div className="prototype-mailbox-layout grid gap-4 lg:grid-cols-12">
                             {/* Left inbox list */}
                             <aside
                                 aria-label="Inbox messages"
-                                className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-4"
+                                className="prototype-mailbox-inbox overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 lg:col-span-4"
                             >
-                                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-600 dark:border-zinc-800 dark:text-zinc-300">
+                                <div className="prototype-mailbox-inbox-heading flex items-center justify-between border-b border-slate-200 px-4 py-3 text-xs font-semibold text-slate-600 dark:border-zinc-800 dark:text-zinc-300">
                                     <span className="flex items-center gap-2">
                                         <Inbox className="size-4 text-red-600" aria-hidden="true" />
                                         Inbox
@@ -159,11 +159,7 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                                                 <button
                                                     type="button"
                                                     onClick={() => setSelectedId(message.id)}
-                                                    className={`w-full px-4 py-3 text-left transition ${
-                                                        active
-                                                            ? 'bg-blue-50/80 dark:bg-blue-950/40'
-                                                            : 'hover:bg-slate-50 dark:hover:bg-zinc-800/60'
-                                                    }`}
+                                                    className={`prototype-mailbox-message w-full px-4 py-3 text-left transition ${active ? 'is-active' : ''}`}
                                                 >
                                                     <div className="flex items-center justify-between gap-2">
                                                         <span className="flex items-center gap-1.5 text-sm font-semibold text-slate-900 dark:text-zinc-100">
@@ -193,7 +189,7 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                             {selectedMessage && (
                                 <section
                                     aria-label="Email message"
-                                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 md:p-6 lg:col-span-8"
+                                    className="prototype-mailbox-reader rounded-2xl border border-slate-200 bg-white p-5 shadow-xs dark:border-zinc-800 dark:bg-zinc-900 md:p-6 lg:col-span-8"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-200 pb-4 dark:border-zinc-800">
                                         <div>
@@ -225,7 +221,7 @@ export default function PrototypeMailbox({ addresses = [], messages = [], userNa
                                     </div>
 
                                     {selectedMessage.code && (
-                                        <div className="my-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 dark:border-blue-900 dark:bg-blue-950/40">
+                                        <div className="prototype-mailbox-code my-5 flex flex-wrap items-center justify-between gap-4 rounded-xl border-2 border-blue-200 bg-blue-50/70 p-4 dark:border-blue-900 dark:bg-blue-950/40">
                                             <div>
                                                 <p className="text-xs font-medium uppercase tracking-wide text-blue-900 dark:text-blue-200">
                                                     6-digit verification code
