@@ -36,6 +36,30 @@ if [ -z "${APP_KEY:-}" ]; then
     exit 1
 fi
 
+# On Render, prevent stale *.onrender.com APP_URL / ASSET_URL values from breaking same-origin Vite assets
+RENDER_URL="${RENDER_EXTERNAL_URL:-}"
+if [ -z "${RENDER_URL}" ] && [ -n "${RENDER_EXTERNAL_HOSTNAME:-}" ]; then
+    RENDER_URL="https://${RENDER_EXTERNAL_HOSTNAME}"
+fi
+RENDER_URL="${RENDER_URL%/}"
+
+if [ -n "${RENDER_URL}" ]; then
+    APP_URL_CLEAN="${APP_URL:-}"
+    APP_URL_CLEAN="${APP_URL_CLEAN%/}"
+    ASSET_URL_CLEAN="${ASSET_URL:-}"
+    ASSET_URL_CLEAN="${ASSET_URL_CLEAN%/}"
+
+    if [ -z "${APP_URL_CLEAN}" ] || [[ "${APP_URL_CLEAN}" == *".onrender.com"* && "${APP_URL_CLEAN}" != "${RENDER_URL}" ]]; then
+        export APP_URL="${RENDER_URL}"
+    fi
+
+    if [[ "${ASSET_URL_CLEAN}" == *".onrender.com"* ]]; then
+        unset ASSET_URL
+    fi
+fi
+
+echo "TaskMate boot: APP_URL=${APP_URL:-unset} ASSET_URL=${ASSET_URL:-unset}"
+
 # Refresh caches with live runtime environment variables and apply migrations
 php artisan config:clear --no-interaction
 php artisan storage:link --quiet || true
