@@ -55,6 +55,8 @@ services:
       # Prototype beta controls (keep prototype_mode=true for classmate testing)
       - key: TASKMATE_PROTOTYPE_MODE
         value: "true"
+      - key: TASKMATE_SEED_BETA_DATA
+        value: "true"
       # Set MAIL_MAILER=smtp (+ MAIL_HOST/PORT/USERNAME/PASSWORD) to send real Gmail/CMU codes,
       # or keep MAIL_MAILER=log + TASKMATE_PROTOTYPE_MAILBOX=true to use the in-browser Prototype Mail tab.
       - key: MAIL_MAILER
