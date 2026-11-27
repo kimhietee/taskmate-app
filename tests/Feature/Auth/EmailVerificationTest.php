@@ -7,6 +7,7 @@ use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class EmailVerificationTest extends TestCase
@@ -117,5 +118,28 @@ class EmailVerificationTest extends TestCase
 
         Event::assertNotDispatched(Verified::class);
         $this->assertTrue($user->fresh()->hasVerifiedEmail());
+    }
+
+    public function test_email_verification_screen_exposes_prototype_mailbox_props_when_enabled(): void
+    {
+        config([
+            'taskmate.prototype_mode' => true,
+            'mail.default' => 'log',
+            'taskmate.student_verification.code_expiry_minutes' => 15,
+        ]);
+
+        $user = User::factory()->unverified()->create([
+            'email' => 'verify.sample@gmail.com',
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('verification.notice'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('auth/verify-email')
+                ->where('prototypeMailboxEnabled', true)
+                ->where('mailUsesLogDriver', true)
+                ->where('maskedEmail', 've***@gmail.com')
+                ->where('codeExpiryMinutes', 15));
     }
 }
