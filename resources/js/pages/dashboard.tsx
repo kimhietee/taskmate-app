@@ -1,6 +1,7 @@
 import { formatDate, formatDateTime } from "@/lib/format";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import { SafetyNotice } from "@/components/safety-notice";
+import { RatingSummary, type RatingSummaryData } from "@/components/rating-summary";
 import { VerificationStatusBadge } from "@/components/verification-status-badge";
 import { ArrowRight, Bell, Clock3, IdCard, Mail, Star, TriangleAlert } from "lucide-react";
 import { dashboard } from "@/routes";
@@ -17,6 +18,8 @@ type Props = {
     verificationNote?: string | null;
     verifiedAt?: string | null;
     ratingsWaiting?: { id: number; taskTitle: string; daysLeft: number }[];
+    ratingSummary?: RatingSummaryData | null;
+    publicProfileUrl?: string | null;
     warningSanction?: { id: number; reason: string } | null;
     activeSuspension?: {
         id: number;
@@ -41,6 +44,8 @@ export default function Dashboard({
     verificationNote,
     verifiedAt,
     ratingsWaiting = [],
+    ratingSummary = null,
+    publicProfileUrl = null,
     warningSanction,
     activeSuspension,
     sanctionContact,
@@ -261,6 +266,31 @@ export default function Dashboard({
                             </p>
                         )}
                     </section>
+                    {!user.is_admin && ratingSummary && (
+                        <section
+                            className="space-y-3 rounded-2xl border bg-card p-5 shadow-sm"
+                            aria-label="Your rating"
+                        >
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <h2 className="student-dashboard-card-title">
+                                    <span className="student-dashboard-icon student-dashboard-icon--rating">
+                                        <Star aria-hidden="true" />
+                                    </span>
+                                    Your rating
+                                </h2>
+                                {publicProfileUrl && (
+                                    <Link
+                                        className="inline-flex items-center gap-1 text-sm font-medium text-primary underline-offset-4 hover:underline"
+                                        href={publicProfileUrl}
+                                    >
+                                        View my public profile
+                                        <ArrowRight className="size-3.5" aria-hidden="true" />
+                                    </Link>
+                                )}
+                            </div>
+                            <RatingSummary summary={ratingSummary} />
+                        </section>
+                    )}
                 </div>
 
                 <SafetyNotice />

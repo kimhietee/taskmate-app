@@ -198,7 +198,8 @@ class AgreementController extends Controller
         $otherId = $viewer->id === $agreement->poster_id ? $agreement->student_id : $agreement->poster_id;
         $other = $agreement->ratings()->where('rater_id', $otherId)->with('scores')->first();
         $otherVisible = $other && $visibility->isVisibleToOthers($other) ? $other : null;
-        $until = $agreement->task->completion?->completed_at?->copy()->addDays((int) config('taskmate.ratings.window_days', 30));
+        $completedAt = $agreement->completion?->completed_at ?? $agreement->task->completion?->completed_at;
+        $until = $completedAt?->copy()->addDays((int) config('taskmate.ratings.window_days', 30));
         return [
             'canRate' => auth()->user()->can('rate', $agreement),
             'rateUrl' => route('agreements.rate', $agreement, false),
@@ -215,7 +216,7 @@ class AgreementController extends Controller
                 'scores' => $otherVisible->scores->map(fn ($score) => ['dimension' => $score->dimension, 'label' => config('taskmate.ratings.dimensions.'.$otherVisible->direction->value.'.'.$score->dimension, $score->dimension), 'score' => $score->score])->values(),
             ] : null,
             'waiting' => $otherVisible === null && $agreement->task->status === TaskStatus::Completed,
-            'visibility' => config('taskmate.ratings.visibility', 'after_both'),
+            'visibility' => config('taskmate.ratings.visibility', 'immediate'),
         ];
     }
 
@@ -233,7 +234,7 @@ class AgreementController extends Controller
         };
         $settled = $latest?->event === PaymentEventType::ConfirmedReceived
             && $latest->amount !== null
-            && (float) $latest->amount === $agreedAmount;
+            && (float) $latest->amount >= $agreedAmount;
         $userId = $viewer?->id;
         $isPoster = $userId !== null && $userId === $agreement->poster_id;
         $isWorker = $userId !== null && $userId === $agreement->student_id;
@@ -264,6 +265,7 @@ class AgreementController extends Controller
                 'method' => $event->method,
                 'note' => $event->note,
                 'amountMismatch' => $event->amount !== null && (float) $event->amount !== $agreedAmount,
+                'exceedsAgreed' => $event->amount !== null && (float) $event->amount > $agreedAmount,
                 'createdAt' => $event->created_at?->toDateTimeString(),
             ])->values(),
             'activeReportId' => $activeReport?->id,

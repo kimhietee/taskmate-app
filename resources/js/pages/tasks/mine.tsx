@@ -199,7 +199,7 @@ export default function MyTasks({ tasks, status }: Props) {
                                     · {task.applicantsCount} applicants
                                 </p>
                                 {task.reviewNote && (
-                                    <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                                    <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100">
                                         Review note: {task.reviewNote}
                                     </div>
                                 )}

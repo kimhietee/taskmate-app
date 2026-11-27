@@ -145,7 +145,7 @@ class AdminTasksController extends Controller
             'paymentStatus' => $paymentStatus->value,
             'paymentStatusLabel' => $paymentStatus->label(),
             'agreedAmount' => $agreement->currentVersion->final_amount,
-            'settled' => $latest?->event === PaymentEventType::ConfirmedReceived && $latest->amount !== null && (float) $latest->amount === $agreedAmount,
+            'settled' => $latest?->event === PaymentEventType::ConfirmedReceived && $latest->amount !== null && (float) $latest->amount >= $agreedAmount,
             'completion' => $completion ? ['deliveredAt' => $completion->delivered_at?->toDateTimeString(), 'deliveredNote' => $completion->delivered_note, 'completedAt' => $completion->completed_at?->toDateTimeString(), 'completionNote' => $completion->completion_note] : null,
             'events' => $events->map(fn ($event) => [
                 'id' => $event->id, 'event' => $event->event->value,
@@ -157,6 +157,7 @@ class AdminTasksController extends Controller
                 'actorName' => $event->actor->name, 'amount' => $event->amount, 'paidOn' => $event->paid_on?->toDateString(),
                 'method' => $event->method, 'note' => $event->note, 'createdAt' => $event->created_at?->toDateTimeString(),
                 'amountMismatch' => $event->amount !== null && (float) $event->amount !== $agreedAmount,
+                'exceedsAgreed' => $event->amount !== null && (float) $event->amount > $agreedAmount,
             ])->values(),
             'activeReportId' => null, 'canMarkDelivered' => false, 'canRecordCompletion' => false,
             'canMarkPaid' => false, 'canRespondPayment' => false, 'canReportNonPayment' => false, 'paymentMethods' => [],

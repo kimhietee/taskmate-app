@@ -25,14 +25,14 @@ class RatingVisibility
 
     public function visibleToOthers(Builder $query): void
     {
-        if (config('taskmate.ratings.visibility', 'after_both') === 'immediate') {
+        if (config('taskmate.ratings.visibility', 'immediate') === 'immediate') {
             return;
         }
 
         $windowDays = (int) config('taskmate.ratings.window_days', 30);
         $query->whereHas('agreement', function (Builder $agreement) use ($windowDays): void {
             $agreement->where(function (Builder $mature) use ($windowDays): void {
-                $mature->whereHas('task.completion', fn (Builder $completion) => $completion->where('completed_at', '<=', now()->subDays($windowDays)))
+                $mature->whereHas('completion', fn (Builder $completion) => $completion->where('completed_at', '<=', now()->subDays($windowDays)))
                     ->orHas('ratings', '>=', 2);
             });
         });
@@ -46,16 +46,16 @@ class RatingVisibility
     public function isVisibleToOthers(Rating $rating): bool
     {
         if ($rating->is_hidden) return false;
-        if (config('taskmate.ratings.visibility', 'after_both') === 'immediate') return true;
+        if (config('taskmate.ratings.visibility', 'immediate') === 'immediate') return true;
         $agreement = $rating->agreement;
-        $completedAt = $agreement->task->completion?->completed_at;
+        $completedAt = $agreement->completion?->completed_at ?? $agreement->task?->completion?->completed_at;
         return $this->bothSubmitted($agreement)
             || ($completedAt !== null && $completedAt->copy()->addDays((int) config('taskmate.ratings.window_days', 30))->isPast());
     }
 
     public function windowClosed(Agreement $agreement): bool
     {
-        $completedAt = $agreement->task->completion?->completed_at;
+        $completedAt = $agreement->completion?->completed_at ?? $agreement->task?->completion?->completed_at;
         return $completedAt !== null && $completedAt->copy()->addDays((int) config('taskmate.ratings.window_days', 30))->isPast();
     }
 }

@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { formatDateTime, formatAmount } from '@/lib/format';
 import { Form, Link } from '@inertiajs/react';
+import { TriangleAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +22,7 @@ type Event = {
     note: string | null;
     createdAt: string | null;
     amountMismatch: boolean;
+    exceedsAgreed?: boolean;
 };
 type Completion = {
     deliveredAt: string | null;
@@ -51,7 +54,44 @@ export function CompletionPaymentPanel({
     data: CompletionPaymentData;
     readOnly?: boolean;
 }) {
+    const [paidAmount, setPaidAmount] = useState(data.agreedAmount ?? '');
+    const [receivedAmount, setReceivedAmount] = useState('');
+
+    const agreedNumeric = Number(data.agreedAmount);
+    const parsePositiveAmount = (raw: string) => {
+        if (raw.trim() === '') return null;
+        const n = Number(raw);
+        return Number.isFinite(n) && n > 0 ? n : null;
+    };
+
+    const paidNumeric = parsePositiveAmount(paidAmount);
+    const paidExceedsAgreed =
+        paidNumeric !== null &&
+        Number.isFinite(agreedNumeric) &&
+        paidNumeric > agreedNumeric;
+
+    const receivedNumeric = parsePositiveAmount(receivedAmount);
+    const receivedExceedsAgreed =
+        receivedNumeric !== null &&
+        Number.isFinite(agreedNumeric) &&
+        receivedNumeric > agreedNumeric;
+    const receivedBelowAgreed =
+        receivedNumeric !== null &&
+        Number.isFinite(agreedNumeric) &&
+        receivedNumeric < agreedNumeric;
+
+    const isEventExceeds = (event: Event) =>
+        event.exceedsAgreed ??
+        (event.amount !== null &&
+            Number.isFinite(agreedNumeric) &&
+            Number(event.amount) > agreedNumeric);
+
     const hasAmountMismatch = data.events.some((event) => event.amountMismatch);
+    const hasAmountExceeds = data.events.some(isEventExceeds);
+    const latestEvent = data.events[data.events.length - 1] ?? null;
+    const settledExceedsAgreed =
+        data.settled && latestEvent !== null && isEventExceeds(latestEvent);
+
     return (
         <section
             id="completion-payment"
@@ -196,16 +236,27 @@ export function CompletionPaymentPanel({
                     Agreed amount: ₱{formatAmount(data.agreedAmount)}
                 </span>
                 {data.settled && (
-                    <span className="text-sm text-green-800">
-                        The agreed amount was confirmed received.
+                    <span className="text-sm font-medium text-success-fg">
+                        {settledExceedsAgreed
+                            ? 'Payment confirmed received (exceeds the agreed amount).'
+                            : 'The agreed amount was confirmed received.'}
                     </span>
                 )}
             </div>
             {hasAmountMismatch && (
-                <p className="rounded-lg border border-amber-400 bg-amber-50 p-3 text-sm text-amber-950">
-                    A recorded payment amount differs from the agreed amount of
-                    ₱{formatAmount(data.agreedAmount)}. Both parties can see the
-                    payment history.
+                <p
+                    role="status"
+                    className="flex items-start gap-2.5 rounded-lg border border-warning-border bg-warning-bg p-3 text-sm text-warning-fg"
+                >
+                    <TriangleAlert
+                        className="mt-0.5 size-4 shrink-0"
+                        aria-hidden="true"
+                    />
+                    <span>
+                        {hasAmountExceeds
+                            ? `A recorded payment amount exceeds the agreed amount of ₱${formatAmount(data.agreedAmount)}. The payment is accepted, and both parties can see the difference in the payment history.`
+                            : `A recorded payment amount differs from the agreed amount of ₱${formatAmount(data.agreedAmount)}. Both parties can see the payment history.`}
+                    </span>
                 </p>
             )}
             {!readOnly && data.canMarkPaid && (
@@ -232,7 +283,10 @@ export function CompletionPaymentPanel({
                                     min="1"
                                     max="1000000"
                                     step="0.01"
-                                    defaultValue={data.agreedAmount}
+                                    value={paidAmount}
+                                    onChange={(event) =>
+                                        setPaidAmount(event.target.value)
+                                    }
                                     required
                                 />
                                 <InputError message={errors.amount} />
@@ -295,6 +349,25 @@ export function CompletionPaymentPanel({
                                 />
                                 <InputError message={errors.note} />
                             </div>
+                            {paidExceedsAgreed && paidNumeric !== null && (
+                                <p
+                                    role="status"
+                                    className="flex items-start gap-2.5 rounded-lg border border-warning-border bg-warning-bg p-3 text-sm text-warning-fg sm:col-span-2"
+                                >
+                                    <TriangleAlert
+                                        className="mt-0.5 size-4 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                    <span>
+                                        Exceeds agreed amount: ₱
+                                        {formatAmount(paidNumeric)} is greater
+                                        than the agreed amount of ₱
+                                        {formatAmount(data.agreedAmount)}. You
+                                        can still record this payment — both
+                                        parties will see the difference.
+                                    </span>
+                                </p>
+                            )}
                             <Button
                                 className="sm:col-span-2 sm:w-fit"
                                 type="submit"
@@ -315,38 +388,97 @@ export function CompletionPaymentPanel({
                         {...agreements.payments.confirmReceived.form(
                             agreementId,
                         )}
-                        className="flex flex-wrap items-end gap-3"
+                        onSuccess={() => setReceivedAmount('')}
+                        className="space-y-3"
                     >
                         {({ errors, processing }) => (
                             <>
-                                <div>
-                                    <label
-                                        className="mb-1 block text-sm"
-                                        htmlFor="received-amount"
-                                    >
-                                        Amount received (optional)
-                                    </label>
-                                    <Input
-                                        id="received-amount"
-                                        name="amount"
-                                        type="number"
-                                        min="1"
-                                        max="1000000"
-                                        step="0.01"
-                                        aria-describedby={
-                                            errors.amount
-                                                ? 'received-amount-error'
-                                                : undefined
-                                        }
-                                    />
-                                    <InputError
-                                        id="received-amount-error"
-                                        message={errors.amount}
-                                    />
+                                <div className="flex flex-wrap items-end gap-3">
+                                    <div>
+                                        <label
+                                            className="mb-1 block text-sm"
+                                            htmlFor="received-amount"
+                                        >
+                                            Amount received (optional)
+                                        </label>
+                                        <Input
+                                            id="received-amount"
+                                            name="amount"
+                                            type="number"
+                                            min="1"
+                                            max="1000000"
+                                            step="0.01"
+                                            value={receivedAmount}
+                                            onChange={(event) =>
+                                                setReceivedAmount(
+                                                    event.target.value,
+                                                )
+                                            }
+                                            aria-describedby={
+                                                errors.amount
+                                                    ? 'received-amount-error'
+                                                    : undefined
+                                            }
+                                        />
+                                        <InputError
+                                            id="received-amount-error"
+                                            message={errors.amount}
+                                        />
+                                    </div>
+                                    <Button type="submit" disabled={processing}>
+                                        Confirm I received it
+                                    </Button>
                                 </div>
-                                <Button type="submit" disabled={processing}>
-                                    Confirm I received it
-                                </Button>
+                                {receivedExceedsAgreed &&
+                                    receivedNumeric !== null && (
+                                        <p
+                                            role="status"
+                                            className="flex items-start gap-2.5 rounded-lg border border-warning-border bg-warning-bg p-3 text-sm text-warning-fg"
+                                        >
+                                            <TriangleAlert
+                                                className="mt-0.5 size-4 shrink-0"
+                                                aria-hidden="true"
+                                            />
+                                            <span>
+                                                Exceeds agreed amount: ₱
+                                                {formatAmount(receivedNumeric)}{' '}
+                                                is greater than the agreed
+                                                amount of ₱
+                                                {formatAmount(
+                                                    data.agreedAmount,
+                                                )}
+                                                . You can still accept and
+                                                confirm this payment — both
+                                                parties will be notified and see
+                                                it in the payment history.
+                                            </span>
+                                        </p>
+                                    )}
+                                {receivedBelowAgreed &&
+                                    receivedNumeric !== null && (
+                                        <p
+                                            role="status"
+                                            className="flex items-start gap-2.5 rounded-lg border border-warning-border bg-warning-bg p-3 text-sm text-warning-fg"
+                                        >
+                                            <TriangleAlert
+                                                className="mt-0.5 size-4 shrink-0"
+                                                aria-hidden="true"
+                                            />
+                                            <span>
+                                                Below agreed amount: ₱
+                                                {formatAmount(receivedNumeric)}{' '}
+                                                is less than the agreed amount
+                                                of ₱
+                                                {formatAmount(
+                                                    data.agreedAmount,
+                                                )}
+                                                . You can still record it, and
+                                                payment will stay unsettled
+                                                until the full agreed amount is
+                                                confirmed.
+                                            </span>
+                                        </p>
+                                    )}
                             </>
                         )}
                     </Form>
@@ -380,7 +512,7 @@ export function CompletionPaymentPanel({
                 <Form
                     {...agreements.reports.store.form(agreementId)}
                     encType="multipart/form-data"
-                    className="space-y-3 rounded-lg border border-red-200 p-4 print:hidden"
+                    className="space-y-3 rounded-lg border border-danger-border p-4 print:hidden"
                 >
                     {({ errors, processing }) => (
                         <>
@@ -411,7 +543,7 @@ export function CompletionPaymentPanel({
                                 id="non-payment-description-error"
                                 message={errors.description}
                             />
-                            <p className="text-sm text-amber-900">
+                            <p className="text-sm text-warning-fg">
                                 Do not upload government ID photos, selfies, or
                                 other sensitive documents beyond what is needed.
                                 Payment or chat screenshots may help.
@@ -458,7 +590,7 @@ export function CompletionPaymentPanel({
                     data.events.map((event) => (
                         <article
                             key={event.id}
-                            className={`space-y-1 rounded-lg border p-3 text-sm ${event.amountMismatch ? 'border-amber-400 bg-amber-50' : ''}`}
+                            className={`space-y-1 rounded-lg border p-3 text-sm ${event.amountMismatch ? 'border-warning-border bg-warning-bg/70' : ''}`}
                         >
                             <div className="flex flex-wrap justify-between gap-2">
                                 <strong>{event.eventLabel}</strong>
@@ -477,8 +609,10 @@ export function CompletionPaymentPanel({
                                 {event.method ? ` · ${event.method}` : ''}
                             </p>
                             {event.amountMismatch && (
-                                <p className="font-medium text-amber-900">
-                                    This amount differs from the agreed amount.
+                                <p className="font-medium text-warning-fg">
+                                    {isEventExceeds(event)
+                                        ? `This amount exceeds the agreed amount of ₱${formatAmount(data.agreedAmount)}.`
+                                        : 'This amount differs from the agreed amount.'}
                                 </p>
                             )}
                             {event.note && (

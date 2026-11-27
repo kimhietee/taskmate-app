@@ -1,5 +1,5 @@
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, UserRound } from 'lucide-react';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -48,6 +48,19 @@ export function UserMenuContent({ user }: Props) {
                             onClick={cleanup}
                         >
                             Admin dashboard
+                        </Link>
+                    </DropdownMenuItem>
+                )}
+                {!user.is_admin && user.verification_status === 'verified' && (
+                    <DropdownMenuItem asChild>
+                        <Link
+                            className="block w-full cursor-pointer"
+                            href={`/users/${user.id}`}
+                            prefetch
+                            onClick={cleanup}
+                        >
+                            <UserRound className="mr-2" />
+                            My public profile
                         </Link>
                     </DropdownMenuItem>
                 )}

@@ -345,4 +345,39 @@ class CompletionPaymentReportsTest extends TestCase
         $this->get(route('admin.reports.index', ['status' => 'under_review', 'type' => 'non_payment', 'search' => $reviewPair['student']->name]))
             ->assertOk()->assertInertia(fn (Assert $page) => $page->has('reports.data', 1)->where('reports.data.0.id', $reviewReport->id));
     }
+
+    public function test_payment_received_greater_than_agreed_amount_is_accepted_settled_and_notifies_both_parties(): void
+    {
+        $pair = $this->lockedAgreement();
+
+        $markPaidResponse = $this->postPaid($pair, ['amount' => '1500.00']);
+        $markPaidResponse->assertRedirect()->assertSessionHas('status');
+        $this->assertStringContainsString('exceeds the agreed amount', (string) session('status'));
+
+        $confirmResponse = $this->actingAs($pair['student'])
+            ->post(route('agreements.payments.confirm-received', $pair['agreement']), ['amount' => '1500.00']);
+        $confirmResponse->assertRedirect()->assertSessionHas('status');
+        $this->assertStringContainsString('exceeds the agreed amount', (string) session('status'));
+
+        $agreement = $pair['agreement']->fresh();
+        $this->assertSame(PaymentStatus::ConfirmedReceived, $agreement->paymentStatus());
+        $this->assertTrue($agreement->paymentIsSettled());
+
+        $posterAlert = $pair['poster']->notifications()->latest('created_at')->firstOrFail();
+        $this->assertSame('payment.received_exceeds', $posterAlert->data['event']);
+        $this->assertStringContainsString('exceeds the agreed amount', (string) $posterAlert->data['body']);
+
+        $this->actingAs($pair['student'])
+            ->get(route('agreements.show', $agreement))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('agreements/show')
+                ->where('completionPayment.settled', true)
+                ->where('completionPayment.canMarkPaid', false)
+                ->where('completionPayment.canRespondPayment', false)
+                ->where('completionPayment.events.1.exceedsAgreed', true)
+                ->where('completionPayment.events.1.amountMismatch', true));
+
+        $this->postPaid($pair, ['amount' => '1400.00'])->assertInvalid('payment');
+    }
 }

@@ -34,3 +34,11 @@ test('public rating summary shows only the overall average and count', () => {
     assert.doesNotMatch(markup, /Communication/);
     assert.match(markup, /Ratings are contextual information/);
 });
+
+test('public rating summary uses singular label for one rating', () => {
+    const markup = renderToStaticMarkup(React.createElement(RatingSummary, {
+        summary: { count: 1, average: 5 },
+    }));
+
+    assert.match(markup, /5 average · 1 rating(?!s)/);
+});

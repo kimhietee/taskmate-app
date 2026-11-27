@@ -73,9 +73,14 @@ class PaymentWorkflow
         $recipientId = $event === PaymentEventType::MarkedPaid ? $agreement->student_id : $agreement->poster_id;
         $recipient = User::query()->findOrFail($recipientId);
         $task = Task::query()->findOrFail($agreement->task_id);
+        $agreement->loadMissing('currentVersion');
+        $exceedsAgreed = $event === PaymentEventType::ConfirmedReceived
+            && $amount !== null
+            && $agreement->currentVersion !== null
+            && (float) $amount > (float) $agreement->currentVersion->final_amount;
         $alertEvent = match ($event) {
             PaymentEventType::MarkedPaid => 'payment.marked',
-            PaymentEventType::ConfirmedReceived => 'payment.received',
+            PaymentEventType::ConfirmedReceived => $exceedsAgreed ? 'payment.received_exceeds' : 'payment.received',
             PaymentEventType::ReportedNotReceived => 'payment.not_received',
         };
         $this->alerts->send($recipient, $alertEvent, route('agreements.show', $agreement->id, false), ['task_id' => $task->id, 'agreement_id' => $agreement->id], ['task_title' => $task->title], $actor->id);

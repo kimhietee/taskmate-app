@@ -133,6 +133,7 @@ class RatingsTest extends TestCase
 
     public function test_window_expiry_releases_rating_and_summary_threshold_is_respected(): void
     {
+        config(['taskmate.ratings.visibility' => 'after_both', 'taskmate.ratings.min_count_for_average' => 3]);
         $pair = $this->completedPair(['completed_at' => now()->subDays(31)]);
         $rating = new Rating;
         $rating->agreement_id = $pair['agreement']->id;
@@ -218,5 +219,136 @@ class RatingsTest extends TestCase
             ->missing('profile.reportCount')
             ->has('profile.ratingSummary')
             ->missing('profile.ratingSummary.dimensions'));
+    }
+
+    public function test_rating_form_provides_direction_dimensions_and_relative_report_url(): void
+    {
+        $pair = $this->completedPair();
+        $expectedReportUrl = route('agreements.show', $pair['agreement'], false);
+
+        $this->actingAs($pair['poster'])->get(route('agreements.rate', $pair['agreement']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ratings/create')
+                ->where('direction', 'poster_to_student')
+                ->where('reportUrl', $expectedReportUrl)
+                ->where('visibility', 'immediate')
+                ->has('dimensions', count(config('taskmate.ratings.dimensions.poster_to_student'))));
+
+        $this->actingAs($pair['student'])->get(route('agreements.rate', $pair['agreement']))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('ratings/create')
+                ->where('direction', 'student_to_poster')
+                ->where('reportUrl', $expectedReportUrl)
+                ->where('visibility', 'immediate')
+                ->has('dimensions', count(config('taskmate.ratings.dimensions.student_to_poster'))));
+    }
+
+    public function test_employer_and_student_ratings_reflect_immediately_across_profiles_dashboard_and_listings(): void
+    {
+        $pair = $this->completedPair();
+        $student = $pair['student'];
+        $poster = $pair['poster'];
+
+        $secondPoster = User::factory()->verified()->facultyStaff()->create();
+        $secondTask = Task::factory()->approved()->for($secondPoster, 'poster')->create([
+            'work_mode' => 'remote',
+            'workplace_name' => null,
+            'workplace_address' => null,
+            'workplace_setting' => null,
+        ]);
+        \App\Models\Application::factory()->for($secondTask)->for($student, 'applicant')->create();
+
+        $openPosterTask = Task::factory()->approved()->for($poster, 'poster')->create([
+            'work_mode' => 'remote',
+            'workplace_name' => null,
+            'workplace_address' => null,
+            'workplace_setting' => null,
+        ]);
+
+        // Employer rates student on all 5 poster_to_student dimensions.
+        $this->actingAs($poster)
+            ->post(route('agreements.rate.store', $pair['agreement']), $this->payload([
+                'overall_experience' => 5,
+                'comment' => 'Great work delivered on time.',
+            ]))
+            ->assertRedirect(route('agreements.show', $pair['agreement']));
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $student->id,
+        ]);
+        $this->assertSame('rating.visible', $student->notifications()->firstOrFail()->data['event']);
+
+        // Student's public profile, dashboard, agreement view, and applicant summary immediately reflect the rating.
+        $this->actingAs($poster)->get(route('users.show', $student))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('profile.ratingSummary.count', 1)
+            ->where('profile.ratingSummary.average', 5)
+            ->where('ratings.0.overall', 5)
+            ->where('ratings.0.comment', 'Great work delivered on time.'));
+
+        $this->actingAs($student)->get(route('taskmate.dashboard'))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('ratingSummary.count', 1)
+            ->where('ratingSummary.average', 5)
+            ->where('publicProfileUrl', route('users.show', $student, false)));
+
+        $this->actingAs($secondPoster)->get(route('tasks.show', $secondTask))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('applicants.0.applicant.ratingSummary.count', 1)
+            ->where('applicants.0.applicant.ratingSummary.average', 5));
+
+        $this->actingAs($student)->get(route('agreements.show', $pair['agreement']))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('ratings.other.overall', 5)
+            ->where('ratings.canRate', true));
+
+        // Student rates employer on all 4 student_to_poster dimensions.
+        $this->actingAs($student)->post(route('agreements.rate.store', $pair['agreement']), [
+            'overall_experience' => 4,
+            'comment' => 'Clear expectations throughout.',
+            'scores' => [
+                'job_description_accuracy' => 4,
+                'reliability' => 4,
+                'communication' => 5,
+                'professionalism' => 4,
+            ],
+        ])->assertRedirect(route('agreements.show', $pair['agreement']));
+
+        $this->actingAs($student)->get(route('users.show', $poster))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('profile.ratingSummary.count', 1)
+            ->where('profile.ratingSummary.average', 4)
+            ->where('ratings.0.overall', 4)
+            ->where('ratings.0.comment', 'Clear expectations throughout.'));
+
+        $otherStudent = User::factory()->verified()->create();
+        $this->actingAs($otherStudent)->get(route('browse.show', $openPosterTask))->assertOk()->assertInertia(fn (Assert $page) => $page
+            ->where('poster.ratingSummary.count', 1)
+            ->where('poster.ratingSummary.average', 4));
+    }
+
+    public function test_submitting_rating_without_dimension_scores_fails_validation(): void
+    {
+        $pair = $this->completedPair();
+
+        $this->actingAs($pair['poster'])
+            ->from(route('agreements.rate', $pair['agreement']))
+            ->post(route('agreements.rate.store', $pair['agreement']), ['overall_experience' => 5])
+            ->assertSessionHasErrors([
+                'scores',
+                'scores.work_quality',
+                'scores.reliability',
+                'scores.communication',
+                'scores.professionalism',
+                'scores.timeliness',
+            ]);
+
+        $this->actingAs($pair['student'])
+            ->from(route('agreements.rate', $pair['agreement']))
+            ->post(route('agreements.rate.store', $pair['agreement']), ['overall_experience' => 4])
+            ->assertSessionHasErrors([
+                'scores',
+                'scores.job_description_accuracy',
+                'scores.reliability',
+                'scores.communication',
+                'scores.professionalism',
+            ]);
     }
 }

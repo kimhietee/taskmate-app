@@ -92,6 +92,7 @@ type Props = {
         statusLabel: string;
         paymentStatus: string;
         paymentStatusLabel: string;
+        needsRating?: boolean;
     } | null;
     canProposeAgreement: boolean;
     problemReport?: {
@@ -232,13 +233,22 @@ export default function ShowTask({
                                 />
                             </div>
                         </div>
-                        <Button asChild>
-                            <Link href={agreements.show(agreement.id)}>
-                                {agreement.status === 'draft'
-                                    ? 'Review and send agreement'
-                                    : 'View agreement'}
-                            </Link>
-                        </Button>
+                        <div className="flex flex-wrap items-center gap-2">
+                            {agreement.needsRating && (
+                                <Button variant="outline" asChild>
+                                    <Link href={agreements.rate(agreement.id)}>
+                                        Rate your experience
+                                    </Link>
+                                </Button>
+                            )}
+                            <Button asChild>
+                                <Link href={agreements.show(agreement.id)}>
+                                    {agreement.status === 'draft'
+                                        ? 'Review and send agreement'
+                                        : 'View agreement'}
+                                </Link>
+                            </Button>
+                        </div>
                     </section>
                 )}
                 {canProposeAgreement && (
@@ -302,7 +312,7 @@ export default function ShowTask({
                                 {problemReport?.flaggedApplicants.includes(
                                     application.id,
                                 ) && (
-                                    <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                                    <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100">
                                         This message contains a request to move
                                         outside TaskMate or skip its steps. Be
                                         careful, keep agreements and
@@ -412,7 +422,7 @@ export default function ShowTask({
                     />
                 )}
                 {problemReport?.offPlatformWarning && (
-                    <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">
+                    <div className="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100">
                         This message contains a request to move outside TaskMate
                         or skip its steps. Be careful, keep agreements and
                         communications on record, and report anything that makes
@@ -420,7 +430,7 @@ export default function ShowTask({
                     </div>
                 )}
                 {task.hasActiveApplications && task.status !== 'assigned' && (
-                    <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                    <p className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-100">
                         This task has active applicants. Cancel it and post a
                         new task to change its details.
                     </p>

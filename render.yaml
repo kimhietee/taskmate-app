@@ -73,6 +73,10 @@ services:
         value: "true"
       - key: TASKMATE_UNVERIFIED_STUDENTS_CAN_BROWSE
         value: "true"
+      - key: TASKMATE_RATINGS_VISIBILITY
+        value: immediate
+      - key: TASKMATE_RATINGS_MIN_COUNT_FOR_AVERAGE
+        value: "1"
 
 databases:
   - name: taskmate-db

@@ -281,9 +281,9 @@ return [
                 'professionalism' => 'Professionalism',
             ],
         ],
-        'window_days' => 30,
-        'visibility' => 'after_both',
-        'min_count_for_average' => 3,
+        'window_days' => (int) env('TASKMATE_RATINGS_WINDOW_DAYS', 30),
+        'visibility' => env('TASKMATE_RATINGS_VISIBILITY', 'immediate'),
+        'min_count_for_average' => (int) env('TASKMATE_RATINGS_MIN_COUNT_FOR_AVERAGE', 1),
         'comment_max_length' => 1000,
     ],
 ];

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 type ShowAgreementProps = {
     agreement: any;
     completionPayment: CompletionPaymentData;
+    ratings?: React.ComponentProps<typeof AgreementDetails>['ratings'];
     viewerId: number;
     actionsAllowed: boolean;
     notice: string;

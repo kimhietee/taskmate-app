@@ -20,7 +20,7 @@ export function RatingSummary({ summary }: { summary: RatingSummaryData }) {
                             label="Average rating"
                         />{' '}
                         <span>
-                            {summary.average} average · {summary.count} ratings
+                            {summary.average} average · {summary.count} rating{summary.count === 1 ? '' : 's'}
                         </span>
                     </>
                 )}

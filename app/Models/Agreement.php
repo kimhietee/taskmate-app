@@ -59,7 +59,7 @@ class Agreement extends Model
         $latest = $this->paymentEvents()->reorder()->latest('id')->first();
         return $latest?->event === PaymentEventType::ConfirmedReceived
             && $latest->amount !== null
-            && (float) $latest->amount === (float) $this->currentVersion->final_amount;
+            && (float) $latest->amount >= (float) $this->currentVersion->final_amount;
     }
 
     public function latestPaymentEvent(): ?PaymentEvent

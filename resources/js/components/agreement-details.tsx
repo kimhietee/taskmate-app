@@ -613,8 +613,13 @@ export function AgreementDetails({
                     ) : (
                         ratings.waiting && (
                             <p className="rounded-lg border border-border bg-muted/40 p-3.5 text-sm tabular-nums text-muted-foreground print:rounded-none print:border-black/40 print:bg-white print:text-black">
-                                Waiting for the other party or until{' '}
-                                {ratings.windowDate ? formatDate(ratings.windowDate) : 'the rating window closes'}.
+                                {ratings.visibility === 'immediate'
+                                    ? 'The other party has not submitted a rating yet.'
+                                    : `Waiting for the other party or until ${
+                                          ratings.windowDate
+                                              ? formatDate(ratings.windowDate)
+                                              : 'the rating window closes'
+                                      }.`}
                             </p>
                         )
                     )}

@@ -28,8 +28,8 @@ class RatingController extends Controller
             'rateeName' => $ratee->isOrganization() ? $ratee->organization_name : $ratee->name,
             'dimensions' => collect(config("taskmate.ratings.dimensions.{$direction->value}", []))->map(fn ($label, $key) => compact('key', 'label'))->values(),
             'commentMaxLength' => config('taskmate.ratings.comment_max_length', 1000),
-            'visibility' => config('taskmate.ratings.visibility', 'after_both'),
-            'reportUrl' => route('agreements.show', $agreement),
+            'visibility' => config('taskmate.ratings.visibility', 'immediate'),
+            'reportUrl' => route('agreements.show', $agreement, false),
             'status' => $request->session()->get('status'),
         ]);
     }
@@ -37,7 +37,7 @@ class RatingController extends Controller
     public function store(StoreRatingRequest $request, Agreement $agreement, RatingWorkflow $workflow): RedirectResponse
     {
         $workflow->submit($agreement, $request->user(), $request->validated());
-        $next = config('taskmate.ratings.visibility', 'after_both') === 'immediate'
+        $next = config('taskmate.ratings.visibility', 'immediate') === 'immediate'
             ? 'Your rating is now visible to the other person.'
             : 'Your rating stays hidden from the other person until both of you have rated or the '.(int) config('taskmate.ratings.window_days', 30).'-day rating window closes.';
         return redirect()->route('agreements.show', $agreement)->with('status', 'Thank you for sharing your feedback. '.$next);
